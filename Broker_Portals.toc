@@ -1,0 +1,19 @@
+## Interface: 20501
+## Title: Broker - |cffffffffPortals|r
+## Notes: Provides access to all Portal and Teleport spells on right click of one button.
+## Author: CrazyBenny of Stormrage-EU
+## X-Email: michal AT svab DOT net
+## LastUpdate: 2020-01-26T13:02:10Z
+## Version: 1.11.1
+## OptionalDeps: LibDBIcon-1.0
+
+## SavedVariables: PortalsDB
+
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+libs\LibDewdrop-3.0\LibDewdrop-3.0.lua
+libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
+
+locales.lua
+portals.lua

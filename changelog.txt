@@ -1,0 +1,200 @@
+1.11.1:
+  - update: added Noble Gardener's Hearthstone and G.E.A.R. Tracking Beacon
+
+1.11.0:
+  - update: updated for 8.3 (thank you dabear78!)
+  - update: added bunch of missing items
+
+1.10.2:
+  - update: updated for 8.1
+  - update: added bunch of missing items
+  - update: move Hearthstone alternatives to other teleport items (thank you Khormin!)
+
+1.10.1:
+  - update: added DarkIron Dwarf Mole Machine (thank you DaBear78!)
+
+1.10.0:
+  - update: updated for 8.0
+  - feature: moved Flight Master's Whistle to separate category (thank you NLZ!)
+  - update: added a lot of missing items (thank you NLZ!)
+  - update: added BfA mage portals (thank you tiker!)
+
+1.9.2:
+  - update: updated for 7.2
+  - update: added Scroll of Teleport: Ravenholdt and Tome of Town Portal
+
+1.9.1:
+  - update: updated for 7.1
+
+1.9.0:
+  - feature: make font size configurable
+
+1.8.51:
+  - update: added Mobile Telemancy Beacon
+
+1.8.50:
+  - update: added Flight Master's Whistle
+
+1.8.49:
+  - update: added some Legion spells and items
+
+1.8.48:
+  - update: fix error in item cooldowns
+
+1.8.47:
+  - update: added Nature's Beacon
+
+1.8.46:
+  - update: tweak item cooldown display
+  - update: added 7.0 challenge spells
+  - update: fixes for toys
+
+1.8.45:
+  - update: more fixes for 7.0.3
+
+1.8.44:
+  - update: more fixes for 7.0.3 (thank you tiker!)
+
+1.8.43:
+  - update: updated for 7.0.3 (thank you tiker!)
+
+1.8.42:
+  - update: added Pit Fighter's Punching Ring
+
+1.8.41:
+  - update: added Bladespire Relic
+
+1.8.39:
+  - update: updated for 6.2.0
+
+1.8.38:
+  - update: added Relic of Karabor
+
+1.8.37:
+  - update: updated for 6.0.3
+
+1.8.36:
+  - feature: color item names according to their item quality
+  - update: added One with Nature
+
+1.8.35:
+  - update: Added Zen Pilgrimage
+
+1.8.34:
+  - update: updated for patch 5.4
+
+1.8.33:
+  - update: added more missing items
+
+1.8.32:
+  - update: added Ancient Dalaran teleports for the Horde
+  - update: added golden challenge teleports
+
+1.8.31:
+  - update: updated for patch 5.3
+
+1.8.30:
+  - update: added Ancient Dalaran teleports
+
+1.8.29:
+  - update: added Wormhole Generator: Pandaria and Vale of Eternal Blossoms portals
+
+1.8.28:
+  - bugfix: fixed error for mages that didn't learn all teleports yet
+
+1.8.27:
+  - update: updated for patch 5.0.4
+
+1.8.26:
+  - bugfix: fixed spamming random numbers in chat during loading
+
+1.8.25:
+  - update: updated for patch 4.3
+
+1.8.24:
+  - update: updated for patch 4.2
+
+1.8.23:
+  - bugfix: Teleport: Moonglade is now back!
+
+1.8.22:
+  - bugfix: fixed error on classes with no teleporting spells
+
+1.8.21:
+  - update: added Have Group, Will Travel
+  - update: updated for patch 4.1
+  - update: improved hearthstone support
+  - bugfix: made item cooldowns below 1 min readable
+
+1.8.20:
+  - update: moved The Innkeeper's Daughter back to the list of other items, where it actually belongs
+
+1.8.19:
+  - update: added some more Cataclysm items
+
+1.8.18:
+  - update: added The Innkeeper's Daughter
+
+1.8.17:
+  - update: added some more Cataclysm items
+
+1.8.16:
+  - update: added some of the new Cataclysm items
+
+1.8.15:
+  - bugfix: fixed occasional problems with scrolls of recall
+
+1.8.14:
+  - bugfix: sometimes wrong icons were displayed
+
+1.8.13:
+  - update: added The Schools of Arcane Magic - Mastery
+
+1.8.12:
+  - bugfix: shouting to chat when casting a portal was broken
+
+1.8.11:
+  - update: updated for patch 4.0.1
+
+1.8.10:
+  - bugfix: was displaying spells, that I din't have reagents for
+  - feature: added option to output casting portals to chat (off by default)
+
+1.8.9:
+  - update: added spanish (esMX) and chinese (zhCN) localizations
+
+1.8.8:
+  - feature: don't show spells, that we don't have reagent for
+
+1.8.7:
+  - update: added Jaina's Locket
+
+1.8.6:
+  - bugfix: addon could cause problems with some other addons
+
+1.8.5:
+  - feature: shows cooldowns of teleportation items in tooltip (can be turned off)
+  - bugfix: if cooldown is lower than 1 min, it shows correctly remaining seconds
+
+1.8.4:
+  - update: added new Kirin Tor rings
+
+1.8.3:
+  - update: updated for patch 3.3
+  - update: added Boots of the Bay
+
+1.8.2:
+  - bugfix: didn't include koKR locale in files
+
+1.8.1:
+  - update: korean (koKR) locale
+
+1.8:
+  - feature: teleportation items are now supported
+  - feature: all scrolls of recall are supported, the better, the higher priority
+
+1.7.9:
+  - update: TOC for patch 3.2
+
+1.7.8:
+  - bugfix: tooltip overlapping portal menu
