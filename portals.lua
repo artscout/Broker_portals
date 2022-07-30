@@ -33,10 +33,30 @@ local L = addonTable.L
 
 -- IDs of items usable for transportation
 local items = {
+    -- Dalaran rings
+    40585,  -- Signet of the Kirin Tor
+    40586,  -- Band of the Kirin Tor
+    44934,  -- Loop of the Kirin Tor
+    44935,  -- Ring of the Kirin Tor
+    45688,  -- Inscribed Band of the Kirin Tor
+    45689,  -- Inscribed Loop of the Kirin Tor
+    45690,  -- Inscribed Ring of the Kirin Tor
+    45691,  -- Inscribed Signet of the Kirin Tor
+    48954,  -- Etched Band of the Kirin Tor
+    48955,  -- Etched Loop of the Kirin Tor
+    48956,  -- Etched Ring of the Kirin Tor
+    48957,  -- Etched Signet of the Kirin Tor
+    51557,  -- Runed Signet of the Kirin Tor
+    51558,  -- Runed Loop of the Kirin Tor
+    51559,  -- Runed Ring of the Kirin Tor
+    51560,  -- Runed Band of the Kirin Tor
+    139599, -- Empowered Ring of the Kirin Tor
+    -- Engineering Gadgets
     18984,  -- Dimensional Ripper - Everlook
     18986,  -- Ultrasafe Transporter: Gadgetzan
     30542,  -- Dimensional Ripper - Area 52
     30544,  -- Ultrasafe Transporter: Toshley's Station
+    -- Seasonal items
     21711,  -- Lunar Festival Invitation
     37863,  -- Direbrew's Remote
     -- Miscellaneous
@@ -185,12 +205,14 @@ local function SetupSpells()
             { 32271, 'TP_RUNE' },  -- TP:Exodar
             { 49359, 'TP_RUNE' },  -- TP:Theramore
             { 33690, 'TP_RUNE' },  -- TP:Shattrath
+            { 53140, 'TP_RUNE' },  -- TP:Dalaran
             { 10059, 'P_RUNE' },   -- P:Stormwind
             { 11416, 'P_RUNE' },   -- P:Ironforge
             { 11419, 'P_RUNE' },   -- P:Darnassus
             { 32266, 'P_RUNE' },   -- P:Exodar
             { 49360, 'P_RUNE' },   -- P:Theramore
-            { 33691, 'P_RUNE' }   -- P:Shattrath
+            { 33691, 'P_RUNE' },   -- P:Shattrath
+            { 53142, 'P_RUNE' }    -- P:Dalaran
         },
         Horde = {
             { 3563, 'TP_RUNE' },   -- TP:Undercity
@@ -199,12 +221,14 @@ local function SetupSpells()
             { 32272, 'TP_RUNE' },  -- TP:Silvermoon
             { 49358, 'TP_RUNE' },  -- TP:Stonard
             { 35715, 'TP_RUNE' },  -- TP:Shattrath
+            { 53140, 'TP_RUNE' },  -- TP:Dalaran
             { 11418, 'P_RUNE' },   -- P:Undercity
             { 11420, 'P_RUNE' },   -- P:Thunder Bluff
             { 11417, 'P_RUNE' },   -- P:Orgrimmar
             { 32267, 'P_RUNE' },   -- P:Silvermoon
             { 49361, 'P_RUNE' },   -- P:Stonard
-            { 35717, 'P_RUNE' }   -- P:Shattrath
+            { 35717, 'P_RUNE' },   -- P:Shattrath
+            { 53142, 'P_RUNE' }    -- P:Dalaran
         }
     }
 
