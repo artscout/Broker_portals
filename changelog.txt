@@ -1,3 +1,6 @@
+1.11.2:
+  - Release for Shadowlands
+
 1.11.1:
   - update: added Noble Gardener's Hearthstone and G.E.A.R. Tracking Beacon
 

@@ -335,6 +335,7 @@ local function SetupSpells()
             { 224869, 'TP_RUNE' }, -- TP:Dalaran - Broken Isles
             { 193759, 'TP_RUNE' }, -- TP:Hall of the Guardian
             { 281404, 'TP_RUNE' }, -- TP:Dazar'alor
+            { 344587, 'TP_RUNE' }, -- TP:Oribos
             { 11418, 'P_RUNE' },   -- P:Undercity
             { 11420, 'P_RUNE' },   -- P:Thunder Bluff
             { 11417, 'P_RUNE' },   -- P:Orgrimmar
@@ -347,7 +348,8 @@ local function SetupSpells()
             { 132626, 'P_RUNE' },  -- P:Vale of Eternal Blossoms
             { 176244, 'P_RUNE' },  -- P:Warspear
             { 224871, 'P_RUNE' },  -- P:Dalaran - Broken Isles
-            { 281402, 'P_RUNE' }   -- P:Dazar'alor
+            { 281402, 'P_RUNE' },  -- P:Dazar'alor
+            { 344597, 'P_RUNE' }   -- P:Oribos
         }
     }
 
