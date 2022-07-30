@@ -2285,7 +2285,7 @@ end
 
 function OpenEditBox(parent)
 	if not editBoxFrame then
-		editBoxFrame = CreateFrame("Frame")
+		editBoxFrame = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
 		editBoxFrame:SetWidth(200)
 		editBoxFrame:SetHeight(40)
 		editBoxFrame:SetScale(UIParent:GetScale())
