@@ -1,5 +1,5 @@
 1.11.2-tbc:
-  - Release for TBC classic on curse
+  - Release for TBC classic
 
 1.11.1:
   - update: added Noble Gardener's Hearthstone and G.E.A.R. Tracking Beacon
