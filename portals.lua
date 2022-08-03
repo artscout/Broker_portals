@@ -558,6 +558,9 @@ function obj.OnEnter(self)
        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
     end
 
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]).."/"..getReagentCount(L["P_RUNE"]), 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+
     if PortalsDB.showItemCooldowns then
         local cooldowns = GetItemCooldowns()
         if cooldowns ~= nil then

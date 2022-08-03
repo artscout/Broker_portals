@@ -21,6 +21,7 @@ L["SHOW_ITEM_COOLDOWNS"] = "Show items cooldowns"
 L["SHOW_ITEMS"] = "Show items"
 L["TP"] = "Teleports"
 L["TP_RUNE"] = "Rune of Teleportation"
+L["TP_P"] = "Teleports / Portals"
 
 
 if GetLocale() == "ptBR" then
@@ -239,6 +240,7 @@ L["SHOW_ITEM_COOLDOWNS"] = "Показывать время восстановл
 L["SHOW_ITEMS"] = "Показывать предметы"
 L["TP"] = "Телепорты"
 L["TP_RUNE"] = "Руна телепортации"
+L["TP_P"] = "Телепорты / Порталы"
 
 
 end

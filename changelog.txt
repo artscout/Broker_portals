@@ -1,3 +1,6 @@
+1.11.3-bcc:
+  - Restored reagent count in tooltip for mage teleports/portals
+
 1.11.2-tbc:
   - Release for TBC classic
 
