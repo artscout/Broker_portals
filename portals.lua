@@ -33,10 +33,12 @@ local L = addonTable.L
 
 -- IDs of items usable for transportation
 local items = {
+    -- Engineering Gadgets
     18984,  -- Dimensional Ripper - Everlook
     18986,  -- Ultrasafe Transporter: Gadgetzan
     30542,  -- Dimensional Ripper - Area 52
     30544,  -- Ultrasafe Transporter: Toshley's Station
+    -- Seasonal items
     21711,  -- Lunar Festival Invitation
     37863,  -- Direbrew's Remote
     -- Miscellaneous
@@ -190,7 +192,7 @@ local function SetupSpells()
             { 11419, 'P_RUNE' },   -- P:Darnassus
             { 32266, 'P_RUNE' },   -- P:Exodar
             { 49360, 'P_RUNE' },   -- P:Theramore
-            { 33691, 'P_RUNE' }   -- P:Shattrath
+            { 33691, 'P_RUNE' }    -- P:Shattrath
         },
         Horde = {
             { 3563, 'TP_RUNE' },   -- TP:Undercity
@@ -204,7 +206,7 @@ local function SetupSpells()
             { 11417, 'P_RUNE' },   -- P:Orgrimmar
             { 32267, 'P_RUNE' },   -- P:Silvermoon
             { 49361, 'P_RUNE' },   -- P:Stonard
-            { 35717, 'P_RUNE' }   -- P:Shattrath
+            { 35717, 'P_RUNE' }    -- P:Shattrath
         }
     }
 
