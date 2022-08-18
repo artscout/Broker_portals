@@ -1,3 +1,9 @@
+1.11.6-wrath:
+   - Fixed German translation
+
+1.11.5-wrath:
+   - Fixed interface when HS analogues disabled
+
 1.11.4-wrath:
   - Release for WotLK classic
   - Players now could select if they want Hearstone analogues to be displayed from settings menu
