@@ -19,8 +19,10 @@ L["SEC"] = "secs"
 L["SEE_SPELLS"] = "to see list of spells"
 L["SHOW_ITEM_COOLDOWNS"] = "Show items cooldowns"
 L["SHOW_ITEMS"] = "Show items"
+L["SHOW_HS_ITEMS"] = "Show Heartstone analogues"
 L["TP"] = "Teleports"
 L["TP_RUNE"] = "Rune of Teleportation"
+L["TP_P"] = "Teleports / Portals"
 
 
 if GetLocale() == "ptBR" then
@@ -87,6 +89,7 @@ L["SEC"] = "secs"
 L["SEE_SPELLS"] = "pour voir la liste des sorts"
 L["SHOW_ITEM_COOLDOWNS"] = "Montrer le temps de recharge des objets"
 L["SHOW_ITEMS"] = "Afficher les objets"
+L["SHOW_HS_ITEMS"] = "Afficher les analogues de Heartstone"
 L["TP"] = "Téléportations"
 L["TP_RUNE"] = "Rune de téléportation"
 
@@ -112,6 +115,7 @@ L["SEC"] = "sek"
 L["SEE_SPELLS"] = "um Liste mit Zaubern zu sehen"
 L["SHOW_ITEM_COOLDOWNS"] = "Zeige die Abklingzeiten von Gegenständen"
 L["SHOW_ITEMS"] = "Gegenstände anzeigen"
+L["SHOW_HS_ITEMS"] = "Heartstone-Analoga zeigen"
 L["TP"] = "Teleports"
 L["TP_RUNE"] = "Rune der Teleportation"
 
@@ -209,6 +213,7 @@ L["SEC"] = "segundos"
 L["SEE_SPELLS"] = "para ver la lista de hechizos."
 L["SHOW_ITEM_COOLDOWNS"] = "Mostrar tiempo de reutilización de las ítemas "
 L["SHOW_ITEMS"] = "Mostrar ítemas "
+L["SHOW_HS_ITEMS"] = "Mostrar análogos de Piedra de Hogar"
 L["TP"] = "Teletransportes"
 L["TP_RUNE"] = "Runa de teletransporte"
 
@@ -237,8 +242,10 @@ L["SEC"] = "секунд"
 L["SEE_SPELLS"] = "Для открытия списка заклинаний"
 L["SHOW_ITEM_COOLDOWNS"] = "Показывать время восстановления"
 L["SHOW_ITEMS"] = "Показывать предметы"
+L["SHOW_HS_ITEMS"] = "Показывать аналоги камня возвращения"
 L["TP"] = "Телепорты"
 L["TP_RUNE"] = "Руна телепортации"
+L["TP_P"] = "Телепорты / Порталы"
 
 
 end

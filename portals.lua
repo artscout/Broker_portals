@@ -123,7 +123,15 @@ local items = {
     166559, -- Commander's Signet of Battle
     168862, -- G.E.A.R. Tracking Beacon
     -- items usable instead of hearthstone
+    28585  -- Ruby Slippers
+}
+
+local heartstones = {
+    -- items usable instead of hearthstone
     28585,  -- Ruby Slippers
+    37118,  -- Scroll of Recall
+    44314,  -- Scroll of Recall II
+    44315,  -- Scroll of Recall III
     37118,  -- Scroll of Recall
     44314,  -- Scroll of Recall II
     44315,  -- Scroll of Recall III
@@ -133,11 +141,12 @@ local items = {
     162973, -- Greatfather Winter's Hearthstone
     163045, -- Headless Horseman's Hearthstone
     165669, -- Lunar Elder's Hearthstone
-  	165670, -- Peddlefeet's Lovely Hearthstone
+    165670, -- Peddlefeet's Lovely Hearthstone
     165802, -- Noble Gardener's Hearthstone
     168862, -- G.E.A.R. Tracking Beacon
     168907, -- Holographic Digitalization Hearthstone
-    172179  -- Eternal Traveler's Hearthstone
+    172179,  -- Eternal Traveler's Hearthstone
+    184871  -- Dark Portal
 }
 
 local scrolls = {
@@ -516,6 +525,33 @@ local function ShowHearthstone()
             'icon', tostring(icon),
             'func', function() UpdateIcon(icon) end,
             'closeWhenClicked', true)
+    end
+
+    local j = 0
+    if PortalsDB.showHSItems then
+        for i = 1, #heartstones do
+            if hasItem(heartstones[i]) then
+                name, _, quality, _, _, _, _, _, _, icon = GetItemInfo(heartstones[i])
+                secure = {
+                    type = 'item',
+                    item = name
+                }
+                dewdrop:AddLine(
+                    'textHeight', PortalsDB.fontSize,
+                    'text', name,
+                    'textR', ITEM_QUALITY_COLORS[quality].r,
+                    'textG', ITEM_QUALITY_COLORS[quality].g,
+                    'textB', ITEM_QUALITY_COLORS[quality].b,
+                    'secure', secure,
+                    'icon', tostring(icon),
+                    'func', function() UpdateIcon(icon) end,
+                    'closeWhenClicked', true)
+                j = i
+            end
+        end
+        dewdrop:AddLine()
+    end
+    if j < 1 then
         dewdrop:AddLine()
     end
 end
@@ -647,6 +683,12 @@ local function UpdateMenu(level, value)
             'closeWhenClicked', true)
         dewdrop:AddLine(
             'textHeight', PortalsDB.fontSize,
+            'text', L['SHOW_HS_ITEMS'],
+            'checked', PortalsDB.showHSItems,
+            'func', function() PortalsDB.showHSItems = not PortalsDB.showHSItems end,
+            'closeWhenClicked', true)
+        dewdrop:AddLine(
+            'textHeight', PortalsDB.fontSize,
             'text', L['SHOW_ITEM_COOLDOWNS'],
             'checked', PortalsDB.showItemCooldowns,
             'func', function() PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns end,
@@ -686,6 +728,7 @@ function frame:PLAYER_LOGIN()
         PortalsDB.minimap = {}
         PortalsDB.minimap.hide = false
         PortalsDB.showItems = true
+        PortalsDB.showHSItems = true
         PortalsDB.showItemCooldowns = true
         PortalsDB.announce = false
         PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
