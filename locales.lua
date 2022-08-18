@@ -119,7 +119,6 @@ L["SHOW_HS_ITEMS"] = "Heartstone-Analoga zeigen"
 L["TP"] = "Teleports"
 L["TP_RUNE"] = "Rune der Teleportation"
 
-
 end
 
 if GetLocale() == "itIT" then
