@@ -93,7 +93,6 @@ L["SHOW_HS_ITEMS"] = "Afficher les analogues de Heartstone"
 L["TP"] = "Téléportations"
 L["TP_RUNE"] = "Rune de téléportation"
 
-
 end
 
 if GetLocale() == "deDE" then
