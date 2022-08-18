@@ -374,9 +374,9 @@ local function ShowHearthstone()
     
     local j = 0
     if PortalsDB.showHSItems then
-        for j = 1, #heartstones do
-            if hasItem(heartstones[j]) then
-                name, _, quality, _, _, _, _, _, _, icon = GetItemInfo(heartstones[j])
+        for i = 1, #heartstones do
+            if hasItem(heartstones[i]) then
+                name, _, quality, _, _, _, _, _, _, icon = GetItemInfo(heartstones[i])
                 secure = {
                     type = 'item',
                     item = name
@@ -391,15 +391,14 @@ local function ShowHearthstone()
                     'icon', tostring(icon),
                     'func', function() UpdateIcon(icon) end,
                     'closeWhenClicked', true)
-                j = j + 1
+                j = i
             end
         end
         dewdrop:AddLine()
     end
-    if j > 0 then
+    if j < 1 then
         dewdrop:AddLine()
     end
-    
 end
 
 local function ShowOtherItems()
