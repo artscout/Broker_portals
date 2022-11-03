@@ -1,3 +1,6 @@
+1.11.7:
+   - Fixed menu actions for DragonFlight
+
 1.11.6-wrath:
    - Fixed German translation
 
