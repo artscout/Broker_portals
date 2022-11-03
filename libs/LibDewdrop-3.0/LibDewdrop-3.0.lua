@@ -199,6 +199,7 @@ local function secureFrame_Show(self)
   for k,v in pairs(self.secure) do
     self:SetAttribute(k, v)
   end
+  self:RegisterForClicks("LeftButtonDown")
 
 	secureFrame:SetFrameStrata(owner:GetFrameStrata())
 	secureFrame:SetFrameLevel(owner:GetFrameLevel()+1)

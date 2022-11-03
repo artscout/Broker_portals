@@ -1,4 +1,4 @@
-## Interface: 30400
+## Interface: 100000
 ## Title: Broker - |cffffffffPortals|r
 ## Notes: Provides access to all Portal and Teleport spells on right click of one button.
 ## Author: CrazyBenny of Stormrage-EU and Bissental on FlameGor-EU
