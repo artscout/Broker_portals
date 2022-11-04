@@ -1,3 +1,6 @@
+1.11.8:
+   - Fixed branch mixap, added Heartstone toys
+
 1.11.7:
    - Fixed menu actions for DragonFlight
 
