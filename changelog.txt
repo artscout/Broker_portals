@@ -1,3 +1,6 @@
+1.11.9:
+   - Fixed menu action not firing depending on "ActionButtonUseKeyDown" CVar
+
 1.11.8:
    - Fixed branch mixap, added Heartstone toys
 
