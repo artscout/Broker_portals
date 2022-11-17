@@ -8,11 +8,11 @@ local _
 local CreateFrame = CreateFrame
 local C_ToyBox = C_ToyBox
 local GetBindLocation = GetBindLocation
-local GetContainerItemCooldown = GetContainerItemCooldown
-local GetContainerItemInfo = GetContainerItemInfo
-local GetContainerItemLink = GetContainerItemLink
-local GetContainerNumSlots = GetContainerNumSlots
-local GetItemCooldown = GetItemCooldown
+local GetContainerItemCooldown =  C_Container.GetContainerItemCooldown
+local GetContainerItemInfo =  C_Container.GetContainerItemInfo
+local GetContainerItemLink =  C_Container.GetContainerItemLink
+local GetContainerNumSlots =  C_Container.GetContainerNumSlots
+local GetItemCooldown = C_Container.GetItemCooldown
 local GetInventoryItemCooldown = GetInventoryItemCooldown
 local GetInventoryItemLink = GetInventoryItemLink
 local GetNumGroupMembers = GetNumGroupMembers
