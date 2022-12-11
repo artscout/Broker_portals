@@ -322,6 +322,7 @@ local function SetupSpells()
             { 193759, 'TP_RUNE' }, -- TP:Hall of the Guardian
             { 281403, 'TP_RUNE' }, -- TP:Boralus
             { 344587, 'TP_RUNE' }, -- TP:Oribos
+            { 395277, 'TP_RUNE' }, -- TP:Valdrakken
             { 10059, 'P_RUNE' },   -- P:Stormwind
             { 11416, 'P_RUNE' },   -- P:Ironforge
             { 11419, 'P_RUNE' },   -- P:Darnassus
@@ -335,7 +336,8 @@ local function SetupSpells()
             { 176246, 'P_RUNE' },  -- P:StormShield
             { 224871, 'P_RUNE' },  -- P:Dalaran - Broken Isles
             { 281400, 'P_RUNE' },  -- P:Boralus
-            { 344597, 'P_RUNE' }   -- P:Oribos
+            { 344597, 'P_RUNE' },  -- P:Oribos
+            { 395289, 'P_RUNE' }   -- P:Valdrakken
         },
         Horde = {
             { 3563, 'TP_RUNE' },   -- TP:Undercity
@@ -353,6 +355,7 @@ local function SetupSpells()
             { 193759, 'TP_RUNE' }, -- TP:Hall of the Guardian
             { 281404, 'TP_RUNE' }, -- TP:Dazar'alor
             { 344587, 'TP_RUNE' }, -- TP:Oribos
+            { 395277, 'TP_RUNE' }, -- TP:Valdrakken
             { 11418, 'P_RUNE' },   -- P:Undercity
             { 11420, 'P_RUNE' },   -- P:Thunder Bluff
             { 11417, 'P_RUNE' },   -- P:Orgrimmar
@@ -366,7 +369,8 @@ local function SetupSpells()
             { 176244, 'P_RUNE' },  -- P:Warspear
             { 224871, 'P_RUNE' },  -- P:Dalaran - Broken Isles
             { 281402, 'P_RUNE' },  -- P:Dazar'alor
-            { 344597, 'P_RUNE' }   -- P:Oribos
+            { 344597, 'P_RUNE' },  -- P:Oribos
+            { 395289, 'P_RUNE' }   -- P:Valdrakken
         }
     }
 
