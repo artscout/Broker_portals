@@ -1,10 +1,10 @@
-## Interface: 30400
+## Interface: 30401
 ## Title: Broker - |cffffffffPortals|r
 ## Notes: Provides access to all Portal and Teleport spells on right click of one button.
 ## Author: CrazyBenny of Stormrage-EU and Bissental on FlameGor-EU
 ## X-Email: michal AT svab DOT net
-## LastUpdate: 2020-01-26T13:02:10Z
-## Version: 1.11.7-wrath
+## LastUpdate: 2022-01-18T04:22:10Z
+## Version: 1.11.8-wrath
 ## OptionalDeps: LibDBIcon-1.0
 
 ## SavedVariables: PortalsDB

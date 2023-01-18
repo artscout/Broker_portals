@@ -1,3 +1,6 @@
+1.11.8-wrath
+   - TOC Update for 3.4.1
+
 1.11.7-wrath
    - Update for 3.4.1
 
