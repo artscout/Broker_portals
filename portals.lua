@@ -168,12 +168,12 @@ local function hasItem(itemID)
     end
     -- scan bags
     for bag = 0, 4 do
-        for slot = 1, GetContainerNumSlots(bag) do
-            item = GetContainerItemLink(bag, slot)
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            item = C_Container.GetContainerItemLink(bag, slot)
             if item then
                 found, _, id = item:find('^|c%x+|Hitem:(%d+):.+')
                 if found and tonumber(id) == itemID then
-                    if GetContainerItemCooldown(bag, slot) ~= 0 then
+                    if C_Container.GetContainerItemCooldown(bag, slot) ~= 0 then
                         return false
                     else
                         return true
@@ -188,12 +188,14 @@ end
 local function getReagentCount(name)
     local count = 0
     for bag = 0, 4 do
-        for slot = 1, GetContainerNumSlots(bag) do
-            local item = GetContainerItemLink(bag, slot)
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local item = C_Container.GetContainerItemLink(bag, slot)
             if item then
                 if item:find(name) then
-                    local _, itemCount = GetContainerItemInfo(bag, slot)
-                    count = count + itemCount
+                    itemInfo = C_Container.GetContainerItemInfo(bag, slot)
+                    if itemInfo then
+                        count = count + itemInfo['stackCount']
+                    end
                 end
             end
         end
@@ -306,7 +308,7 @@ local function GetScrollCooldown()
 
     for i = 1, #scrolls do
         if GetItemCount(scrolls[i]) > 0 then
-            startTime, duration = GetItemCooldown(scrolls[i])
+            startTime, duration = C_Container.GetItemCooldown(scrolls[i])
             cooldown = duration - (GetTime() - startTime)
             if cooldown <= 0 then
                 return L['READY']
@@ -323,7 +325,7 @@ local function GetItemCooldowns()
 
     for i = 1, #items do
         if GetItemCount(items[i]) > 0 then
-            startTime, duration = GetItemCooldown(items[i])
+            startTime, duration = C_Container.GetItemCooldown(items[i])
             cooldown = duration - (GetTime() - startTime)
             if cooldown <= 0 then
                 cooldown = L['READY']
