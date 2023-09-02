@@ -63,6 +63,7 @@ local items = {
     151652, -- Wormhole Generator: Argus
     168807, -- Wormhole Generator: Kul Tiras
     168808, -- Wormhole Generator: Zandalar
+    198156, -- Wormhole Genrator: Dragon Isles
     -- Seasonal items
     21711,  -- Lunar Festival Invitation
     37863,  -- Direbrew's Remote
@@ -86,7 +87,6 @@ local items = {
     46874,  -- Argent Crusader's Tabard
     50287,  -- Boots of the Bay
     52251,  -- Jaina's Locket
-    54452,  -- Ethereal Portal
     58487,  -- Potion of Deepholm
     61379,  -- Gidwin's Hearthstone
     63206,  -- Wrap of Unity (Alliance)
@@ -135,6 +135,7 @@ local heartstones = {
     37118,  -- Scroll of Recall
     44314,  -- Scroll of Recall II
     44315,  -- Scroll of Recall III
+    54452,  -- Ethereal Portal
     64488,  -- The Innkeeper's Daughter
     142298, -- Astonishingly Scarlet Slippers
     142542, -- Tome of Town Portal

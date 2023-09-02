@@ -1,3 +1,7 @@
+1.11.12:
+   - Add Wormhole Generator: Drake Isles
+   - Moved Ethereal portal to HeartSomne analogues section
+
 1.11.11:
    - Add Valdrakken TP/Portal
 
