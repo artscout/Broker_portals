@@ -1,3 +1,6 @@
+1.11.13:
+   - TOC update for DragonFlight
+
 1.11.12:
    - Add Wormhole Generator: Drake Isles
    - Moved Ethereal portal to HeartSomne analogues section
