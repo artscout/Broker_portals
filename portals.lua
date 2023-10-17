@@ -182,6 +182,18 @@ local function hasItem(itemID)
             end
         end
     end
+    -- check Toybox
+    if PlayerHasToy(itemID) and C_ToyBox.IsToyUsable(itemID) then
+        local startTime, duration, cooldown
+        startTime, duration = C_Container.GetItemCooldown(itemID)
+        cooldown = duration - (GetTime() - startTime)
+        if cooldown > 0 then
+            return false
+        else
+            return true
+        end
+    end
+
     return false
 end
 

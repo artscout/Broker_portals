@@ -1,3 +1,7 @@
+1.11.9-wrath
+   - TOC Update for 3.4.3
+   - Add check for items that was migrated into the Toybox of the characters
+
 1.11.8-wrath
    - TOC Update for 3.4.1
 
