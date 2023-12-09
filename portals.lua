@@ -155,7 +155,8 @@ local heartstones = {
     184871, -- Dark Portal
     188952, -- Dominated Hearthstone
     193588, -- Timewalker's Hearthstone
-    200630  -- Ohn'ir Windsage's Hearthstone
+    200630, -- Ohn'ir Windsage's Hearthstone
+    208704  -- Deepdweller's Earthen Hearthstone
 }
 
 local scrolls = {

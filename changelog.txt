@@ -1,3 +1,6 @@
+1.11.14:
+   - Add Deepdweller's Earthen Hearthstone
+
 1.11.13:
    - TOC update for DragonFlight
 
