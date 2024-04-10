@@ -1,3 +1,6 @@
+1.11.15:
+   - Add Hearthstone of the Flame
+
 1.11.14:
    - Add Deepdweller's Earthen Hearthstone
 

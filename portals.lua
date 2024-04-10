@@ -63,6 +63,7 @@ local items = {
     151652, -- Wormhole Generator: Argus
     168807, -- Wormhole Generator: Kul Tiras
     168808, -- Wormhole Generator: Zandalar
+    172924, -- Wormhole Generator: Shadowlands
     198156, -- Wormhole Genrator: Dragon Isles
     -- Seasonal items
     21711,  -- Lunar Festival Invitation
@@ -156,7 +157,8 @@ local heartstones = {
     188952, -- Dominated Hearthstone
     193588, -- Timewalker's Hearthstone
     200630, -- Ohn'ir Windsage's Hearthstone
-    208704  -- Deepdweller's Earthen Hearthstone
+    208704, -- Deepdweller's Earthen Hearthstone
+    209035  -- Hearthstone of the Flame
 }
 
 local scrolls = {
