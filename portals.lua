@@ -122,9 +122,7 @@ local items = {
     144392, -- Pugilist's Powerful Punching Ring (Horde)
     151016, -- Fractured Necrolyte Skull
     166559, -- Commander's Signet of Battle
-    168862, -- G.E.A.R. Tracking Beacon
-    -- items usable instead of hearthstone
-    28585  -- Ruby Slippers
+    168862 -- G.E.A.R. Tracking Beacon
 }
 
 local heartstones = {
@@ -152,10 +150,14 @@ local heartstones = {
     172179, -- Eternal Traveler's Hearthstone
     180290, -- Night Fae Hearthstone
     182773, -- Necrolord Heartstone
+    183716, -- Venthyr Sinstone
     184353, -- Kyrian Hearthstone
     184871, -- Dark Portal
     188952, -- Dominated Hearthstone
+    190196, -- Enlightened Hearthstone
+    190237, -- Broker Translocation Matrix
     193588, -- Timewalker's Hearthstone
+    206195, -- Path of the Naaru
     200630, -- Ohn'ir Windsage's Hearthstone
     208704, -- Deepdweller's Earthen Hearthstone
     209035  -- Hearthstone of the Flame

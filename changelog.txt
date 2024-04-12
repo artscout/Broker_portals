@@ -1,3 +1,10 @@
+1.11.16:
+   - Add Venthyr Sinstone
+   - Add Enlightened Hearthstone
+   - Add Broker Translocation Matrix
+   - Add Path of the Naaru
+   - Removed duplicate Ruby Slippers
+
 1.11.15:
    - Add Hearthstone of the Flame
 
