@@ -1,3 +1,6 @@
+1.11.19:
+   - Add pkgmeta
+
 1.11.18:
    - Tag bump for the correct build
 
