@@ -1,3 +1,7 @@
+1.11.17:
+   - Add Stone of the Hearth
+   - Cataclysm Classic TOC file
+
 1.11.16:
    - Add Venthyr Sinstone
    - Add Enlightened Hearthstone

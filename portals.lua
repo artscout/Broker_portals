@@ -160,7 +160,8 @@ local heartstones = {
     206195, -- Path of the Naaru
     200630, -- Ohn'ir Windsage's Hearthstone
     208704, -- Deepdweller's Earthen Hearthstone
-    209035  -- Hearthstone of the Flame
+    209035, -- Hearthstone of the Flame
+    212337  -- Stone of the Hearth
 }
 
 local scrolls = {
