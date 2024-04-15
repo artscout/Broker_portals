@@ -1,3 +1,6 @@
+1.11.18:
+   - Tag bump for the correct build
+
 1.11.17:
    - Add Stone of the Hearth
    - Cataclysm Classic TOC file
