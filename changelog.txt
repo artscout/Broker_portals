@@ -1,13 +1,4 @@
-1.11.20
-   - Tag bump for rebuild
-
-1.11.19:
-   - Add pkgmeta
-
-1.11.18:
-   - Tag bump for the correct build
-
-1.11.17:
+1.12.1:
    - Add Stone of the Hearth
    - Cataclysm Classic TOC file
 

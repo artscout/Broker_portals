@@ -2,9 +2,8 @@
 ## Title: Broker - |cffffffffPortals|r
 ## Notes: Provides access to all Portal and Teleport spells on right click of one button.
 ## Author: CrazyBenny of Stormrage-EU and Bissental on FlameGor-EU
-## X-Email: michal AT svab DOT net
-## LastUpdate: 2024-04-10T13:02:10Z
-## Version: 1.11.20
+## LastUpdate: 2024-04-15T00:51:10Z
+## Version: 1.12.1
 ## OptionalDeps: LibDBIcon-1.0
 
 ## SavedVariables: PortalsDB
