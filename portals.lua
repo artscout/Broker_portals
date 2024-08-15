@@ -17,8 +17,6 @@ local GetInventoryItemCooldown = GetInventoryItemCooldown
 local GetInventoryItemLink = GetInventoryItemLink
 local GetNumGroupMembers = GetNumGroupMembers
 local GetSpellBookItemName = GetSpellBookItemName
-local GetSpellCooldown = GetSpellCooldown
-local GetSpellInfo = GetSpellInfo
 local GetTime = GetTime
 local IsPlayerSpell = IsPlayerSpell
 local PlayerHasToy = PlayerHasToy
@@ -230,22 +228,6 @@ local function tconcat(t1, t2)
     return t1
 end
 
-function findSpell(spellName)
-    local i = 1
-    while true do
-        local s = GetSpellBookItemName(i, BOOKTYPE_SPELL)
-        if not s then
-            break
-        end
-
-        if s == spellName then
-            return i
-        end
-
-        i = i + 1
-    end
-end
-
 -- returns true, if player has item with given ID in inventory or bags and it's not on cooldown
 local function hasItem(itemID)
     local item, found, id
@@ -420,8 +402,10 @@ local function GenerateLinks(spells)
 
     for _, unTransSpell in ipairs(spells) do
         if IsPlayerSpell(unTransSpell[1]) then
-            local spell, _, spellIcon = GetSpellInfo(unTransSpell[1])
-            local spellid = findSpell(spell)
+            local spellInfo = C_Spell.GetSpellInfo(unTransSpell[1])
+            local spell = spellInfo.name
+            local spellIcon = spellInfo.iconID
+            local spellid = spellInfo.spellID
 
             if spellid then
                 methods[spell] = {
@@ -656,7 +640,8 @@ local function UpdateMenu(level, value)
         local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
         for k, v in pairsByKeys(methods) do
-            if v.secure and GetSpellCooldown(v.text) == 0 then
+            local spellCooldownInfo = C_Spell.GetSpellCooldown(v.text)
+            if v.secure and spellCooldownInfo.startTime == 0 then
                 dewdrop:AddLine(
                     'textHeight', PortalsDB.fontSize,
                     'text', v.text,
