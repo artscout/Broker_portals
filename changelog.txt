@@ -1,3 +1,53 @@
+1.13.1:
+   - Update for War Within expansion
+   - Add new challenge portals (thanks to imjayc2)
+
+1.12.1:
+   - Add Stone of the Hearth
+   - Cataclysm Classic TOC file
+
+1.11.16:
+   - Add Venthyr Sinstone
+   - Add Enlightened Hearthstone
+   - Add Broker Translocation Matrix
+   - Add Path of the Naaru
+   - Removed duplicate Ruby Slippers
+
+1.11.15:
+   - Add Hearthstone of the Flame
+
+1.11.14:
+   - Add Deepdweller's Earthen Hearthstone
+
+1.11.13:
+   - TOC update for DragonFlight
+
+1.11.12:
+   - Add Wormhole Generator: Drake Isles
+   - Moved Ethereal portal to HeartSomne analogues section
+
+1.11.11:
+   - Add Valdrakken TP/Portal
+
+1.11.9:
+   - Fixed menu action not firing depending on "ActionButtonUseKeyDown" CVar
+
+1.11.8:
+   - Fixed branch mixap, added Heartstone toys
+
+1.11.7:
+   - Fixed menu actions for DragonFlight
+
+1.11.6-wrath:
+   - Fixed German translation
+
+1.11.5-wrath:
+   - Fixed interface when HS analogues disabled
+
+1.11.4-wrath:
+  - Release for WotLK classic
+  - Players now could select if they want Hearstone analogues to be displayed from settings menu
+
 1.11.3-bcc:
   - Restored reagent count in tooltip for mage teleports/portals
 

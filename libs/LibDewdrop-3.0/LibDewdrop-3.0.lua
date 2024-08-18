@@ -199,6 +199,12 @@ local function secureFrame_Show(self)
   for k,v in pairs(self.secure) do
     self:SetAttribute(k, v)
   end
+  state = C_CVar.GetCVarBool("ActionButtonUseKeyDown")
+  if state then
+    self:RegisterForClicks("LeftButtonDown")
+  else
+    self:RegisterForClicks("LeftButtonUp")
+  end
 
 	secureFrame:SetFrameStrata(owner:GetFrameStrata())
 	secureFrame:SetFrameLevel(owner:GetFrameLevel()+1)
