@@ -1,3 +1,6 @@
+1.13.2:
+   - Fixed mage spell for Cataclysm classic
+
 1.13.1:
    - Update for War Within expansion
    - Add new challenge portals (thanks to imjayc2)

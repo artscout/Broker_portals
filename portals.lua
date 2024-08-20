@@ -287,23 +287,6 @@ local function tconcat(t1, t2)
     return t1
 end
 
-function findSpell(spellName)
-    local i = 1
-    local spellType = Enum.SpellBookSpellBank.Player or BOOKTYPE_SPELL
-    while true do
-        local s = GetSpellBookItemName(i, spellType)
-        if not s then
-            break
-        end
-
-        if s == spellName then
-            return i
-        end
-
-        i = i + 1
-    end
-end
-
 -- returns true, if player has item with given ID in inventory or bags and it's not on cooldown
 local function hasItem(itemID)
     local item, found, id
@@ -478,14 +461,13 @@ local function GenerateLinks(spells)
 
     for _, unTransSpell in ipairs(spells) do
         if IsPlayerSpell(unTransSpell[1]) then
-            local spellId, spellName
-            local spell, _, spellIcon = GetSpellInfo(unTransSpell[1])
+            local spellName
+            local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(unTransSpell[1])
             if type(spell) == "table" then
-                spellId   = findSpell(spell.name)
+                spellId   = spell.spellID
                 spellIcon = spell.iconID
                 spellName = spell.name
             else
-                spellId   = findSpell(spell)
                 spellName = spell
             end
 
