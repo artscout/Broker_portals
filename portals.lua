@@ -371,6 +371,7 @@ local function SetupSpells()
             { 281403, 'TP_RUNE' }, -- TP:Boralus
             { 344587, 'TP_RUNE' }, -- TP:Oribos
             { 395277, 'TP_RUNE' }, -- TP:Valdrakken
+            { 446540, 'TP_RUNE' }, -- TP:Dornogal
             { 10059, 'P_RUNE' },   -- P:Stormwind
             { 11416, 'P_RUNE' },   -- P:Ironforge
             { 11419, 'P_RUNE' },   -- P:Darnassus
@@ -385,7 +386,8 @@ local function SetupSpells()
             { 224871, 'P_RUNE' },  -- P:Dalaran - Broken Isles
             { 281400, 'P_RUNE' },  -- P:Boralus
             { 344597, 'P_RUNE' },  -- P:Oribos
-            { 395289, 'P_RUNE' }   -- P:Valdrakken
+            { 395289, 'P_RUNE' },  -- P:Valdrakken
+            { 446534, 'P_RUNE' }   -- P:Dornogal
         },
         Horde = {
             { 3563, 'TP_RUNE' },   -- TP:Undercity
