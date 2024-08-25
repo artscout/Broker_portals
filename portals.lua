@@ -808,12 +808,14 @@ local function UpdateMenu(level, value)
             'checked', PortalsDB.showHSItems,
             'func', function() PortalsDB.showHSItems = not PortalsDB.showHSItems end,
             'closeWhenClicked', true)
-        dewdrop:AddLine(
-            'textHeight', PortalsDB.fontSize,
-            'text', L['SHOW_CHALLENGE_TELEPORTS'],
-            'checked', PortalsDB.showChallengeTeleports,
-            'func', function() PortalsDB.showChallengeTeleports = not PortalsDB.showChallengeTeleports end,
-            'closeWhenClicked', true)
+        if not isCataclysmClassic then
+            dewdrop:AddLine(
+                'textHeight', PortalsDB.fontSize,
+                'text', L['SHOW_CHALLENGE_TELEPORTS'],
+                'checked', PortalsDB.showChallengeTeleports,
+                'func', function() PortalsDB.showChallengeTeleports = not PortalsDB.showChallengeTeleports end,
+                'closeWhenClicked', true)
+        end
         dewdrop:AddLine(
             'textHeight', PortalsDB.fontSize,
             'text', L['SHOW_ITEM_COOLDOWNS'],
