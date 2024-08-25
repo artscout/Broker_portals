@@ -31,6 +31,9 @@ local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
 local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
+local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
+local _, _, _, _, _, _, _, _, _, heartstonesIcon = GetItemInfo(6948)
+local teleportsIcon = 237509 -- Teleport to Dalaran icon used
 
 local addonName, addonTable = ...
 local L = addonTable.L
@@ -763,6 +766,7 @@ local function UpdateMenu(level, value)
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['CHALLENGE_TELEPORTS'],
+                'icon', tostring(teleportsIcon),
                 'hasArrow', true,
                 'value', 'challenges')
         end
@@ -771,6 +775,7 @@ local function UpdateMenu(level, value)
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', engineeringName,
+                'icon', tostring(engineeringIcon),
                 'hasArrow', true,
                 'value', 'engineering')
         end
@@ -779,6 +784,7 @@ local function UpdateMenu(level, value)
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['HEARTHSTONES'],
+                'icon', tostring(heartstonesIcon),
                 'hasArrow', true,
                 'value', 'heartstones')
         end
@@ -808,7 +814,7 @@ local function UpdateMenu(level, value)
             'checked', PortalsDB.showHSItems,
             'func', function() PortalsDB.showHSItems = not PortalsDB.showHSItems end,
             'closeWhenClicked', true)
-        if not isCataclysmClassic then
+        if not isCataclysmClassic then        
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['SHOW_CHALLENGE_TELEPORTS'],
