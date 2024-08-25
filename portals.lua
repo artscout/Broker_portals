@@ -783,7 +783,7 @@ local function UpdateMenu(level, value)
         if PortalsDB.showHSItems and CheckHasItems(heartstones) then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
-                'text', L['HEARTHSTONES'],
+                'text', L['HEARTHSTONE_ANALOGUES'],
                 'icon', tostring(heartstonesIcon),
                 'hasArrow', true,
                 'value', 'heartstones')

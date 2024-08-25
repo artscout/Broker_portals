@@ -1,5 +1,8 @@
+1.13.5:
+   - Translation fixes
+
 1.13.4:
-   - Disable challenge teleports for Cataclysm Classic
+   - Disable challenge teleports options parameter for Cataclysm Classic
 
 1.13.3:
    - Implemented different categories in menu for Challenge teleports, Heartstone analogues and Engineering items
