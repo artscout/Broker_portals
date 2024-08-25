@@ -1,3 +1,6 @@
+1.13.3:
+   - Implemented different categories in menu for Challenge teleports, Heartstone analogues and Engineering items
+
 1.13.2:
    - Fixed mage spell for Cataclysm classic
 

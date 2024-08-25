@@ -29,6 +29,9 @@ local UnitInRaid = UnitInRaid
 local UnitRace = UnitRace
 local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
+local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
+local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
+
 local addonName, addonTable = ...
 local L = addonTable.L
 
@@ -52,19 +55,6 @@ local items = {
     51559,  -- Runed Ring of the Kirin Tor
     51560,  -- Runed Band of the Kirin Tor
     139599, -- Empowered Ring of the Kirin Tor
-    -- Engineering Gadgets
-    18984,  -- Dimensional Ripper - Everlook
-    18986,  -- Ultrasafe Transporter: Gadgetzan
-    30542,  -- Dimensional Ripper - Area 52
-    30544,  -- Ultrasafe Transporter: Toshley's Station
-    48933,  -- Wormhole Generator: Northrend
-    87215,  -- Wormhole Generator: Pandaria
-    112059, -- Wormhole Centrifuge
-    151652, -- Wormhole Generator: Argus
-    168807, -- Wormhole Generator: Kul Tiras
-    168808, -- Wormhole Generator: Zandalar
-    172924, -- Wormhole Generator: Shadowlands
-    198156, -- Wormhole Genrator: Dragon Isles
     -- Seasonal items
     21711,  -- Lunar Festival Invitation
     37863,  -- Direbrew's Remote
@@ -164,6 +154,22 @@ local heartstones = {
     212337  -- Stone of the Hearth
 }
 
+local engineeringItems = {
+    -- Engineering Gadgets
+    18984,  -- Dimensional Ripper - Everlook
+    18986,  -- Ultrasafe Transporter: Gadgetzan
+    30542,  -- Dimensional Ripper - Area 52
+    30544,  -- Ultrasafe Transporter: Toshley's Station
+    48933,  -- Wormhole Generator: Northrend
+    87215,  -- Wormhole Generator: Pandaria
+    112059, -- Wormhole Centrifuge
+    151652, -- Wormhole Generator: Argus
+    168807, -- Wormhole Generator: Kul Tiras
+    168808, -- Wormhole Generator: Zandalar
+    172924, -- Wormhole Generator: Shadowlands
+    198156 -- Wormhole Generator: Dragon Isles
+}
+
 local scrolls = {
     6948    -- Hearthstone
 }
@@ -253,7 +259,6 @@ local obj = LibStub:GetLibrary('LibDataBroker-1.1'):NewDataObject(addonName, {
     text = L['P'],
     icon = 'Interface\\Icons\\INV_Misc_Rune_06',
 })
-local methods = {}
 local portals
 local frame = CreateFrame('frame')
 
@@ -406,6 +411,7 @@ local function SetupSpells()
             { 281404, 'TP_RUNE' }, -- TP:Dazar'alor
             { 344587, 'TP_RUNE' }, -- TP:Oribos
             { 395277, 'TP_RUNE' }, -- TP:Valdrakken
+            { 446540, 'TP_RUNE' }, -- TP:Dornogal
             { 11418, 'P_RUNE' },   -- P:Undercity
             { 11420, 'P_RUNE' },   -- P:Thunder Bluff
             { 11417, 'P_RUNE' },   -- P:Orgrimmar
@@ -420,7 +426,8 @@ local function SetupSpells()
             { 224871, 'P_RUNE' },  -- P:Dalaran - Broken Isles
             { 281402, 'P_RUNE' },  -- P:Dazar'alor
             { 344597, 'P_RUNE' },  -- P:Oribos
-            { 395289, 'P_RUNE' }   -- P:Valdrakken
+            { 395289, 'P_RUNE' },  -- P:Valdrakken
+            { 446534, 'P_RUNE' }   -- P:Dornogal
         }
     }
 
@@ -459,6 +466,7 @@ local function SetupSpells()
 end
 
 local function GenerateLinks(spells)
+    local methods = {}
     local itemsGenerated = 0
 
     for _, unTransSpell in ipairs(spells) do
@@ -488,8 +496,7 @@ local function GenerateLinks(spells)
             end
         end
     end
-
-    return itemsGenerated
+    return itemsGenerated, methods
 end
 
 local function UpdateClassSpells()
@@ -498,12 +505,23 @@ local function UpdateClassSpells()
     end
 
     if portals then
-        return GenerateLinks(portals)
+        local spellCount, spellLinks = GenerateLinks(portals)
+        return spellCount, spellLinks
     end
 end
 
 local function UpdateChallengeSpells()
-    return GenerateLinks(challengeSpells)
+    local spellCount, spellLinks = GenerateLinks(challengeSpells)
+    return spellCount, spellLinks
+end
+
+local function CheckHasItems(items)
+    for i = 1, #items do
+        if hasItem(items[i]) then
+            return true
+        end
+    end
+    return false
 end
 
 local function UpdateIcon(icon)
@@ -595,7 +613,9 @@ local function ShowHearthstone()
             'func', function() UpdateIcon(icon) end,
             'closeWhenClicked', true)
     end
+end
 
+local function ShowHeartstoneAnalogues()
     local j = 0
     if PortalsDB.showHSItems then
         for i = 1, #heartstones do
@@ -618,10 +638,6 @@ local function ShowHearthstone()
                 j = i
             end
         end
-        dewdrop:AddLine()
-    end
-    if j < 1 then
-        dewdrop:AddLine()
     end
 end
 
@@ -647,7 +663,7 @@ local function ShowWhistle()
     end
 end
 
-local function ShowOtherItems()
+local function ShowOtherItems(items)
     local secure, icon, quality, name
     local i = 0
 
@@ -692,40 +708,43 @@ local function UpdateMenu(level, value)
 
     if level == 1 then
         dewdrop:AddLine('text', 'Broker_Portals', 'isTitle', true)
+        if not portals then
+            SetupSpells()
+        end
 
-        methods = {}
-        local spells = UpdateClassSpells()
-        if spells > 0 then
+        local spellCount, spells = UpdateClassSpells()
+
+        if spellCount > 0 then
           dewdrop:AddLine()
         end
-        local challengeSpells = UpdateChallengeSpells()
-        if challengeSpells > 0 then
-          dewdrop:AddLine()
-        end
+
+        local challengeSpellCount, challengeSpells = UpdateChallengeSpells()
 
         local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
-        for k, v in pairsByKeys(methods) do
-            local spellCoolDown = nil
-            local spellCoolDownInfo = GetSpellCooldown(v.text)
-            if type(spellCoolDownInfo) == "table" then
-                spellCoolDown = spellCoolDownInfo.startTime
-            else
-                spellCoolDown = spellCoolDownInfo
-            end
-            if v.secure and spellCoolDown == 0 then
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', v.text,
-                    'secure', v.secure,
-                    'icon', tostring(v.spellIcon),
-                    'func', function()
-                        UpdateIcon(v.spellIcon)
-                        if announce and v.isPortal and chatType then
-                            SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. v.text, chatType)
-                        end
-                    end,
-                    'closeWhenClicked', true)
+        if spellCount > 0 then
+            for k, v in pairsByKeys(spells) do
+                local spellCoolDown = nil
+                local spellCoolDownInfo = GetSpellCooldown(v.text)
+                if type(spellCoolDownInfo) == "table" then
+                    spellCoolDown = spellCoolDownInfo.startTime
+                else
+                    spellCoolDown = spellCoolDownInfo
+                end
+                if v.secure and spellCoolDown == 0 then
+                    dewdrop:AddLine(
+                        'textHeight', PortalsDB.fontSize,
+                        'text', v.text,
+                        'secure', v.secure,
+                        'icon', tostring(v.spellIcon),
+                        'func', function()
+                            UpdateIcon(v.spellIcon)
+                            if announce and v.isPortal and chatType then
+                                SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. v.text, chatType)
+                            end
+                        end,
+                        'closeWhenClicked', true)
+                end
             end
         end
 
@@ -734,8 +753,34 @@ local function UpdateMenu(level, value)
         ShowHearthstone()
 
         if PortalsDB.showItems then
-            ShowOtherItems()
+            ShowOtherItems(items)
             ShowWhistle()
+        end
+
+        dewdrop:AddLine()
+
+        if PortalsDB.showChallengePortals and challengeSpellCount > 0 then
+            dewdrop:AddLine(
+                'textHeight', PortalsDB.fontSize,
+                'text', L['CHALLENGE_TELEPORTS'],
+                'hasArrow', true,
+                'value', 'challenges')
+        end
+
+        if PortalsDB.showItems and CheckHasItems(engineeringItems) then
+            dewdrop:AddLine(
+                'textHeight', PortalsDB.fontSize,
+                'text', engineeringName,
+                'hasArrow', true,
+                'value', 'engineering')
+        end
+
+        if PortalsDB.showHSItems and CheckHasItems(heartstones) then
+            dewdrop:AddLine(
+                'textHeight', PortalsDB.fontSize,
+                'text', L['HEARTHSTONES'],
+                'hasArrow', true,
+                'value', 'heartstones')
         end
 
         dewdrop:AddLine(
@@ -765,6 +810,12 @@ local function UpdateMenu(level, value)
             'closeWhenClicked', true)
         dewdrop:AddLine(
             'textHeight', PortalsDB.fontSize,
+            'text', L['SHOW_CHALLENGE_TELEPORTS'],
+            'checked', PortalsDB.showChallengeTeleports,
+            'func', function() PortalsDB.showChallengeTeleports = not PortalsDB.showChallengeTeleports end,
+            'closeWhenClicked', true)
+        dewdrop:AddLine(
+            'textHeight', PortalsDB.fontSize,
             'text', L['SHOW_ITEM_COOLDOWNS'],
             'checked', PortalsDB.showItemCooldowns,
             'func', function() PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns end,
@@ -787,13 +838,41 @@ local function UpdateMenu(level, value)
             'hasArrow', true,
             'hasEditBox', true,
             'editBoxText', PortalsDB.fontSize,
-						'editBoxFunc', function(value)
-                       if value ~= '' and tonumber(value) ~= nil then
-                           PortalsDB.fontSize = tonumber(value)
-                       else
-                           PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-                       end
-                   end)
+	    'editBoxFunc', function(value)
+            if value ~= '' and tonumber(value) ~= nil then
+                PortalsDB.fontSize = tonumber(value)
+            else
+                PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
+            end
+        end)
+    elseif level == 2 and value == 'heartstones' then
+        ShowHeartstoneAnalogues()
+    elseif level == 2 and value == 'challenges' and challengeSpellCount > 0 then
+        for k, v in pairsByKeys(challengeSpells) do
+            local spellCoolDown = nil
+            local spellCoolDownInfo = GetSpellCooldown(v.text)
+            if type(spellCoolDownInfo) == "table" then
+                spellCoolDown = spellCoolDownInfo.startTime
+            else
+                spellCoolDown = spellCoolDownInfo
+            end
+            if v.secure and spellCoolDown == 0 then
+                dewdrop:AddLine(
+                    'textHeight', PortalsDB.fontSize,
+                    'text', v.text,
+                    'secure', v.secure,
+                    'icon', tostring(v.spellIcon),
+                    'func', function()
+                        UpdateIcon(v.spellIcon)
+                        if announce and v.isPortal and chatType then
+                            SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. v.text, chatType)
+                        end
+                    end,
+                    'closeWhenClicked', true)
+            end
+        end
+    elseif level == 2 and value == 'engineering' then
+        ShowOtherItems(engineeringItems)
     end
 end
 
@@ -806,13 +885,17 @@ function frame:PLAYER_LOGIN()
         PortalsDB.showItems = true
         PortalsDB.showHSItems = true
         PortalsDB.showItemCooldowns = true
+        PortalsDB.showChallengeTeleports = true
         PortalsDB.announce = false
         PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-        PortalsDB.version = 5
+        PortalsDB.version = 6
     end
 
     -- upgrade from versions
-    if PortalsDB.version == 4 then
+    if PortalsDB.version == 5 then
+        PortalsDB.showChallengeTeleports = true
+        PortalsDB.version = 6
+    elseif PortalsDB.version == 4 then
         PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
         PortalsDB.version = 5
     elseif PortalsDB.version == 3 then
