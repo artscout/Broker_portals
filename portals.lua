@@ -350,13 +350,12 @@ local function getReagentCount(name)
             local item = GetContainerItemLink(bag, slot)
             if item then
                 if item:find(name) then
-                    local _, itemCount = GetContainerItemInfo(bag, slot)
-                    count = count + itemCount
+                    local itemInfo = GetContainerItemInfo(bag, slot)
+                    count = count + itemInfo.stackCount
                 end
             end
         end
     end
-
     return count
 end
 
@@ -968,6 +967,11 @@ function obj.OnEnter(self)
        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
     end
 
+    if isCataclysmClassic then
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]).."/"..getReagentCount(L["P_RUNE"]), 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+    end
+
     if PortalsDB.showItemCooldowns then
         local cooldowns = GetItemCooldowns()
         if cooldowns ~= nil then
@@ -982,13 +986,14 @@ function obj.OnEnter(self)
         end
     end
 
-    local whistleCooldown = GetWhistleCooldown()
-    if whistleCooldown == L['READY'] then
-        GameTooltip:AddDoubleLine(GetItemInfo(whistle), whistleCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
-    else
-       GameTooltip:AddDoubleLine(GetItemInfo(whistle), whistleCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+    if not isCataclysmClassic then
+        local whistleCooldown = GetWhistleCooldown()
+        if whistleCooldown == L['READY'] then
+            GameTooltip:AddDoubleLine(GetItemInfo(whistle), whistleCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+        else
+           GameTooltip:AddDoubleLine(GetItemInfo(whistle), whistleCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+        end
     end
-
     GameTooltip:Show()
 end
 

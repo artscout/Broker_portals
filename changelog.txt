@@ -1,3 +1,6 @@
+1.13.6
+   - Return portal/teleport rune count to tooltip for Cataclysm Classic
+
 1.13.5:
    - Translation fixes
 
