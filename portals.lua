@@ -170,7 +170,9 @@ local engineeringItems = {
     168807, -- Wormhole Generator: Kul Tiras
     168808, -- Wormhole Generator: Zandalar
     172924, -- Wormhole Generator: Shadowlands
-    198156 -- Wormhole Generator: Dragon Isles
+    198156, -- Wormhole Generator: Dragon Isles
+    132523, -- Reaves Battery, unfortunately we can't check for Wormhole Generator module
+    144341  -- Rechargeable Reaves Battery, same as with Reaves Battery
 }
 
 local scrolls = {

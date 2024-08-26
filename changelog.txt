@@ -1,3 +1,6 @@
+1.13.7
+   - Add Rechargeable Reaves Battery and Reaves Battery
+
 1.13.6
    - Return portal/teleport rune count to tooltip for Cataclysm Classic
 
