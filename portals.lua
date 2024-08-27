@@ -722,7 +722,7 @@ local function UpdateMenu(level, value)
           dewdrop:AddLine()
         end
 
-        local challengeSpellCount, challengeSpells = UpdateChallengeSpells()
+        local challengeSpellCount, challengeSpellList = UpdateChallengeSpells()
 
         local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
@@ -857,7 +857,7 @@ local function UpdateMenu(level, value)
     elseif level == 2 and value == 'heartstones' then
         ShowHeartstoneAnalogues()
     elseif level == 2 and value == 'challenges' and challengeSpellCount > 0 then
-        for k, v in pairsByKeys(challengeSpells) do
+        for k, v in pairsByKeys(challengeSpellList) do
             local spellCoolDown = nil
             local spellCoolDownInfo = GetSpellCooldown(v.text)
             if type(spellCoolDownInfo) == "table" then
