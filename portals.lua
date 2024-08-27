@@ -32,8 +32,8 @@ local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
 local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
 local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
-local _, _, _, _, _, _, _, _, _, heartstonesIcon = GetItemInfo(6948)
-local teleportsIcon = 237509 -- Teleport to Dalaran icon used
+local heartstonesIcon = 134414 -- icon of Heartstone
+local teleportsIcon   = 237509 -- Teleport to Dalaran icon used
 
 local addonName, addonTable = ...
 local L = addonTable.L
@@ -254,7 +254,7 @@ local challengeSpells = {
 	{ 445414, 'TRUE' }, -- Path of the Dawnbreaker
 	{ 445444, 'TRUE' }, -- Path of the Priory of the Sacred Flame
 	{ 445443, 'TRUE' }, -- Path of the Rookery
-	{ 445269, 'TRUE' } -- Path of the Stonevault
+	{ 445269, 'TRUE' }  -- Path of the Stonevault
 }
 
 local whistle = 141605 -- Flight Master's Whistle
@@ -761,8 +761,6 @@ local function UpdateMenu(level, value)
             ShowWhistle()
         end
 
-        dewdrop:AddLine()
-
         if PortalsDB.showChallengePortals and challengeSpellCount > 0 then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
@@ -856,7 +854,8 @@ local function UpdateMenu(level, value)
         end)
     elseif level == 2 and value == 'heartstones' then
         ShowHeartstoneAnalogues()
-    elseif level == 2 and value == 'challenges' and challengeSpellCount > 0 then
+    elseif level == 2 and value == 'challenges' then
+        local challengeSpellCount, challengeSpellList = UpdateChallengeSpells()
         for k, v in pairsByKeys(challengeSpellList) do
             local spellCoolDown = nil
             local spellCoolDownInfo = GetSpellCooldown(v.text)
@@ -899,7 +898,6 @@ function frame:PLAYER_LOGIN()
         PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
         PortalsDB.version = 6
     end
-
     -- upgrade from versions
     if PortalsDB.version == 5 then
         PortalsDB.showChallengeTeleports = true
