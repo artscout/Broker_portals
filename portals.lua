@@ -761,7 +761,7 @@ local function UpdateMenu(level, value)
             ShowWhistle()
         end
 
-        if PortalsDB.showChallengePortals and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and challengeSpellCount > 0 then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['CHALLENGE_TELEPORTS'],
