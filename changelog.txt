@@ -1,3 +1,6 @@
+1.13.12a
+  - Wrong function call fix
+
 1.13.12
    - Begin rework menu system
 

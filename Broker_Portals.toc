@@ -3,7 +3,7 @@
 ## Notes: Provides access to all Portal and Teleport spells on right click of one button.
 ## Author: CrazyBenny of Stormrage-EU and Bissental on FlameGor-EU
 ## LastUpdate: 2024-09-22T02:09:00Z
-## Version: 1.13.12
+## Version: 1.13.12a
 ## OptionalDeps: LibDBIcon-1.0
 
 ## SavedVariables: PortalsDB

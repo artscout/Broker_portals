@@ -488,14 +488,13 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
     if itemType == "spell" then
         for _, unTransSpell in ipairs(itemList) do
             if IsPlayerSpell(unTransSpell[1]) then
-                local spellId, spellName
-                local spell, _, spellIcon = GetSpellInfo(unTransSpell[1])
+                local spellName
+                local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(unTransSpell[1])
                 if type(spell) == "table" then
-                    spellId   = findSpell(spell.name)
+                    spellId   = spell.spellID
                     spellIcon = spell.iconID
                     spellName = spell.name
                 else
-                    spellId   = findSpell(spell)
                     spellName = spell
                 end
 
