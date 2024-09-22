@@ -34,8 +34,14 @@ local engineeringName    = C_TradeSkillUI.GetTradeSkillDisplayName(202)
 local engineeringIcon    = C_TradeSkillUI.GetTradeSkillTexture(202)
 local heartstonesIcon    = 134414 -- icon of Heartstone
 local teleportsIcon      = 237509 -- Teleport to Dalaran icon used
-local hasEngineering     = false
-local engineeringSkill   = 0
+
+local engineringItemsCount = 0
+local challengeSpellCount  = 0
+local heartstoneItemsCount = 0
+
+local databaseLoaded = false
+
+local methods = {}
 
 local addonName, addonTable = ...
 local L = addonTable.L
@@ -259,7 +265,9 @@ local challengeSpells = {
 	{ 445269, 'TRUE' }  -- Path of the Stonevault
 }
 
-local whistle = 141605 -- Flight Master's Whistle
+local whistle = { 
+    141605 -- Flight Master's Whistle
+}
 
 local obj = LibStub:GetLibrary('LibDataBroker-1.1'):NewDataObject(addonName, {
     type = 'data source',
@@ -271,7 +279,6 @@ local frame = CreateFrame('frame')
 
 frame:SetScript('OnEvent', function(self, event, ...) if self[event] then return self[event](self, event, ...) end end)
 frame:RegisterEvent('PLAYER_LOGIN')
-frame:RegisterEvent('SKILL_LINES_CHANGED')
 
 local function pairsByKeys(t)
     local a = {}
@@ -474,67 +481,157 @@ local function SetupSpells()
     wipe(spells)
 end
 
-local function GenerateLinks(spells)
-    local methods = {}
+
+local function GenerateMenuEntries(itemType, itemList, menuCategory)
     local itemsGenerated = 0
 
-    for _, unTransSpell in ipairs(spells) do
-        if IsPlayerSpell(unTransSpell[1]) then
-            local spellName
-            local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(unTransSpell[1])
-            if type(spell) == "table" then
-                spellId   = spell.spellID
-                spellIcon = spell.iconID
-                spellName = spell.name
-            else
-                spellName = spell
-            end
+    if itemType == "spell" then
+        for _, unTransSpell in ipairs(itemList) do
+            if IsPlayerSpell(unTransSpell[1]) then
+                local spellId, spellName
+                local spell, _, spellIcon = GetSpellInfo(unTransSpell[1])
+                if type(spell) == "table" then
+                    spellId   = findSpell(spell.name)
+                    spellIcon = spell.iconID
+                    spellName = spell.name
+                else
+                    spellId   = findSpell(spell)
+                    spellName = spell
+                end
 
-            if spellId then
-                methods[spellName] = {
-                    spellid = spellId,
-                    text = spellName,
-                    spellIcon = spellIcon,
-                    isPortal = unTransSpell[2] == 'P_RUNE',
+                if spellId then
+                    if not methods[menuCategory] then
+                        methods[menuCategory] = {}
+                    end
+                    methods[menuCategory][spellName] = {
+                        itemID   = spellId,
+                        itemName = spellName,
+                        itemIcon = spellIcon,
+                        itemType = itemType,
+                        itemRGB  = nil,
+                        isPortal = unTransSpell[2] == 'P_RUNE',
+                        secure = {
+                            type = 'spell',
+                            spell = spellName
+                        }
+                    }
+                    itemsGenerated = itemsGenerated + 1
+                end
+            end
+        end
+    else
+        local i = 0
+        for i = 1, #itemList do
+            if hasItem(itemList[i]) then
+                local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
+                if not methods[menuCategory] then
+                    methods[menuCategory] = {}
+                end
+                methods[menuCategory][itemName] = {
+                    itemID   = itemList[i],
+                    itemName = itemName,
+                    itemIcon = itemIcon,
+                    itemType = itemType,
+                    itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
                     secure = {
-                        type = 'spell',
-                        spell = spellName
+                        type = 'item',
+                        item = itemName
                     }
                 }
                 itemsGenerated = itemsGenerated + 1
             end
+            i = i + 1
         end
     end
-    return itemsGenerated, methods
+    return itemsGenerated
 end
 
-local function UpdateClassSpells()
+local function PrepareMenuData()
+
+    wipe(methods)
+
     if not portals then
         SetupSpells()
     end
 
     if portals then
-        local spellCount, spellLinks = GenerateLinks(portals)
-        return spellCount, spellLinks
+        GenerateMenuEntries("spell", portals, "mainspells")
     end
+
+    if not isCataclysmClassic then
+        challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges")
+    end
+
+    GenerateMenuEntries("items", items, "mainitems")
+    engineringItemsCount = GenerateMenuEntries("items", engineeringItems, "engineering")
+    heartstoneItemsCount = GenerateMenuEntries("items", heartstones, "heartstones")
+    databaseLoaded = true
 end
 
-local function UpdateChallengeSpells()
-    local spellCount, spellLinks = GenerateLinks(challengeSpells)
-    return spellCount, spellLinks
-end
-
-local function CheckHasItems(items)
-    for i = 1, #items do
-        if hasItem(items[i]) then
-            return true
-        end
-    end
-    return false
-end
 
 local function UpdateIcon(icon)
     obj.icon = icon
+end
+
+local function ShowMenuEntries(category)
+    if methods[category] then
+        for _, menuEntry in pairsByKeys(methods[category]) do
+            if menuEntry.itemType == "spell" then
+                if menuEntry.secure and GetSpellCooldown(menuEntry.itemName) == 0 then
+                    dewdrop:AddLine(
+                        'textHeight', PortalsDB.fontSize,
+                        'text', menuEntry.itemName,
+                        'secure', menuEntry.secure,
+                        'icon', tostring(menuEntry.itemIcon),
+                        'func', function()
+                            UpdateIcon(menuEntry.itemIcon)
+                            if announce and menuyEntry.isPortal and chatType then
+                                SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. menuEntry.itemName, chatType)
+                            end
+                        end,
+                        'closeWhenClicked', true)
+                end
+            else
+                dewdrop:AddLine(
+                    'textHeight', PortalsDB.fontSize,
+                    'text', menuEntry.itemName,
+                    'textR', menuEntry.itemRGB.r,
+                    'textG', menuEntry.itemRGB.g,
+                    'textB', menuEntry.itemRGB.b,
+                    'secure', menuEntry.secure,
+                    'icon', tostring(menuEntry.itemIcon),
+                    'func', function() UpdateIcon(menuEntry.itemIcon) end,
+                    'closeWhenClicked', true)
+            end
+        end
+    end
+end
+
+local function GetItemCooldowns()
+    local cooldown, cooldowns, hours, mins, secs
+
+    for i = 1, #items do
+        if GetItemCount(items[i]) > 0 or (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
+            startTime, duration = GetItemCooldown(items[i])
+            cooldown = duration - (GetTime() - startTime)
+            if cooldown <= 0 then
+                cooldown = L['READY']
+            else
+                cooldown = SecondsToTime(cooldown)
+            end
+
+            if cooldowns == nil then
+                cooldowns = {}
+            end
+
+            local name = GetItemInfo(items[i]) or select(2, C_ToyBox.GetToyInfo(items[i]))
+
+            if name then
+                cooldowns[name] = cooldown
+            end
+        end
+    end
+    return cooldowns
 end
 
 local function GetScrollCooldown()
@@ -569,34 +666,6 @@ local function GetWhistleCooldown()
     return L['N/A']
 end
 
-local function GetItemCooldowns()
-    local cooldown, cooldowns, hours, mins, secs
-
-    for i = 1, #items do
-        if GetItemCount(items[i]) > 0 or (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
-            startTime, duration = GetItemCooldown(items[i])
-            cooldown = duration - (GetTime() - startTime)
-            if cooldown <= 0 then
-                cooldown = L['READY']
-            else
-                cooldown = SecondsToTime(cooldown)
-            end
-
-            if cooldowns == nil then
-                cooldowns = {}
-            end
-
-            local name = GetItemInfo(items[i]) or select(2, C_ToyBox.GetToyInfo(items[i]))
-
-            if name then
-                cooldowns[name] = cooldown
-            end
-        end
-    end
-
-    return cooldowns
-end
-
 local function ShowHearthstone()
     local bindLoc = GetBindLocation()
     local secure, text, icon, name
@@ -624,36 +693,10 @@ local function ShowHearthstone()
     end
 end
 
-local function ShowHeartstoneAnalogues()
-    local j = 0
-    if PortalsDB.showHSItems then
-        for i = 1, #heartstones do
-            if hasItem(heartstones[i]) then
-                name, _, quality, _, _, _, _, _, _, icon = GetItemInfo(heartstones[i])
-                secure = {
-                    type = 'item',
-                    item = name
-                }
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', name,
-                    'textR', ITEM_QUALITY_COLORS[quality].r,
-                    'textG', ITEM_QUALITY_COLORS[quality].g,
-                    'textB', ITEM_QUALITY_COLORS[quality].b,
-                    'secure', secure,
-                    'icon', tostring(icon),
-                    'func', function() UpdateIcon(icon) end,
-                    'closeWhenClicked', true)
-                j = i
-            end
-        end
-    end
-end
-
 local function ShowWhistle()
     local secure, icon, name
-    if hasItem(whistle) then
-        name, _, _, _, _, _, _, _, _, icon = GetItemInfo(whistle)
+    if hasItem(whistle[1]) then
+        name, _, _, _, _, _, _, _, _, icon = GetItemInfo(whistle[1])
         secure = {
             type = 'item',
             item = name
@@ -668,36 +711,6 @@ local function ShowWhistle()
             'icon', tostring(icon),
             'func', function() UpdateIcon(icon) end,
             'closeWhenClicked', true)
-        dewdrop:AddLine()
-    end
-end
-
-local function ShowOtherItems(items)
-    local secure, icon, quality, name
-    local i = 0
-
-    for i = 1, #items do
-        if hasItem(items[i]) then
-            name, _, quality, _, _, _, _, _, _, icon = GetItemInfo(items[i])
-            secure = {
-                type = 'item',
-                item = name
-            }
-
-            dewdrop:AddLine(
-                'textHeight', PortalsDB.fontSize,
-                'text', name,
-                'textR', ITEM_QUALITY_COLORS[quality].r,
-                'textG', ITEM_QUALITY_COLORS[quality].g,
-                'textB', ITEM_QUALITY_COLORS[quality].b,
-                'secure', secure,
-                'icon', tostring(icon),
-                'func', function() UpdateIcon(icon) end,
-                'closeWhenClicked', true)
-            i = i + 1
-        end
-    end
-    if i > 0 then
         dewdrop:AddLine()
     end
 end
@@ -717,56 +730,29 @@ local function UpdateMenu(level, value)
 
     if level == 1 then
         dewdrop:AddLine('text', 'Broker_Portals', 'isTitle', true)
+        PrepareMenuData()
+
+        local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
+        local announce = PortalsDB.announce
+
         if not portals then
             SetupSpells()
         end
 
-        local spellCount, spells = UpdateClassSpells()
-
-        if spellCount > 0 then
-          dewdrop:AddLine()
+        if portals then
+            ShowMenuEntries("mainspells")
+            dewdrop:AddLine()
         end
-
-        local challengeSpellCount, challengeSpellList = UpdateChallengeSpells()
-
-        local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
-        local announce = PortalsDB.announce
-        if spellCount > 0 then
-            for k, v in pairsByKeys(spells) do
-                local spellCoolDown = nil
-                local spellCoolDownInfo = GetSpellCooldown(v.text)
-                if type(spellCoolDownInfo) == "table" then
-                    spellCoolDown = spellCoolDownInfo.startTime
-                else
-                    spellCoolDown = spellCoolDownInfo
-                end
-                if v.secure and spellCoolDown == 0 then
-                    dewdrop:AddLine(
-                        'textHeight', PortalsDB.fontSize,
-                        'text', v.text,
-                        'secure', v.secure,
-                        'icon', tostring(v.spellIcon),
-                        'func', function()
-                            UpdateIcon(v.spellIcon)
-                            if announce and v.isPortal and chatType then
-                                SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. v.text, chatType)
-                            end
-                        end,
-                        'closeWhenClicked', true)
-                end
-            end
-        end
-
-        dewdrop:AddLine()
 
         ShowHearthstone()
+        dewdrop:AddLine()
 
         if PortalsDB.showItems then
-            ShowOtherItems(items)
+            ShowMenuEntries("mainitems")
             ShowWhistle()
         end
 
-        if PortalsDB.showItems and hasEngineering then
+        if PortalsDB.showItems and engineringItemsCount > 0 then
             if PortalsDB.showEnginneringSubCat then
                 dewdrop:AddLine()
                 dewdrop:AddLine(
@@ -776,12 +762,12 @@ local function UpdateMenu(level, value)
                     'hasArrow', true,
                     'value', 'engineering')
             else
-                ShowOtherItems(engineeringItems)
+                ShowMenuEntries("engineering")
                 dewdrop:AddLine()
             end
         end
 
-        if PortalsDB.showChallengeTeleports and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['CHALLENGE_TELEPORTS'],
@@ -790,7 +776,7 @@ local function UpdateMenu(level, value)
                 'value', 'challenges')
         end
 
-        if PortalsDB.showHSItems then
+        if PortalsDB.showHSItems and heartstoneItemsCount > 0 then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['HEARTHSTONE_ANALOGUES'],
@@ -799,6 +785,7 @@ local function UpdateMenu(level, value)
                 'value', 'heartstones')
         end
 
+        dewdrop:AddLine()
         dewdrop:AddLine(
             'textHeight', PortalsDB.fontSize,
             'text', L['OPTIONS'],
@@ -870,34 +857,11 @@ local function UpdateMenu(level, value)
             end
         end)
     elseif level == 2 and value == 'heartstones' then
-        ShowHeartstoneAnalogues()
+        ShowMenuEntries("heartstones")
     elseif level == 2 and value == 'challenges' then
-        local challengeSpellCount, challengeSpellList = UpdateChallengeSpells()
-        for k, v in pairsByKeys(challengeSpellList) do
-            local spellCoolDown = nil
-            local spellCoolDownInfo = GetSpellCooldown(v.text)
-            if type(spellCoolDownInfo) == "table" then
-                spellCoolDown = spellCoolDownInfo.startTime
-            else
-                spellCoolDown = spellCoolDownInfo
-            end
-            if v.secure and spellCoolDown == 0 then
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', v.text,
-                    'secure', v.secure,
-                    'icon', tostring(v.spellIcon),
-                    'func', function()
-                        UpdateIcon(v.spellIcon)
-                        if announce and v.isPortal and chatType then
-                            SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. v.text, chatType)
-                        end
-                    end,
-                    'closeWhenClicked', true)
-            end
-        end
+        ShowMenuEntries("challenges")
     elseif level == 2 and value == 'engineering' then
-        ShowOtherItems(engineeringItems)
+        ShowMenuEntries("engineering")
     end
 end
 
@@ -943,24 +907,7 @@ function frame:PLAYER_LOGIN()
     if icon then
         icon:Register('Broker_Portals', obj, PortalsDB.minimap)
     end
-
-    local proffs = {GetProfessions()}
-    for _, i in pairs (proffs) do
-        local profName, _, rank, _, _, _, skillLine = GetProfessionInfo(i)
-        if skillLine == 202 and rank > 0 then
-            hasEngineering = true
-        end
-    end
-
-    CheckHasItems(heartstones)
-    CheckHasItems(engineeringItems)
-
     self:UnregisterEvent('PLAYER_LOGIN')
-end
-
-function frame:SKILL_LINES_CHANGED()
-    UpdateClassSpells()
-    UpdateChallengeSpells()
 end
 
 -- All credit for this func goes to Tekkub and his picoGuild!
