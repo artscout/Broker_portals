@@ -1,3 +1,9 @@
+1.13.12
+   - 4.4.1 TOC update
+   - Add Khaz Algar Wohmhole Generator
+   - Remove duplicate G.E.A.R. tracking beacon
+   - Add option to display engineering items in submenu when enabled, otherwise they will be shown in main menu
+
 1.13.10
    - Yet again fix for challenge teleports
 

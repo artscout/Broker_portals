@@ -114,8 +114,7 @@ local items = {
     144391, -- Pugilist's Powerful Punching Ring (Alliance)
     144392, -- Pugilist's Powerful Punching Ring (Horde)
     151016, -- Fractured Necrolyte Skull
-    166559, -- Commander's Signet of Battle
-    168862 -- G.E.A.R. Tracking Beacon
+    166559  -- Commander's Signet of Battle
 }
 
 local heartstones = {
@@ -171,6 +170,7 @@ local engineeringItems = {
     168808, -- Wormhole Generator: Zandalar
     172924, -- Wormhole Generator: Shadowlands
     198156, -- Wormhole Generator: Dragon Isles
+    221966, -- Wormhole GeneratorL Khaz Algar
     132523, -- Reaves Battery, unfortunately we can't check for Wormhole Generator module
     144341  -- Rechargeable Reaves Battery, same as with Reaves Battery
 }
@@ -300,6 +300,7 @@ end
 -- returns true, if player has item with given ID in inventory or bags and it's not on cooldown
 local function hasItem(itemID)
     local item, found, id
+
     -- scan inventory
     for slotId = 1, 19 do
         item = GetInventoryItemLink('player', slotId)
@@ -314,6 +315,20 @@ local function hasItem(itemID)
             end
         end
     end
+
+    -- check Toybox
+    if PlayerHasToy(itemID) and C_ToyBox.IsToyUsable(itemID) then
+        local startTime, duration, cooldown
+        startTime, duration = GetItemCooldown(itemID)
+        cooldown = duration - (GetTime() - startTime)
+
+        if cooldown > 0 then
+            return false
+        else
+            return true
+        end
+    end
+
     -- scan bags
     for bag = 0, 4 do
         for slot = 1, GetContainerNumSlots(bag) do
@@ -330,18 +345,6 @@ local function hasItem(itemID)
             end
         end
     end
-    -- check Toybox
-    if PlayerHasToy(itemID) and C_ToyBox.IsToyUsable(itemID) then
-        local startTime, duration, cooldown
-        startTime, duration = GetItemCooldown(itemID)
-        cooldown = duration - (GetTime() - startTime)
-        if cooldown > 0 then
-            return false
-        else
-            return true
-        end
-    end
-
     return false
 end
 
@@ -761,6 +764,21 @@ local function UpdateMenu(level, value)
             ShowWhistle()
         end
 
+        if PortalsDB.showItems and CheckHasItems(engineeringItems) then
+            if PortalsDB.showEnginneringSubCat then
+                dewdrop:AddLine()
+                dewdrop:AddLine(
+                    'textHeight', PortalsDB.fontSize,
+                    'text', engineeringName,
+                    'icon', tostring(engineeringIcon),
+                    'hasArrow', true,
+                    'value', 'engineering')
+            else
+                ShowOtherItems(engineeringItems)
+                dewdrop:AddLine()
+            end
+        end
+
         if PortalsDB.showChallengeTeleports and challengeSpellCount > 0 then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
@@ -768,15 +786,6 @@ local function UpdateMenu(level, value)
                 'icon', tostring(teleportsIcon),
                 'hasArrow', true,
                 'value', 'challenges')
-        end
-
-        if PortalsDB.showItems and CheckHasItems(engineeringItems) then
-            dewdrop:AddLine(
-                'textHeight', PortalsDB.fontSize,
-                'text', engineeringName,
-                'icon', tostring(engineeringIcon),
-                'hasArrow', true,
-                'value', 'engineering')
         end
 
         if PortalsDB.showHSItems and CheckHasItems(heartstones) then
@@ -813,7 +822,7 @@ local function UpdateMenu(level, value)
             'checked', PortalsDB.showHSItems,
             'func', function() PortalsDB.showHSItems = not PortalsDB.showHSItems end,
             'closeWhenClicked', true)
-        if not isCataclysmClassic then        
+        if not isCataclysmClassic then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['SHOW_CHALLENGE_TELEPORTS'],
@@ -826,6 +835,12 @@ local function UpdateMenu(level, value)
             'text', L['SHOW_ITEM_COOLDOWNS'],
             'checked', PortalsDB.showItemCooldowns,
             'func', function() PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns end,
+            'closeWhenClicked', true)
+        dewdrop:AddLine(
+            'textHeight', PortalsDB.fontSize,
+            'text', L['SHOW_ENGINEERING_SUBCAT'],
+            'checked', PortalsDB.showEnginneringSubCat,
+            'func', function() PortalsDB.showEnginneringSubCat = not PortalsDB.showEnginneringSubCat end,
             'closeWhenClicked', true)
         dewdrop:AddLine(
             'textHeight', PortalsDB.fontSize,
@@ -845,7 +860,7 @@ local function UpdateMenu(level, value)
             'hasArrow', true,
             'hasEditBox', true,
             'editBoxText', PortalsDB.fontSize,
-	    'editBoxFunc', function(value)
+            'editBoxFunc', function(value)
             if value ~= '' and tonumber(value) ~= nil then
                 PortalsDB.fontSize = tonumber(value)
             else
@@ -894,12 +909,16 @@ function frame:PLAYER_LOGIN()
         PortalsDB.showHSItems = true
         PortalsDB.showItemCooldowns = true
         PortalsDB.showChallengeTeleports = true
+        PortalsDB.showEnginneringSubCat = true
         PortalsDB.announce = false
         PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-        PortalsDB.version = 6
+        PortalsDB.version = 7
     end
     -- upgrade from versions
-    if PortalsDB.version == 5 then
+    if PortalsDB.version == 6 then
+        PortalsDB.showEnginneringSubCat = true
+        PortalsDB.version = 7
+    elseif PortalsDB.version == 5 then
         PortalsDB.showChallengeTeleports = true
         PortalsDB.version = 6
     elseif PortalsDB.version == 4 then
