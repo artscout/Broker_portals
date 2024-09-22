@@ -240,7 +240,7 @@ L["ANNOUNCEMENT"] = [=[Заклинание
 L["ATT_MINIMAP"] = "Закрепить у миникарты"
 L["DROPDOWN_FONT_SIZE"] = "Размен шрифта меню"
 L["CHALLENGE_TELEPORTS"] = "Телепорты Испытаний"
-L["SHOW_ENGINEERING_SUBCAT"] = "Показывать инженерные игрушки в отдельном меню"
+L["SHOW_ENGINEERING_SUBCAT"] = "Показывать инженерные гаджеты в отдельном меню"
 L["SHOW_CHALLENGE_TELEPORTS"] = "Показывать телепорты Испытаний"
 L["HEARTHSTONE"] = "Камень Возвращения"
 L["HEARTHSTONE_ANALOGUES"] = "Аналоги камней Возвращения"
