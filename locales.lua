@@ -27,7 +27,12 @@ L["SHOW_HS_ITEMS"] = "Show Heartstone analogues"
 L["TP"] = "Teleports"
 L["TP_RUNE"] = "Rune of Teleportation"
 L["TP_P"] = "Teleports / Portals"
-
+L["SHOW_ITEMS_TOOLTIP"] = "Show various items that has teleport/portals functionality"
+L["SHOW_HS_ITEMS_TOOLTIP"] = "Show various items that has same functionality as Heartstone"
+L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"] = "Show teleports earned with gold challenges"
+L["SHOW_ITEM_COOLDOWNS_TOOLTIP"] = "When checked items cooldowns will be shown in Tooltip"
+L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"] = "When checked Engineering items will ebe shown in engineering submenu, otherwise they will be mixed in main menu with other spells/items"
+L["ANNOUNCE_TOOLTIP"] = "When checked every call to teleport/portal spell will be announced to the party/raid"
 
 if GetLocale() == "ptBR" then
 
@@ -238,7 +243,7 @@ L["ANNOUNCEMENT"] = [=[Заклинание
 
 При создании портала, будет отображаться сообщение: "Заклинание: <имя заклинания>"]=]
 L["ATT_MINIMAP"] = "Закрепить у миникарты"
-L["DROPDOWN_FONT_SIZE"] = "Размен шрифта меню"
+L["DROPDOWN_FONT_SIZE"] = "Размер шрифта меню"
 L["CHALLENGE_TELEPORTS"] = "Телепорты Испытаний"
 L["SHOW_ENGINEERING_SUBCAT"] = "Показывать инженерные гаджеты в отдельном меню"
 L["SHOW_CHALLENGE_TELEPORTS"] = "Показывать телепорты Испытаний"
@@ -260,7 +265,12 @@ L["SHOW_HS_ITEMS"] = "Показывать аналоги камня возвр�
 L["TP"] = "Телепорты"
 L["TP_RUNE"] = "Руна телепортации"
 L["TP_P"] = "Телепорты / Порталы"
-
+L["SHOW_ITEMS_TOOLTIP"] = "Show various items that has teleport/portals functionality"
+L["SHOW_HS_ITEMS_TOOLTIP"] = "Show various items that has same functionality as Heartstone"
+L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"] = "Show teleports earned with gold challenges"
+L["SHOW_ITEM_COOLDOWNS_TOOLTIP"] = "When checked items cooldowns will be shown in Tooltip"
+L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"] = "When checked Engineering items will ebe shown in engineering submenu, otherwise they will be mixed in main menu with other spells/items"
+L["ANNOUNCE_TOOLTIP"] = "When checked every call to teleport/portal spell will be announced to the party/raid"
 
 end
 
