@@ -30,10 +30,12 @@ local UnitRace = UnitRace
 local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
-local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
-local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
-local heartstonesIcon = 134414 -- icon of Heartstone
-local teleportsIcon   = 237509 -- Teleport to Dalaran icon used
+local engineeringName    = C_TradeSkillUI.GetTradeSkillDisplayName(202)
+local engineeringIcon    = C_TradeSkillUI.GetTradeSkillTexture(202)
+local heartstonesIcon    = 134414 -- icon of Heartstone
+local teleportsIcon      = 237509 -- Teleport to Dalaran icon used
+local hasEngineering     = false
+local engineeringSkill   = 0
 
 local addonName, addonTable = ...
 local L = addonTable.L
@@ -764,7 +766,7 @@ local function UpdateMenu(level, value)
             ShowWhistle()
         end
 
-        if PortalsDB.showItems and CheckHasItems(engineeringItems) then
+        if PortalsDB.showItems and hasEngineering then
             if PortalsDB.showEnginneringSubCat then
                 dewdrop:AddLine()
                 dewdrop:AddLine(
@@ -788,7 +790,7 @@ local function UpdateMenu(level, value)
                 'value', 'challenges')
         end
 
-        if PortalsDB.showHSItems and CheckHasItems(heartstones) then
+        if PortalsDB.showHSItems then
             dewdrop:AddLine(
                 'textHeight', PortalsDB.fontSize,
                 'text', L['HEARTHSTONE_ANALOGUES'],
@@ -941,6 +943,17 @@ function frame:PLAYER_LOGIN()
     if icon then
         icon:Register('Broker_Portals', obj, PortalsDB.minimap)
     end
+
+    local proffs = {GetProfessions()}
+    for _, i in pairs (proffs) do
+        local profName, _, rank, _, _, _, skillLine = GetProfessionInfo(i)
+        if skillLine == 202 and rank > 0 then
+            hasEngineering = true
+        end
+    end
+
+    CheckHasItems(heartstones)
+    CheckHasItems(engineeringItems)
 
     self:UnregisterEvent('PLAYER_LOGIN')
 end
