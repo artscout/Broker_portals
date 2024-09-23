@@ -676,7 +676,9 @@ local function ShowMenuEntries(category)
     if methods[category] then
         for _, menuEntry in pairsByKeys(methods[category]) do
             if menuEntry.itemType == "spell" then
-                if menuEntry.secure and GetSpellCooldown(menuEntry.itemName) == 0 then
+                local spellCooldown
+                if isCataclysmClassic then spellCooldown = GetSpellCooldown(menuEntry.itemName) else spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime end
+                if menuEntry.secure and spellCooldown == 0 then
                     dewdrop:AddLine(
                         'textHeight', PortalsDB.fontSize,
                         'text', menuEntry.itemName,
