@@ -1,3 +1,6 @@
+1.13.13a
+  - Fixed spell cooldown detection for retail (@Amadeus-)
+
 1.13.13
   - Begin of Setting panel for Blizzard settings support.
 
