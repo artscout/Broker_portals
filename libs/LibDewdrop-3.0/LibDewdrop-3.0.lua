@@ -17,6 +17,8 @@ License: LGPL v2.1
 
 local Dewdrop = LibStub:NewLibrary( "LibDewdrop-3.0", 1 )
 
+Dewdrop.scrollListSize = 33
+
 if not Dewdrop then
 	return -- already loaded and no upgrade necessary
 end
@@ -182,51 +184,50 @@ local secureFrame = CreateFrame("Button", nil, nil, "SecureActionButtonTemplate"
 secureFrame:Hide()
 
 local function secureFrame_Show(self)
-  local owner = self.owner
+	local owner = self.owner
+	if self.secure then	-- Leftovers from previos owner, clean up! ("Shouldn't" happen but does..)
+		for k,v in pairs(self.secure) do
+			self:SetAttribute(k, nil)
+		end
+	end
+	self.secure = owner.secure;	-- Grab hold of new secure data
 
-  if self.secure then	-- Leftovers from previos owner, clean up! ("Shouldn't" happen but does..)
-	  for k,v in pairs(self.secure) do
-	    self:SetAttribute(k, nil)
-	  end
-  end
-  self.secure = owner.secure;	-- Grab hold of new secure data
+	local scale = owner:GetEffectiveScale()
 
-  local scale = owner:GetEffectiveScale()
-
-  self:SetPoint("TOPLEFT", nil, "BOTTOMLEFT", owner:GetLeft() * scale, owner:GetTop() * scale)
-  self:SetPoint("BOTTOMRIGHT", nil, "BOTTOMLEFT", owner:GetRight() * scale, owner:GetBottom() * scale)
-  self:EnableMouse(true)
-  for k,v in pairs(self.secure) do
-    self:SetAttribute(k, v)
-  end
-  state = C_CVar.GetCVarBool("ActionButtonUseKeyDown")
-  if state then
-    self:RegisterForClicks("LeftButtonDown")
-  else
-    self:RegisterForClicks("LeftButtonUp")
-  end
+	self:SetPoint("TOPLEFT", nil, "BOTTOMLEFT", owner:GetLeft() * scale, owner:GetTop() * scale)
+	self:SetPoint("BOTTOMRIGHT", nil, "BOTTOMLEFT", owner:GetRight() * scale, owner:GetBottom() * scale)
+	self:EnableMouse(true)
+	for k,v in pairs(self.secure) do
+		self:SetAttribute(k, v)
+	end
+	state = C_CVar.GetCVarBool("ActionButtonUseKeyDown")
+	if state then
+		self:RegisterForClicks("LeftButtonDown")
+	else
+		self:RegisterForClicks("LeftButtonUp")
+	end
 
 	secureFrame:SetFrameStrata(owner:GetFrameStrata())
-	secureFrame:SetFrameLevel(owner:GetFrameLevel()+1)
-
-  self:Show()
+	secureFrame:SetFrameLevel(owner:GetFrameLevel()+2)
+	self:Show()
 end
 
 local function secureFrame_Hide(self)
-  self:Hide()
-  if self.secure then
-	  for k,v in pairs(self.secure) do
-	    self:SetAttribute(k, nil)
-	  end
+	self:Hide()
+	if self.secure then
+		for k,v in pairs(self.secure) do
+			self:SetAttribute(k, nil)
+		end
 	end
-  self.secure = nil
+	self.secure = nil
 end
 
 secureFrame:SetScript("OnLeave",
 	function(self)
 		local owner=self.owner
 		self:Deactivate()
-		owner:GetScript("OnLeave")
+		callBack = owner:GetScript("OnLeave")
+		return callBack(owner)
 	end
 )
 
@@ -335,16 +336,25 @@ local function CheckDualMonitor(frame)
 end
 
 local function CheckSize(level)
-	if not level.buttons then
+	if not level.scrollFrame.child.buttons then
 		return
 	end
+	if #level.scrollFrame.child.buttons < Dewdrop.scrollListSize then
+		level.scrollFrame.ScrollBar:Hide()
+	else
+		level.scrollFrame.ScrollBar:Show()
+	end
 	local height = 20
-	for _, button in ipairs(level.buttons) do
+	for _, button in ipairs(level.scrollFrame.child.buttons) do
 		height = height + button:GetHeight()
 	end
-	level:SetHeight(height)
+	local levelMaxHeight = 16 * Dewdrop.scrollListSize
+	local levelHeight = height
+	if height > levelMaxHeight then levelHeight = levelMaxHeight end
+	level:SetHeight(levelHeight)
+	level.scrollFrame.child:SetHeight(height)
 	local width = 50
-	for _, button in ipairs(level.buttons) do
+	for _, button in ipairs(level.scrollFrame.child.buttons) do
 		local extra = 1
 		if button.hasArrow or button.hasColorSwatch then
 			extra = extra + 16
@@ -358,6 +368,7 @@ local function CheckSize(level)
 		end
 	end
 	level:SetWidth(width + 20)
+	level.scrollFrame.child:SetWidth(width + 20)
 	if level:GetLeft() and level:GetRight() and level:GetTop() and level:GetBottom() and (level:GetLeft() < 0 or level:GetRight() > GetScreenWidth() or level:GetTop() > GetScreenHeight() or level:GetBottom() < 0) then
 		level:ClearAllPoints()
 		local parent = level.parent or level:GetParent()
@@ -442,13 +453,13 @@ local OpenEditBox
 local Refresh
 local Clear
 local function ReleaseButton(level, index)
-	if not level.buttons then
+	if not level.scrollFrame.child.buttons then
 		return
 	end
-	if not level.buttons[index] then
+	if not level.scrollFrame.child.buttons[index] then
 		return
 	end
-	local button = level.buttons[index]
+	local button = level.scrollFrame.child.buttons[index]
 	button:Hide()
 	if button.highlight then
 		button.highlight:Hide()
@@ -456,7 +467,7 @@ local function ReleaseButton(level, index)
 --	button.arrow:SetVertexColor(1, 1, 1)
 --	button.arrow:SetHeight(16)
 --	button.arrow:SetWidth(16)
-	table.remove(level.buttons, index)
+	table.remove(level.scrollFrame.child.buttons, index)
 	table.insert(buttons, button)
 	for k in pairs(button) do
 		if k ~= 0 and k ~= "text" and k ~= "check" and k ~= "arrow" and k ~= "colorSwatch" and k ~= "highlight" and k ~= "radioHighlight" then
@@ -464,26 +475,6 @@ local function ReleaseButton(level, index)
 		end
 	end
 	return true
-end
-
-local function Scroll(level, down)
-	if down then
-		if level:GetBottom() < 0 then
-			local point, parent, relativePoint, x, y = level:GetPoint(1)
-			level:SetPoint(point, parent, relativePoint, x, y + 50)
-			if level:GetBottom() > 0 then
-				level:SetPoint(point, parent, relativePoint, x, y + 50 - level:GetBottom())
-			end
-		end
-	else
-		if level:GetTop() > GetScreenHeight() then
-			local point, parent, relativePoint, x, y = level:GetPoint(1)
-			level:SetPoint(point, parent, relativePoint, x, y - 50)
-			if level:GetTop() < GetScreenHeight() then
-				level:SetPoint(point, parent, relativePoint, x, y - 50 + GetScreenHeight() - level:GetTop())
-			end
-		end
-	end
 end
 
 local function getArgs(t, str, num, ...)
@@ -549,9 +540,10 @@ local function AcquireButton( level )
 		return
 	end
 	level = levels[level]
-	if not level.buttons then
-		level.buttons = { }
+	if not level.scrollFrame.child.buttons then
+		level.scrollFrame.child.buttons = {}
 	end
+
 	local button
 	if #buttons == 0 then
 		numButtons = numButtons + 1
@@ -707,7 +699,7 @@ local function AcquireButton( level )
 						for i = level.num-1, 1, -1 do
 							local level = levels[i]
 							local good = false
-							for _,button in ipairs(level.buttons) do
+							for _,button in ipairs(level.scrollFrame.child.buttons) do
 								if button.value == value then
 									good = true
 									break
@@ -727,7 +719,6 @@ local function AcquireButton( level )
 		
 		local text = button:CreateFontString(nil, "ARTWORK")
 		button.text = text
-
 		button:SetScript("OnMouseDown", function(self)
 			if not self.disabled and (self.func or self.colorFunc or self.closeWhenClicked) then
 				text:SetPoint("LEFT", button, "LEFT", self.notCheckable and 1 or 25, -1)
@@ -761,20 +752,20 @@ local function AcquireButton( level )
 		button = table.remove(buttons)
 	end
 	button:ClearAllPoints()
-	button:SetParent(level)
 	button:SetFrameStrata(level:GetFrameStrata())
-	button:SetFrameLevel(level:GetFrameLevel() + 1)
-	button:SetPoint("LEFT", level, "LEFT", 10, 0)
-	button:SetPoint("RIGHT", level, "RIGHT", -10, 0)
-	if #level.buttons == 0 then
-		button:SetPoint("TOP", level, "TOP", 0, -10)
+	button:SetFrameLevel(level:GetFrameLevel() + 5)
+	button:SetPoint("LEFT", level.scrollFrame.child, "LEFT", 10, 0)
+	button:SetPoint("RIGHT", level.scrollFrame.child, "RIGHT", -10, 0)
+	if #level.scrollFrame.child.buttons == 0 then
+		button:SetPoint("TOP", level.scrollFrame.child, "TOP", 0, -10)
 	else
-		button:SetPoint("TOP", level.buttons[#level.buttons], "BOTTOM", 0, 0)
+		button:SetPoint("TOP", level.scrollFrame.child.buttons[#level.scrollFrame.child.buttons], "BOTTOM", 0, 0)
 	end
+	button:SetParent(level.scrollFrame.child)
 	button.text:SetPoint("LEFT", button, "LEFT", 24, 0)
 	button:Show()
 	button.level = level
-	table.insert(level.buttons, button)
+	table.insert(level.scrollFrame.child.buttons, button)
 	if not level.parented then
 		level.parented = true
 		level:ClearAllPoints()
@@ -811,7 +802,7 @@ local function AcquireLevel(level)
 		for i = #levels + 1, level, -1 do
 			local i = i
 			numLevels = numLevels + 1
-			local frame = CreateFrame("Button", "LibDewdrop30Level" .. numLevels, nil, BackdropTemplateMixin and "BackdropTemplate")
+			local frame = CreateFrame("Button", "LibDewdrop30Level" .. numLevels, UIParent, BackdropTemplateMixin and "BackdropTemplate")
 			if i == 1 then
 				local old_CloseSpecialWindows = CloseSpecialWindows
 				function CloseSpecialWindows()
@@ -823,10 +814,23 @@ local function AcquireLevel(level)
 					return found
 				end
 			end
+			frame.scrollFrame = CreateFrame("ScrollFrame", "LibDewdrop30ScrollFrame" .. numLevels, frame, "ScrollFrameTemplate")
+			frame.scrollFrame.child = CreateFrame("Button", "LibDewdrop30ScrollFrameChild" .. numLevels, frame.scrollFrame)
+			frame.scrollFrame.child:SetHeight(16 * Dewdrop.scrollListSize)
+			frame.scrollFrame.child:SetWidth(frame:GetWidth())
+			frame.scrollFrame:SetScrollChild(frame.scrollFrame.child)
+			frame.scrollFrame.child:SetAllPoints(frame.scrollFrame)
+			frame.scrollFrame:SetAllPoints(frame)
+			frame.scrollFrame:SetPoint("TOPLEFT", 1, -5)
+			frame.scrollFrame:SetPoint("TOPRIGHT", 1, -5)
+			frame.scrollFrame:SetPoint("BOTTOMLEFT", 1, 5)
+			frame.scrollFrame:SetPoint("BOTTOMRIGHT", 1, 5)
 			levels[i] = frame
 			frame.num = i
-			frame:SetParent(UIParent)
 			frame:SetFrameStrata("FULLSCREEN_DIALOG")
+			frame.scrollFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+			frame.scrollFrame.child:SetFrameStrata("FULLSCREEN_DIALOG")
+			frame:SetParent(UIParent)
 			frame:Hide()
 			frame:SetWidth(180)
 			frame:SetHeight(10)
@@ -846,10 +850,10 @@ local function AcquireLevel(level)
 				'edgeFile', "Interface\\Tooltips\\UI-Tooltip-Border",
 				'tile', true,
 				'insets', tmp2(
-					'left', 5,
-					'right', 5,
-					'top', 5,
-					'bottom', 5
+					'left', 0,
+					'right', 0,
+					'top', 0,
+					'bottom', 0
 				),
 				'tileSize', 16,
 				'edgeSize', 16
@@ -864,9 +868,6 @@ local function AcquireLevel(level)
 			end)
 			frame:SetScript("OnLeave", function(self)
 				StartCounting(i)
-			end)
-			frame:SetScript("OnMouseWheel", function(self, arg1)
-				Scroll(self, arg1 < 0)
 			end)
 			if i == 1 then
 				frame:SetScript("OnUpdate", function(self, elapsed)
@@ -1250,6 +1251,10 @@ Dewdrop.fontsize = 14
 
 function Dewdrop:SetFontSize(fontSize)
 	Dewdrop.fontsize = tonumber(fontSize)
+end
+
+function Dewdrop:SetScrollListSize(scrollListSize)
+	Dewdrop.scrollListSize = scrollListSize
 end
 
 function Dewdrop:FeedAceOptionsTable(options, difference)
@@ -2039,7 +2044,7 @@ function OpenSlider(parent)
 					Refresh(levels[i])
 				end
 				local newParent
-				for _,button in ipairs(levels[sliderFrame.level-1].buttons) do
+				for _,button in ipairs(levels[sliderFrame.level-1].scrollFrame.child.buttons) do
 					if button.sliderFunc == sliderFunc then
 						newParent = button
 						break
@@ -2067,7 +2072,7 @@ function OpenSlider(parent)
 					Refresh(levels[i])
 				end
 				local newParent
-				for _,button in ipairs(levels[sliderFrame.level-1].buttons) do
+				for _,button in ipairs(levels[sliderFrame.level-1].scrollFrame.child.buttons) do
 					if button.sliderFunc == sliderFunc then
 						newParent = button
 						break
@@ -2098,7 +2103,7 @@ function OpenSlider(parent)
 					Refresh(levels[i])
 				end
 				local newParent
-				for _,button in ipairs(levels[sliderFrame.level-1].buttons) do
+				for _,button in ipairs(levels[sliderFrame.level-1].scrollFrame.child.buttons) do
 					if button.sliderFunc == sliderFunc then
 						newParent = button
 						break
@@ -2726,6 +2731,7 @@ function Open(parent, func, level, value, point, relativePoint, cursorX, cursorY
 	frame.parent = parent
 	frame:SetPoint("LEFT", UIParent, "RIGHT", 10000, 0)
 	frame:Show()
+
 	if level == 1 then
 		baseFunc = func
 	end
@@ -2910,8 +2916,8 @@ end
 
 function Clear(level)
 	if level then
-		if level.buttons then
-			for i = #level.buttons, 1, -1 do
+		if level.scrollFrame.child.buttons then
+			for i = #level.scrollFrame.child.buttons, 1, -1 do
 				ReleaseButton(level, i)
 			end
 		end
@@ -2929,8 +2935,8 @@ function Dewdrop:Close(level)
 	if level == 1 and levels[level] then
 		levels[level].parented = false
 	end
-	if level > 1 and levels[level-1].buttons then
-		local buttons = levels[level-1].buttons
+	if level > 1 and levels[level-1].scrollFrame.child.buttons then
+		local buttons = levels[level-1].scrollFrame.child.buttons
 		for _,button in ipairs(buttons) do
 --			button.arrow:SetWidth(16)
 --			button.arrow:SetHeight(16)
@@ -2956,9 +2962,9 @@ end
 
 function Dewdrop:AddSeparator(level)
 	level = levels[level or currentLevel]
-	if not level or not level.buttons then return; end
+	if not level or not level.scrollFrame.child.buttons then return; end
 
-	local prevbutton = level.buttons[#level.buttons]
+	local prevbutton = level.scrollFrame.child.buttons[#level.scrollFrame.child.buttons]
 	if not prevbutton then return; end
 
 	if prevbutton.disabled and prevbutton.text:GetText() == "" then
