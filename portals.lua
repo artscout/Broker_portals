@@ -146,7 +146,6 @@ local heartstones = {
     165802, -- Noble Gardener's Hearthstone
     166746, -- Fire Eater's Hearthstone
     166747, -- Brewfest Reveler's Hearthstone
-    168862, -- G.E.A.R. Tracking Beacon
     168907, -- Holographic Digitalization Hearthstone
     172179, -- Eternal Traveler's Hearthstone
     180290, -- Night Fae Hearthstone
@@ -267,7 +266,8 @@ local challengeSpells = {
 }
 
 local whistle = { 
-    141605 -- Flight Master's Whistle
+    141605, -- Flight Master's Whistle
+	168862 -- G.E.A.R. Tracking Beacon
 }
 
 local obj = LibStub:GetLibrary('LibDataBroker-1.1'):NewDataObject(addonName, {
