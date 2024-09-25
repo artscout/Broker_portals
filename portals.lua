@@ -796,28 +796,40 @@ end
 
 local function GetItemCooldowns()
     local cooldown, cooldowns, hours, mins, secs
+    if cooldowns == nil then
+        cooldowns = {}
+    end
 
     for i = 1, #items do
         if GetItemCount(items[i]) > 0 or (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
             startTime, duration = GetItemCooldown(items[i])
             cooldown = duration - (GetTime() - startTime)
-            if cooldown <= 0 then
-                cooldown = L['READY']
-            else
-                cooldown = SecondsToTime(cooldown)
-            end
-
-            if cooldowns == nil then
-                cooldowns = {}
-            end
-
             local name = GetItemInfo(items[i]) or select(2, C_ToyBox.GetToyInfo(items[i]))
-
             if name then
+                if cooldown <= 0 then
+                    cooldown = L['READY']
+                else
+                    cooldown = SecondsToTime(cooldown)
+                end
                 cooldowns[name] = cooldown
             end
         end
     end
+
+    for i = 1, #engineeringItems do
+        if GetItemCount(engineeringItems[i]) > 0 or (PlayerHasToy(engineeringItems[i]) and C_ToyBox.IsToyUsable(engineeringItems[i])) then
+            startTime, duration = GetItemCooldown(engineeringItems[i])
+            cooldown = duration - (GetTime() - startTime)
+            if cooldown > 0 then
+                local name = GetItemInfo(engineeringItems[i]) or select(2, C_ToyBox.GetToyInfo(engineeringItems[i]))
+                if name then
+                    cooldown = SecondsToTime(cooldown)
+                    cooldowns[name] = cooldown
+                end
+            end
+        end
+    end
+
     return cooldowns
 end
 
