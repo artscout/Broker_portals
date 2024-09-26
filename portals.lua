@@ -16,8 +16,7 @@ local GetItemCooldown = C_Container.GetItemCooldown
 local GetInventoryItemCooldown = GetInventoryItemCooldown
 local GetInventoryItemLink = GetInventoryItemLink
 local GetNumGroupMembers = GetNumGroupMembers
-local GetSpellBookItemName = GetSpellBookItemName or
-                                 C_SpellBook.GetSpellBookItemName
+local GetSpellBookItemName = GetSpellBookItemName or C_SpellBook.GetSpellBookItemName
 local GetSpellCooldown = GetSpellCooldown or C_Spell.GetSpellCooldown
 local GetSpellInfo = GetSpellInfo or C_Spell.GetSpellInfo
 local GetTime = GetTime
@@ -272,25 +271,17 @@ local whistle = {
     168862 -- G.E.A.R. Tracking Beacon
 }
 
-local obj = LibStub:GetLibrary('LibDataBroker-1.1'):NewDataObject(addonName, {
-    type = 'data source',
-    text = L['P'],
-    icon = 'Interface\\Icons\\INV_Misc_Rune_06'
-})
+local obj = LibStub:GetLibrary('LibDataBroker-1.1'):NewDataObject(addonName, {type = 'data source', text = L['P'], icon = 'Interface\\Icons\\INV_Misc_Rune_06'})
 local portals
 local frame = CreateFrame('frame')
 
 local function CreateCheckbox(checkboxText, key, checkboxTooltip)
-    local checkbox = CreateFrame("CheckButton", "BPCheckboxID" .. checkboxes,
-                                 settingsFrame, "UICheckButtonTemplate")
+    local checkbox = CreateFrame("CheckButton", "BPCheckboxID" .. checkboxes, settingsFrame, "UICheckButtonTemplate")
     checkbox.Text:SetText(checkboxText)
-    checkbox:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 10,
-                      -30 + (checkboxes * -30))
+    checkbox:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 10, -30 + (checkboxes * -30))
 end
 
-frame:SetScript('OnEvent', function(self, event, ...)
-    if self[event] then return self[event](self, event, ...) end
-end)
+frame:SetScript('OnEvent', function(self, event, ...) if self[event] then return self[event](self, event, ...) end end)
 frame:RegisterEvent('PLAYER_LOGIN')
 
 local function CreateSettingsPanel()
@@ -298,9 +289,7 @@ local function CreateSettingsPanel()
         OptionsFrame = CreateFrame("Frame", "OptionsFrame", UIParent)
         OptionsFrame.name = "Broker Portals"
 
-        local showItemsCheckBox = CreateFrame("CheckButton",
-                                              "ShowItemsCheckBox", OptionsFrame,
-                                              "InterfaceOptionsCheckButtonTemplate")
+        local showItemsCheckBox = CreateFrame("CheckButton", "ShowItemsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showItemsCheckBox:SetPoint("TOPLEFT", 16, -16)
         showItemsCheckBox.Text:SetText(L["SHOW_ITEMS"])
         showItemsCheckBox.tooltipText = L["SHOW_ITEMS_TOOLTIP"]
@@ -311,30 +300,19 @@ local function CreateSettingsPanel()
             parentFrame = self:GetParent()
             children = {parentFrame:GetChildren()}
             for _, child in ipairs(children) do
-                if child:GetDebugName() == "showItemsSubCatCheckBox" or
-                    child:GetDebugName() == "showEngineeringSubCatCheckBox" then
-                    child:SetEnabled(PortalsDB.showItems)
-                end
+                if child:GetDebugName() == "showItemsSubCatCheckBox" or child:GetDebugName() == "showEngineeringSubCatCheckBox" then child:SetEnabled(PortalsDB.showItems) end
             end
         end)
 
-        local showItemsSubCatCheckBox = CreateFrame("CheckButton",
-                                                    "showItemsSubCatCheckBox",
-                                                    OptionsFrame,
-                                                    "InterfaceOptionsCheckButtonTemplate")
+        local showItemsSubCatCheckBox = CreateFrame("CheckButton", "showItemsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showItemsSubCatCheckBox:SetPoint("TOPLEFT", 320, -16)
         showItemsSubCatCheckBox.Text:SetText(L["SHOW_ITEMS_SUBCAT"])
         showItemsSubCatCheckBox.tooltipText = L["SHOW_ITEMS_SUBCAT_TOOLTIP"]
         showItemsSubCatCheckBox:SetChecked(PortalsDB.showItemsSubCat)
 
-        showItemsSubCatCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.showItemsSubCat = not PortalsDB.showItemsSubCat
-        end)
+        showItemsSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showItemsSubCat = not PortalsDB.showItemsSubCat end)
 
-        local showHSItemsCheckBox = CreateFrame("CheckButton",
-                                                "showHSItemsCheckBox",
-                                                OptionsFrame,
-                                                "InterfaceOptionsCheckButtonTemplate")
+        local showHSItemsCheckBox = CreateFrame("CheckButton", "showHSItemsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showHSItemsCheckBox:SetPoint("TOPLEFT", 16, -64)
         showHSItemsCheckBox.Text:SetText(L["SHOW_HS_ITEMS"])
         showHSItemsCheckBox.tooltipText = L["SHOW_HS_ITEMS_TOOLTIP"]
@@ -344,179 +322,115 @@ local function CreateSettingsPanel()
             PortalsDB.showHSItems = not PortalsDB.showHSItems
             parentFrame = self:GetParent()
             children = {parentFrame:GetChildren()}
-            for _, child in ipairs(children) do
-                if child:GetDebugName() == "showHSItemsSubCatCheckBox" then
-                    child:SetEnabled(PortalsDB.showHSItems)
-                end
-            end
+            for _, child in ipairs(children) do if child:GetDebugName() == "showHSItemsSubCatCheckBox" then child:SetEnabled(PortalsDB.showHSItems) end end
         end)
 
-        local showHSItemsSubCatCheckBox =
-            CreateFrame("CheckButton", "showHSItemsSubCatCheckBox",
-                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showHSItemsSubCatCheckBox = CreateFrame("CheckButton", "showHSItemsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showHSItemsSubCatCheckBox:SetPoint("TOPLEFT", 320, -64)
         showHSItemsSubCatCheckBox.Text:SetText(L["SHOW_HS_ITEMS_SUBCAT"])
-        showHSItemsSubCatCheckBox.tooltipText =
-            L["SHOW_HS_ITEMS_SUBCAT_TOOLTIP"]
+        showHSItemsSubCatCheckBox.tooltipText = L["SHOW_HS_ITEMS_SUBCAT_TOOLTIP"]
         showHSItemsSubCatCheckBox:SetChecked(PortalsDB.showHSItemsSubCat)
 
-        showHSItemsSubCatCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.showHSItemsSubCat = not PortalsDB.showHSItemsSubCat
-        end)
+        showHSItemsSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showHSItemsSubCat = not PortalsDB.showHSItemsSubCat end)
 
-        local showEngineeringSubCatCheckBox =
-            CreateFrame("CheckButton", "showEngineeringSubCatCheckBox",
-                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showEngineeringSubCatCheckBox = CreateFrame("CheckButton", "showEngineeringSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showEngineeringSubCatCheckBox:SetPoint("TOPLEFT", 16, -110)
         showEngineeringSubCatCheckBox.Text:SetText(L["SHOW_ENGINEERING_SUBCAT"])
-        showEngineeringSubCatCheckBox.tooltipText =
-            L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"]
+        showEngineeringSubCatCheckBox.tooltipText = L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"]
         showEngineeringSubCatCheckBox:SetChecked(PortalsDB.showEngineeringSubCat)
 
-        showEngineeringSubCatCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.showEngineeringSubCat =
-                not PortalsDB.showEngineeringSubCat
-        end)
+        showEngineeringSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showEngineeringSubCat = not PortalsDB.showEngineeringSubCat end)
 
-        local showTeleportsSubCatCheckBox =
-            CreateFrame("CheckButton", "showTeleportsSubCatCheckBox",
-                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showTeleportsSubCatCheckBox = CreateFrame("CheckButton", "showTeleportsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showTeleportsSubCatCheckBox:SetPoint("TOPLEFT", 320, -110)
         showTeleportsSubCatCheckBox.Text:SetText(L["SHOW_TELEPORTS_SUBCAT"])
-        showTeleportsSubCatCheckBox.tooltipText =
-            L["SHOW_TELEPORTS_SUBCAT_TOOLTIP"]
+        showTeleportsSubCatCheckBox.tooltipText = L["SHOW_TELEPORTS_SUBCAT_TOOLTIP"]
         showTeleportsSubCatCheckBox:SetChecked(PortalsDB.showTeleportsSubCat)
 
-        showTeleportsSubCatCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.showTeleportsSubCat = not PortalsDB.showTeleportsSubCat
-        end)
+        showTeleportsSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showTeleportsSubCat = not PortalsDB.showTeleportsSubCat end)
 
-        local minimapButtonBox = CreateFrame("CheckButton",
-                                             "showMinimapButtonCheckBox",
-                                             OptionsFrame,
-                                             "InterfaceOptionsCheckButtonTemplate")
+        local minimapButtonBox = CreateFrame("CheckButton", "showMinimapButtonCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         minimapButtonBox:SetPoint("TOPLEFT", 16, -158)
         minimapButtonBox.Text:SetText(L['ATT_MINIMAP'])
         minimapButtonBox.tooltipText = L['ATT_MINIMAP']
         minimapButtonBox:SetChecked(not PortalsDB.minimap.hide)
 
-        minimapButtonBox:SetScript("OnClick", function(self)
-            ToggleMinimap()
-        end)
+        minimapButtonBox:SetScript("OnClick", function(self) ToggleMinimap() end)
 
-        local announceCheckBox = CreateFrame("CheckButton", "announceCheckBox",
-                                             OptionsFrame,
-                                             "InterfaceOptionsCheckButtonTemplate")
+        local announceCheckBox = CreateFrame("CheckButton", "announceCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         announceCheckBox:SetPoint("TOPLEFT", 320, -158)
         announceCheckBox.Text:SetText(L["ANNOUNCE"])
         announceCheckBox.tooltipText = L["ANNOUNCE_TOOLTIP"]
         announceCheckBox:SetChecked(PortalsDB.announce)
 
-        announceCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.announce = not PortalsDB.announce
-        end)
+        announceCheckBox:SetScript("OnClick", function(self) PortalsDB.announce = not PortalsDB.announce end)
 
-        local fontSizeSlider = CreateFrame("Slider", "fontSizeSlider",
-                                           OptionsFrame, "OptionsSliderTemplate")
+        local fontSizeSlider = CreateFrame("Slider", "fontSizeSlider", OptionsFrame, "OptionsSliderTemplate")
         fontSizeSlider:SetPoint("TOPLEFT", 16, -206)
-        fontSizeSlider.Text:SetText(L['DROPDOWN_FONT_SIZE'] ..
-                                        PortalsDB.fontSize)
+        fontSizeSlider.Text:SetText(L['DROPDOWN_FONT_SIZE'] .. PortalsDB.fontSize)
         fontSizeSlider.tooltipText = L['DROPDOWN_FONT_SIZE']
         fontSizeSlider:SetMinMaxValues(8, 32)
         fontSizeSlider.Low:SetText(8)
         fontSizeSlider.High:SetText(32)
         fontSizeSlider:SetValueStep(1)
-        fontSizeSlider:SetScript('OnShow', function(self)
-            self:SetValue(PortalsDB.fontSize)
-        end)
+        fontSizeSlider:SetScript('OnShow', function(self) self:SetValue(PortalsDB.fontSize) end)
         fontSizeSlider:SetScript('OnValueChanged', function(self, value)
             PortalsDB.fontSize = floor(tonumber(value))
             self.Text:SetText(L['DROPDOWN_FONT_SIZE'] .. PortalsDB.fontSize)
         end)
 
-        local scrollSizeSlider = CreateFrame("Slider", "scrollSizeSlider",
-                                             OptionsFrame,
-                                             "OptionsSliderTemplate")
+        local scrollSizeSlider = CreateFrame("Slider", "scrollSizeSlider", OptionsFrame, "OptionsSliderTemplate")
         scrollSizeSlider:SetPoint("TOPLEFT", 320, -206)
-        scrollSizeSlider.Text:SetText(L['SCROLL_LIST_SIZE'] ..
-                                          PortalsDB.scrollListSize)
+        scrollSizeSlider.Text:SetText(L['SCROLL_LIST_SIZE'] .. PortalsDB.scrollListSize)
         scrollSizeSlider.tooltipText = L['SCROLL_LIST_SIZE']
         scrollSizeSlider:SetMinMaxValues(30, 60)
         scrollSizeSlider.Low:SetText(30)
         scrollSizeSlider.High:SetText(60)
         scrollSizeSlider:SetValueStep(1)
-        scrollSizeSlider:SetScript('OnShow', function(self)
-            self:SetValue(PortalsDB.scrollListSize)
-        end)
+        scrollSizeSlider:SetScript('OnShow', function(self) self:SetValue(PortalsDB.scrollListSize) end)
         scrollSizeSlider:SetScript('OnValueChanged', function(self, value)
             PortalsDB.scrollListSize = floor(tonumber(value))
             self.Text:SetText(L['SCROLL_LIST_SIZE'] .. PortalsDB.scrollListSize)
         end)
 
-        local showItemsCooldownCheckBox =
-            CreateFrame("CheckButton", "showItemsCooldownCheckBox",
-                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showItemsCooldownCheckBox = CreateFrame("CheckButton", "showItemsCooldownCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showItemsCooldownCheckBox:SetPoint("TOPLEFT", 16, -254)
         showItemsCooldownCheckBox.Text:SetText(L["SHOW_ITEM_COOLDOWNS"])
         showItemsCooldownCheckBox.tooltipText = L["SHOW_ITEM_COOLDOWNS_TOOLTIP"]
         showItemsCooldownCheckBox:SetChecked(PortalsDB.showItemCooldowns)
 
-        showItemsCooldownCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns
-        end)
+        showItemsCooldownCheckBox:SetScript("OnClick", function(self) PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns end)
 
-        local sortItemsAlphabeticalyCheckBox =
-            CreateFrame("CheckButton", "sortItemsAlphabeticalyCheckBox",
-                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local sortItemsAlphabeticalyCheckBox = CreateFrame("CheckButton", "sortItemsAlphabeticalyCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         sortItemsAlphabeticalyCheckBox:SetPoint("TOPLEFT", 320, -254)
         sortItemsAlphabeticalyCheckBox.Text:SetText(L["SORT_ITEMS"])
         sortItemsAlphabeticalyCheckBox.tooltipText = L["SORT_ITEMS_TOOLTIP"]
         sortItemsAlphabeticalyCheckBox:SetChecked(PortalsDB.sortItems)
 
-        sortItemsAlphabeticalyCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.sortItems = not PortalsDB.sortItems
-        end)
+        sortItemsAlphabeticalyCheckBox:SetScript("OnClick", function(self) PortalsDB.sortItems = not PortalsDB.sortItems end)
 
         if not isCataclysmClassic then
-            local showChallengeTeleportsCheckBox =
-                CreateFrame("CheckButton", "showChallengeTeleportsCheckBox",
-                            OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+            local showChallengeTeleportsCheckBox = CreateFrame("CheckButton", "showChallengeTeleportsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
             showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -302)
-            showChallengeTeleportsCheckBox.Text:SetText(
-                L["SHOW_CHALLENGE_TELEPORTS"])
-            showChallengeTeleportsCheckBox.tooltipText =
-                L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"]
-            showChallengeTeleportsCheckBox:SetChecked(
-                PortalsDB.showChallengeTeleports)
+            showChallengeTeleportsCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS"])
+            showChallengeTeleportsCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"]
+            showChallengeTeleportsCheckBox:SetChecked(PortalsDB.showChallengeTeleports)
 
             showChallengeTeleportsCheckBox:SetScript("OnClick", function(self)
-                PortalsDB.showChallengeTeleports =
-                    not PortalsDB.showChallengeTeleports
-                for _, child in ipairs(children) do
-                    if child:GetDebugName() == "showChallengeSubCatCheckBox" then
-                        child:SetEnabled(PortalsDB.showChallengeTeleports)
-                    end
-                end
+                PortalsDB.showChallengeTeleports = not PortalsDB.showChallengeTeleports
+                for _, child in ipairs(children) do if child:GetDebugName() == "showChallengeSubCatCheckBox" then child:SetEnabled(PortalsDB.showChallengeTeleports) end end
             end)
 
-            local showChallengeSubCatCheckBox =
-                CreateFrame("CheckButton", "showChallengeSubCatCheckBox",
-                            OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+            local showChallengeSubCatCheckBox = CreateFrame("CheckButton", "showChallengeSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
             showChallengeSubCatCheckBox:SetPoint("TOPLEFT", 320, -302)
-            showChallengeSubCatCheckBox.Text:SetText(
-                L["SHOW_CHALLENGE_TELEPORTS_SUBCAT"])
-            showChallengeSubCatCheckBox.tooltipText =
-                L["SHOW_CHALLENGE_TELEPORTS_SUBCAT_TOOLTIP"]
+            showChallengeSubCatCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS_SUBCAT"])
+            showChallengeSubCatCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_SUBCAT_TOOLTIP"]
             showChallengeSubCatCheckBox:SetChecked(PortalsDB.showChallengeSubCat)
 
-            showChallengeSubCatCheckBox:SetScript("OnClick", function(self)
-                PortalsDB.showChallengeSubCat =
-                    not PortalsDB.showChallengeSubCat
-            end)
+            showChallengeSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showChallengeSubCat = not PortalsDB.showChallengeSubCat end)
         end
 
-        category = Settings.RegisterCanvasLayoutCategory(OptionsFrame,
-                                                         OptionsFrame.name)
+        category = Settings.RegisterCanvasLayoutCategory(OptionsFrame, OptionsFrame.name)
         Settings.RegisterAddOnCategory(category)
     end
 end
@@ -729,8 +643,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         for _, unTransSpell in ipairs(itemList) do
             if IsPlayerSpell(unTransSpell[1]) then
                 local spellName
-                local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(
-                                                                  unTransSpell[1])
+                local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(unTransSpell[1])
                 if type(spell) == "table" then
                     spellId = spell.spellID
                     spellIcon = spell.iconID
@@ -740,9 +653,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
                 end
 
                 if spellId then
-                    if not methods[menuCategory] then
-                        methods[menuCategory] = {}
-                    end
+                    if not methods[menuCategory] then methods[menuCategory] = {} end
                     methods[menuCategory][spellName] = {
                         itemID = spellId,
                         itemName = spellName,
@@ -760,11 +671,8 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         local i = 0
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
-                local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon =
-                    GetItemInfo(itemList[i])
-                if not methods[menuCategory] then
-                    methods[menuCategory] = {}
-                end
+                local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
+                if not methods[menuCategory] then methods[menuCategory] = {} end
                 methods[menuCategory][itemName] = {
                     itemID = itemList[i],
                     itemName = itemName,
@@ -789,16 +697,11 @@ local function PrepareMenuData()
 
     if portals then GenerateMenuEntries("spell", portals, "mainspells") end
 
-    if not isCataclysmClassic then
-        challengeSpellCount = GenerateMenuEntries("spell", challengeSpells,
-                                                  "challenges")
-    end
+    if not isCataclysmClassic then challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges") end
 
     GenerateMenuEntries("items", items, "mainitems")
-    engineringItemsCount = GenerateMenuEntries("items", engineeringItems,
-                                               "engineering")
-    heartstoneItemsCount = GenerateMenuEntries("items", heartstones,
-                                               "heartstones")
+    engineringItemsCount = GenerateMenuEntries("items", engineeringItems, "engineering")
+    heartstoneItemsCount = GenerateMenuEntries("items", heartstones, "heartstones")
     databaseLoaded = true
 end
 
@@ -812,33 +715,17 @@ local function ShowMenuEntries(category, sortTable)
                 if isCataclysmClassic then
                     spellCooldown = GetSpellCooldown(menuEntry.itemName)
                 else
-                    spellCooldown =
-                        GetSpellCooldown(menuEntry.itemName).startTime
+                    spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime
                 end
                 if menuEntry.secure and spellCooldown == 0 then
-                    dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
-                                    menuEntry.itemName, 'secure',
-                                    menuEntry.secure, 'icon',
-                                    tostring(menuEntry.itemIcon), 'func',
-                                    function()
+                    dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', menuEntry.itemName, 'secure', menuEntry.secure, 'icon', tostring(menuEntry.itemIcon), 'func', function()
                         UpdateIcon(menuEntry.itemIcon)
-                        if announce and menuyEntry.isPortal and chatType then
-                            SendChatMessage(
-                                L['ANNOUNCEMENT'] .. ' ' .. menuEntry.itemName,
-                                chatType)
-                        end
+                        if announce and menuyEntry.isPortal and chatType then SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. menuEntry.itemName, chatType) end
                     end, 'closeWhenClicked', true)
                 end
             else
-                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
-                                menuEntry.itemName, 'textR',
-                                menuEntry.itemRGB.r, 'textG',
-                                menuEntry.itemRGB.g, 'textB',
-                                menuEntry.itemRGB.b, 'secure', menuEntry.secure,
-                                'icon', tostring(menuEntry.itemIcon), 'func',
-                                function()
-                    UpdateIcon(menuEntry.itemIcon)
-                end, 'closeWhenClicked', true)
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', menuEntry.itemName, 'textR', menuEntry.itemRGB.r, 'textG', menuEntry.itemRGB.g, 'textB', menuEntry.itemRGB.b, 'secure',
+                                menuEntry.secure, 'icon', tostring(menuEntry.itemIcon), 'func', function() UpdateIcon(menuEntry.itemIcon) end, 'closeWhenClicked', true)
             end
         end
         dewdrop:AddLine()
@@ -850,12 +737,10 @@ local function GetItemCooldowns()
     if cooldowns == nil then cooldowns = {} end
 
     for i = 1, #items do
-        if GetItemCount(items[i]) > 0 or
-            (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
+        if GetItemCount(items[i]) > 0 or (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
             startTime, duration = GetItemCooldown(items[i])
             cooldown = duration - (GetTime() - startTime)
-            local name = GetItemInfo(items[i]) or
-                             select(2, C_ToyBox.GetToyInfo(items[i]))
+            local name = GetItemInfo(items[i]) or select(2, C_ToyBox.GetToyInfo(items[i]))
             if name then
                 if cooldown <= 0 then
                     cooldown = L['READY']
@@ -868,15 +753,11 @@ local function GetItemCooldowns()
     end
 
     for i = 1, #engineeringItems do
-        if GetItemCount(engineeringItems[i]) > 0 or
-            (PlayerHasToy(engineeringItems[i]) and
-                C_ToyBox.IsToyUsable(engineeringItems[i])) then
+        if GetItemCount(engineeringItems[i]) > 0 or (PlayerHasToy(engineeringItems[i]) and C_ToyBox.IsToyUsable(engineeringItems[i])) then
             startTime, duration = GetItemCooldown(engineeringItems[i])
             cooldown = duration - (GetTime() - startTime)
             if cooldown > 0 then
-                local name = GetItemInfo(engineeringItems[i]) or
-                                 select(2, C_ToyBox.GetToyInfo(
-                                            engineeringItems[i]))
+                local name = GetItemInfo(engineeringItems[i]) or select(2, C_ToyBox.GetToyInfo(engineeringItems[i]))
                 if name then
                     cooldown = SecondsToTime(cooldown)
                     cooldowns[name] = cooldown
@@ -892,8 +773,7 @@ local function GetScrollCooldown()
     local cooldown, startTime, duration
 
     for i = 1, #scrolls do
-        if GetItemCount(scrolls[i]) > 0 or
-            (PlayerHasToy(scrolls[i]) and C_ToyBox.IsToyUsable(scrolls[i])) then
+        if GetItemCount(scrolls[i]) > 0 or (PlayerHasToy(scrolls[i]) and C_ToyBox.IsToyUsable(scrolls[i])) then
             startTime, duration = GetItemCooldown(scrolls[i])
             cooldown = duration - (GetTime() - startTime)
             if cooldown <= 0 then
@@ -935,10 +815,7 @@ local function ShowHearthstone()
     end
 
     if secure ~= nil then
-        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', text,
-                        'secure', secure, 'icon', tostring(icon), 'func',
-                        function() UpdateIcon(icon) end, 'closeWhenClicked',
-                        true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', text, 'secure', secure, 'icon', tostring(icon), 'func', function() UpdateIcon(icon) end, 'closeWhenClicked', true)
     end
 end
 
@@ -949,10 +826,7 @@ local function ShowWhistle()
         secure = {type = 'item', item = name}
     end
     if secure ~= nil then
-        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', name,
-                        'secure', secure, 'icon', tostring(icon), 'func',
-                        function() UpdateIcon(icon) end, 'closeWhenClicked',
-                        true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', name, 'secure', secure, 'icon', tostring(icon), 'func', function() UpdateIcon(icon) end, 'closeWhenClicked', true)
         dewdrop:AddLine()
     end
 end
@@ -975,96 +849,60 @@ local function UpdateMenu(level, value)
         dewdrop:AddLine('text', 'Broker_Portals', 'isTitle', true)
         PrepareMenuData()
 
-        local chatType = (UnitInRaid("player") and "RAID") or
-                             (GetNumGroupMembers() > 0 and "PARTY") or nil
+        local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
 
         if not portals then SetupSpells() end
 
-        if portals then
-            if not PortalsDB.showTeleportsSubCat then
-                ShowMenuEntries("mainspells", true)
-            end
-        end
+        if portals then if not PortalsDB.showTeleportsSubCat then ShowMenuEntries("mainspells", true) end end
 
         if PortalsDB.showItems then
-            if not PortalsDB.showItemsSubCat then
-                ShowMenuEntries("mainitems", PortalsDB.sortItems)
-            end
-            if not PortalsDB.showEngineeringSubCat and engineringItemsCount > 0 then
-                ShowMenuEntries("engineering", PortalsDB.sortItems)
-            end
+            if not PortalsDB.showItemsSubCat then ShowMenuEntries("mainitems", PortalsDB.sortItems) end
+            if not PortalsDB.showEngineeringSubCat and engineringItemsCount > 0 then ShowMenuEntries("engineering", PortalsDB.sortItems) end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and
-            challengeSpellCount > 0 then
-            if not PortalsDB.showChallengeSubCat then
-                ShowMenuEntries("challenges", PortalsDB.sortItems)
-            end
+        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
+            if not PortalsDB.showChallengeSubCat then ShowMenuEntries("challenges", PortalsDB.sortItems) end
         end
 
-        if PortalsDB.showHSItems and heartstoneItemsCount > 0 then
-            if not PortalsDB.showHSItemsSubCat then
-                ShowMenuEntries("heartstones", PortalsDB.sortItems)
-            end
-        end
+        if PortalsDB.showHSItems and heartstoneItemsCount > 0 then if not PortalsDB.showHSItemsSubCat then ShowMenuEntries("heartstones", PortalsDB.sortItems) end end
 
         if portals then
             if PortalsDB.showTeleportsSubCat then
-                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
-                                L["TP_P"], 'icon', tostring(teleportsIcon),
-                                'hasArrow', true, 'value', 'mainspells')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L["TP_P"], 'icon', tostring(teleportsIcon), 'hasArrow', true, 'value', 'mainspells')
             end
         end
 
         if PortalsDB.showItems then
             if PortalsDB.showItemsSubCat then
-                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
-                                L["MAIN_ITEMS"], 'icon',
-                                tostring(variousItemsIcon), 'hasArrow', true,
-                                'value', 'mainitems')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L["MAIN_ITEMS"], 'icon', tostring(variousItemsIcon), 'hasArrow', true, 'value', 'mainitems')
             end
         end
 
         if PortalsDB.showItems and engineringItemsCount > 0 then
             if PortalsDB.showEngineeringSubCat then
-                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
-                                engineeringName, 'icon',
-                                tostring(engineeringIcon), 'hasArrow', true,
-                                'value', 'engineering')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', engineeringName, 'icon', tostring(engineeringIcon), 'hasArrow', true, 'value', 'engineering')
             end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and
-            challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
             if PortalsDB.showChallengeSubCat then
-                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
-                                L['CHALLENGE_TELEPORTS'], 'icon',
-                                tostring(teleportsIcon), 'hasArrow', true,
-                                'value', 'challenges')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['CHALLENGE_TELEPORTS'], 'icon', tostring(teleportsIcon), 'hasArrow', true, 'value', 'challenges')
             end
         end
 
         if PortalsDB.showHSItems and heartstoneItemsCount > 0 then
             if PortalsDB.showHSItemsSubCat then
-                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
-                                L['HEARTHSTONE_ANALOGUES'], 'icon',
-                                tostring(heartstonesIcon), 'hasArrow', true,
-                                'value', 'heartstones')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['HEARTHSTONE_ANALOGUES'], 'icon', tostring(heartstonesIcon), 'hasArrow', true, 'value', 'heartstones')
             end
         end
 
         ShowHearthstone()
         ShowWhistle()
 
-        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['OPTIONS'],
-                        'hasArrow', false, 'func', function()
-            Settings.OpenToCategory(category:GetID());
-        end, 'closeWhenClicked', true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['OPTIONS'], 'hasArrow', false, 'func', function() Settings.OpenToCategory(category:GetID()); end, 'closeWhenClicked', true)
 
-        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', CLOSE,
-                        'tooltipTitle', CLOSE, 'tooltipText', CLOSE_DESC,
-                        'closeWhenClicked', true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', CLOSE, 'tooltipTitle', CLOSE, 'tooltipText', CLOSE_DESC, 'closeWhenClicked', true)
 
     elseif level == 2 and value == 'mainspells' then
         ShowMenuEntries("mainspells", true)
@@ -1142,19 +980,14 @@ end
 local function GetTipAnchor(frame)
     local x, y = frame:GetCenter()
     if not x or not y then return 'TOPLEFT', 'BOTTOMLEFT' end
-    local hhalf = (x > UIParent:GetWidth() * 2 / 3) and 'RIGHT' or
-                      (x < UIParent:GetWidth() / 3) and 'LEFT' or ''
+    local hhalf = (x > UIParent:GetWidth() * 2 / 3) and 'RIGHT' or (x < UIParent:GetWidth() / 3) and 'LEFT' or ''
     local vhalf = (y > UIParent:GetHeight() / 2) and 'TOP' or 'BOTTOM'
-    return vhalf .. hhalf, frame,
-           (vhalf == 'TOP' and 'BOTTOM' or 'TOP') .. hhalf
+    return vhalf .. hhalf, frame, (vhalf == 'TOP' and 'BOTTOM' or 'TOP') .. hhalf
 end
 
 function obj.OnClick(self, button)
     GameTooltip:Hide()
-    if button == 'RightButton' then
-        dewdrop:Open(self, 'children',
-                     function(level, value) UpdateMenu(level, value) end)
-    end
+    if button == 'RightButton' then dewdrop:Open(self, 'children', function(level, value) UpdateMenu(level, value) end) end
 end
 
 function obj.OnLeave() GameTooltip:Hide() end
@@ -1165,24 +998,19 @@ function obj.OnEnter(self)
     GameTooltip:ClearLines()
 
     GameTooltip:AddLine('Broker Portals')
-    GameTooltip:AddDoubleLine(L['RCLICK'], L['SEE_SPELLS'], 0.9, 0.6, 0.2, 0.2,
-                              1, 0.2)
+    GameTooltip:AddDoubleLine(L['RCLICK'], L['SEE_SPELLS'], 0.9, 0.6, 0.2, 0.2, 1, 0.2)
     GameTooltip:AddLine(' ')
 
     local scrollCooldown = GetScrollCooldown()
     if scrollCooldown == L['READY'] then
-        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(),
-                                  scrollCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
     else
-        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(),
-                                  scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
     end
 
     if isCataclysmClassic then
         GameTooltip:AddLine(" ")
-        GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]) ..
-                                      "/" .. getReagentCount(L["P_RUNE"]), 0.9,
-                                  0.6, 0.2, 0.2, 1, 0.2)
+        GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]) .. "/" .. getReagentCount(L["P_RUNE"]), 0.9, 0.6, 0.2, 0.2, 1, 0.2)
     end
 
     if PortalsDB.showItemCooldowns then
@@ -1191,11 +1019,9 @@ function obj.OnEnter(self)
             GameTooltip:AddLine(' ')
             for name, cooldown in pairs(cooldowns) do
                 if cooldown == L['READY'] then
-                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2,
-                                              0.2, 1, 0.2)
+                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
                 else
-                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2, 1,
-                                              1, 0.2)
+                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
                 end
             end
         end
@@ -1204,11 +1030,9 @@ function obj.OnEnter(self)
     if not isCataclysmClassic then
         local whistleCooldown = GetWhistleCooldown()
         if whistleCooldown == L['READY'] then
-            GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown,
-                                      0.9, 0.6, 0.2, 0.2, 1, 0.2)
+            GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
         else
-            GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown,
-                                      0.9, 0.6, 0.2, 1, 1, 0.2)
+            GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
         end
     end
     GameTooltip:Show()
