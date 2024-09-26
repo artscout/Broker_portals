@@ -678,13 +678,28 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         local i = 0
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
-                local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
-                local spellDescription
-                _, itemSpellId = GetItemSpell(itemList[i])
-                if itemSpellId then
-                    SpellQuery = Spell:CreateFromSpellID(itemSpellId)
-                    SpellQuery:ContinueOnSpellLoad(function()
-                        spellDescription = SpellQuery:GetSpellDescription()
+                local item = Item:CreateFromItemID(itemList[i])
+                item:ContinueOnItemLoad(function()
+                    local itemName    = item:GetItemName()
+                    local itemIcon    = item:GetItemIcon()
+                    local itemQuality = item:GetItemQuality()
+                    local spellDescription
+                    _, itemSpellId = GetItemSpell(itemList[i])
+                    if itemSpellId then
+                        SpellQuery = Spell:CreateFromSpellID(itemSpellId)
+                        SpellQuery:ContinueOnSpellLoad(function()
+                            spellDescription = SpellQuery:GetSpellDescription()
+                            methods[menuCategory][itemName] = {
+                                itemID   = itemList[i],
+                                itemName = itemName,
+                                itemIcon = itemIcon,
+                                itemType = itemType,
+                                itemDesc = spellDescription,
+                                itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
+                                secure   = {type = 'item', item = itemName}
+                            }
+                        end)
+                    else
                         methods[menuCategory][itemName] = {
                             itemID   = itemList[i],
                             itemName = itemName,
@@ -694,19 +709,9 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
                             itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
                             secure   = {type = 'item', item = itemName}
                         }
-                    end)
-                else
-                    methods[menuCategory][itemName] = {
-                        itemID   = itemList[i],
-                        itemName = itemName,
-                        itemIcon = itemIcon,
-                        itemType = itemType,
-                        itemDesc = spellDescription,
-                        itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
-                        secure   = {type = 'item', item = itemName}
-                    }
-                end
-                itemsGenerated = itemsGenerated + 1
+                    end
+                    itemsGenerated = itemsGenerated + 1
+                end)
             end
             i = i + 1
         end
