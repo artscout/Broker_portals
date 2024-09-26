@@ -1,3 +1,6 @@
+1.14.3
+   - Add spell description to ToolTip for spells on items and other spells
+
 1.14.2
    - Configurable items sort order, either original or alphabetical
 

@@ -654,14 +654,16 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
 
                 if spellId then
                     if not methods[menuCategory] then methods[menuCategory] = {} end
+                    spellDescription = GetSpellDescription(spellId)
                     methods[menuCategory][spellName] = {
-                        itemID = spellId,
+                        itemID   = spellId,
                         itemName = spellName,
                         itemIcon = spellIcon,
                         itemType = itemType,
-                        itemRGB = nil,
+                        itemRGB  = nil,
+                        itemDesc = spellDescription,
                         isPortal = unTransSpell[2] == 'P_RUNE',
-                        secure = {type = 'spell', spell = spellName}
+                        secure   = {type = 'spell', spell = spellName}
                     }
                     itemsGenerated = itemsGenerated + 1
                 end
@@ -672,14 +674,20 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
                 local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
+                local itemSpellDescription = nil
+                _, itemSpellId = GetItemSpell(itemList[i])
+                if itemSpellId then
+                    itemSpellDescription = GetSpellDescription(itemSpellId)
+                end
                 if not methods[menuCategory] then methods[menuCategory] = {} end
                 methods[menuCategory][itemName] = {
-                    itemID = itemList[i],
+                    itemID   = itemList[i],
                     itemName = itemName,
                     itemIcon = itemIcon,
                     itemType = itemType,
-                    itemRGB = ITEM_QUALITY_COLORS[itemQuality],
-                    secure = {type = 'item', item = itemName}
+                    itemDesc = itemSpellDescription,
+                    itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
+                    secure   = {type = 'item', item = itemName}
                 }
                 itemsGenerated = itemsGenerated + 1
             end
@@ -707,6 +715,7 @@ end
 
 local function UpdateIcon(icon) obj.icon = icon end
 
+
 local function ShowMenuEntries(category, sortTable)
     if methods[category] then
         for _, menuEntry in pairsByKeys(methods[category], sortTable) do
@@ -718,14 +727,36 @@ local function ShowMenuEntries(category, sortTable)
                     spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime
                 end
                 if menuEntry.secure and spellCooldown == 0 then
-                    dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', menuEntry.itemName, 'secure', menuEntry.secure, 'icon', tostring(menuEntry.itemIcon), 'func', function()
-                        UpdateIcon(menuEntry.itemIcon)
-                        if announce and menuyEntry.isPortal and chatType then SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. menuEntry.itemName, chatType) end
-                    end, 'closeWhenClicked', true)
+                    dewdrop:AddLine(
+                        'textHeight',   PortalsDB.fontSize,
+                        'text',         menuEntry.itemName,
+                        'tooltipTitle', menuEntry.itemName,
+                        'tooltipText',  menuEntry.itemDesc,
+                        'secure',       menuEntry.secure,
+                        'icon',         tostring(menuEntry.itemIcon),
+                        'func',         function()
+                            UpdateIcon(menuEntry.itemIcon)
+                            if announce and menuyEntry.isPortal and chatType then
+                                SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. menuEntry.itemName, chatType)
+                            end
+                        end,
+                        'closeWhenClicked', true)
                 end
             else
-                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', menuEntry.itemName, 'textR', menuEntry.itemRGB.r, 'textG', menuEntry.itemRGB.g, 'textB', menuEntry.itemRGB.b, 'secure',
-                                menuEntry.secure, 'icon', tostring(menuEntry.itemIcon), 'func', function() UpdateIcon(menuEntry.itemIcon) end, 'closeWhenClicked', true)
+                dewdrop:AddLine(
+                    'textHeight',   PortalsDB.fontSize,
+                    'text',         menuEntry.itemName,
+                    'tooltipTitle', menuEntry.itemName,
+                    'tooltipText',  menuEntry.itemDesc,
+                    'textR',        menuEntry.itemRGB.r,
+                    'textG',        menuEntry.itemRGB.g,
+                    'textB',        menuEntry.itemRGB.b,
+                    'secure',       menuEntry.secure,
+                    'icon',         tostring(menuEntry.itemIcon),
+                    'func',         function()
+                        UpdateIcon(menuEntry.itemIcon)
+                    end,
+                    'closeWhenClicked', true)
             end
         end
         dewdrop:AddLine()
