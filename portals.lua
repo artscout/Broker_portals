@@ -430,9 +430,20 @@ local function CreateSettingsPanel()
             PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns
         end)
 
+        local sortItemsAlphabeticalyCheckBox = CreateFrame("CheckButton", "sortItemsAlphabeticalyCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        sortItemsAlphabeticalyCheckBox:SetPoint("TOPLEFT", 320, -254)
+        sortItemsAlphabeticalyCheckBox.Text:SetText(L["SORT_ITEMS"])
+        sortItemsAlphabeticalyCheckBox.tooltipText = L["SORT_ITEMS_TOOLTIP"]
+        sortItemsAlphabeticalyCheckBox:SetChecked(PortalsDB.sortItems)
+
+        sortItemsAlphabeticalyCheckBox:SetScript("OnClick", function(self)
+            PortalsDB.sortItems = not PortalsDB.sortItems
+        end)
+
+
         if not isCataclysmClassic then
                 local showChallengeTeleportsCheckBox = CreateFrame("CheckButton", "showChallengeTeleportsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-                showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -254)
+                showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -302)
                 showChallengeTeleportsCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS"])
                 showChallengeTeleportsCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"]
                 showChallengeTeleportsCheckBox:SetChecked(PortalsDB.showChallengeTeleports)
@@ -447,7 +458,7 @@ local function CreateSettingsPanel()
                 end)
 
                 local showChallengeSubCatCheckBox = CreateFrame("CheckButton", "showChallengeSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-                showChallengeSubCatCheckBox:SetPoint("TOPLEFT", 320, -254)
+                showChallengeSubCatCheckBox:SetPoint("TOPLEFT", 320, -302)
                 showChallengeSubCatCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS_SUBCAT"])
                 showChallengeSubCatCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_SUBCAT_TOOLTIP"]
                 showChallengeSubCatCheckBox:SetChecked(PortalsDB.showChallengeSubCat)
@@ -462,12 +473,14 @@ local function CreateSettingsPanel()
     end
 end
 
-local function pairsByKeys(t)
+local function pairsByKeys(t, sortTable)
     local a = {}
     for n in pairs(t) do
         table.insert(a, n)
     end
-    table.sort(a)
+    if sortTable then
+        table.sort(a)
+    end
 
     local i = 0
     local iter = function()
@@ -757,9 +770,9 @@ local function UpdateIcon(icon)
     obj.icon = icon
 end
 
-local function ShowMenuEntries(category)
+local function ShowMenuEntries(category, sortTable)
     if methods[category] then
-        for _, menuEntry in pairsByKeys(methods[category]) do
+        for _, menuEntry in pairsByKeys(methods[category], sortTable) do
             if menuEntry.itemType == "spell" then
                 local spellCooldown
                 if isCataclysmClassic then spellCooldown = GetSpellCooldown(menuEntry.itemName) else spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime end
@@ -940,28 +953,28 @@ local function UpdateMenu(level, value)
 
         if portals then
             if not PortalsDB.showTeleportsSubCat then
-                ShowMenuEntries("mainspells")
+                ShowMenuEntries("mainspells", true)
             end
         end
 
         if PortalsDB.showItems then
             if not PortalsDB.showItemsSubCat then
-                ShowMenuEntries("mainitems")
+                ShowMenuEntries("mainitems", PortalsDB.sortItems)
             end
             if not PortalsDB.showEngineeringSubCat and engineringItemsCount > 0 then
-                ShowMenuEntries("engineering")
+                ShowMenuEntries("engineering", PortalsDB.sortItems)
             end
         end
 
         if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
             if not PortalsDB.showChallengeSubCat then
-                ShowMenuEntries("challenges")
+                ShowMenuEntries("challenges", PortalsDB.sortItems)
             end
         end
 
         if PortalsDB.showHSItems and heartstoneItemsCount > 0 then
             if not PortalsDB.showHSItemsSubCat then
-                ShowMenuEntries("heartstones")
+                ShowMenuEntries("heartstones", PortalsDB.sortItems)
             end
         end
 
@@ -1020,8 +1033,6 @@ local function UpdateMenu(level, value)
             end
         end
 
-        dewdrop:AddLine()
-
         ShowHearthstone()
         ShowWhistle()
 
@@ -1040,15 +1051,15 @@ local function UpdateMenu(level, value)
             'closeWhenClicked', true)
 
     elseif level == 2 and value == 'mainspells' then
-        ShowMenuEntries("mainspells")
+        ShowMenuEntries("mainspells", true)
     elseif level == 2 and value == 'mainitems' then
-        ShowMenuEntries("mainitems")
+        ShowMenuEntries("mainitems", PortalsDB.sortItems)
     elseif level == 2 and value == 'heartstones' then
-        ShowMenuEntries("heartstones")
+        ShowMenuEntries("heartstones", PortalsDB.sortItems)
     elseif level == 2 and value == 'challenges' then
-        ShowMenuEntries("challenges")
+        ShowMenuEntries("challenges", PortalsDB.sortItems)
     elseif level == 2 and value == 'engineering' then
-        ShowMenuEntries("engineering")
+        ShowMenuEntries("engineering", PortalsDB.sortItems)
     end
 end
 
@@ -1067,13 +1078,17 @@ function frame:PLAYER_LOGIN()
         PortalsDB.showChallengeSubCat = false
         PortalsDB.showTeleportsSubCat = false
         PortalsDB.scrollListSize = 33
+	PortalsDB.sortItems = false
         PortalsDB.announce = false
         PortalsDB.announce = false
         PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-        PortalsDB.version = 7
+        PortalsDB.version = 9
     end
     -- upgrade from versions
-    if PortalsDB.version == 7 then
+    if PortalsDB.version == 8 then
+	PortalsDB.sortItems = false
+	PortalsDB.version = 9
+    elseif PortalsDB.version == 7 then
         PortalsDB.showEngineeringSubCat = true
         PortalsDB.showChallengeSubCat = false
         PortalsDB.showTeleportsSubCat = false

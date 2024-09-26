@@ -1,3 +1,6 @@
+1.14.2
+   - Configurable items sort order, either original or alphabetical
+
 1.14.1
   - Implemented scrolling (#6)
   - Implemented submenu's for items, engineering items, challenges, portals, hearstones. Enabled or disabled in options window (#13)
