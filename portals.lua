@@ -8,15 +8,16 @@ local _
 local CreateFrame = CreateFrame
 local C_ToyBox = C_ToyBox
 local GetBindLocation = GetBindLocation
-local GetContainerItemCooldown =  C_Container.GetContainerItemCooldown
-local GetContainerItemInfo =  C_Container.GetContainerItemInfo
-local GetContainerItemLink =  C_Container.GetContainerItemLink
-local GetContainerNumSlots =  C_Container.GetContainerNumSlots
+local GetContainerItemCooldown = C_Container.GetContainerItemCooldown
+local GetContainerItemInfo = C_Container.GetContainerItemInfo
+local GetContainerItemLink = C_Container.GetContainerItemLink
+local GetContainerNumSlots = C_Container.GetContainerNumSlots
 local GetItemCooldown = C_Container.GetItemCooldown
 local GetInventoryItemCooldown = GetInventoryItemCooldown
 local GetInventoryItemLink = GetInventoryItemLink
 local GetNumGroupMembers = GetNumGroupMembers
-local GetSpellBookItemName = GetSpellBookItemName or C_SpellBook.GetSpellBookItemName
+local GetSpellBookItemName = GetSpellBookItemName or
+                                 C_SpellBook.GetSpellBookItemName
 local GetSpellCooldown = GetSpellCooldown or C_Spell.GetSpellCooldown
 local GetSpellInfo = GetSpellInfo or C_Spell.GetSpellInfo
 local GetTime = GetTime
@@ -30,14 +31,14 @@ local UnitRace = UnitRace
 local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
-local engineeringName    = C_TradeSkillUI.GetTradeSkillDisplayName(202)
-local engineeringIcon    = C_TradeSkillUI.GetTradeSkillTexture(202)
-local heartstonesIcon    = 134414 -- icon of Heartstone
-local teleportsIcon      = 237509 -- Teleport to Dalaran icon used
-local variousItemsIcon   = 134248 -- Key icon used
+local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
+local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
+local heartstonesIcon = 134414 -- icon of Heartstone
+local teleportsIcon = 237509 -- Teleport to Dalaran icon used
+local variousItemsIcon = 134248 -- Key icon used
 
 local engineringItemsCount = 0
-local challengeSpellCount  = 0
+local challengeSpellCount = 0
 local heartstoneItemsCount = 0
 
 local databaseLoaded = false
@@ -51,63 +52,63 @@ local L = addonTable.L
 -- IDs of items usable for transportation
 local items = {
     -- Dalaran rings
-    40585,  -- Signet of the Kirin Tor
-    40586,  -- Band of the Kirin Tor
-    44934,  -- Loop of the Kirin Tor
-    44935,  -- Ring of the Kirin Tor
-    45688,  -- Inscribed Band of the Kirin Tor
-    45689,  -- Inscribed Loop of the Kirin Tor
-    45690,  -- Inscribed Ring of the Kirin Tor
-    45691,  -- Inscribed Signet of the Kirin Tor
-    48954,  -- Etched Band of the Kirin Tor
-    48955,  -- Etched Loop of the Kirin Tor
-    48956,  -- Etched Ring of the Kirin Tor
-    48957,  -- Etched Signet of the Kirin Tor
-    51557,  -- Runed Signet of the Kirin Tor
-    51558,  -- Runed Loop of the Kirin Tor
-    51559,  -- Runed Ring of the Kirin Tor
-    51560,  -- Runed Band of the Kirin Tor
+    40585, -- Signet of the Kirin Tor
+    40586, -- Band of the Kirin Tor
+    44934, -- Loop of the Kirin Tor
+    44935, -- Ring of the Kirin Tor
+    45688, -- Inscribed Band of the Kirin Tor
+    45689, -- Inscribed Loop of the Kirin Tor
+    45690, -- Inscribed Ring of the Kirin Tor
+    45691, -- Inscribed Signet of the Kirin Tor
+    48954, -- Etched Band of the Kirin Tor
+    48955, -- Etched Loop of the Kirin Tor
+    48956, -- Etched Ring of the Kirin Tor
+    48957, -- Etched Signet of the Kirin Tor
+    51557, -- Runed Signet of the Kirin Tor
+    51558, -- Runed Loop of the Kirin Tor
+    51559, -- Runed Ring of the Kirin Tor
+    51560, -- Runed Band of the Kirin Tor
     139599, -- Empowered Ring of the Kirin Tor
     -- Seasonal items
-    21711,  -- Lunar Festival Invitation
-    37863,  -- Direbrew's Remote
+    21711, -- Lunar Festival Invitation
+    37863, -- Direbrew's Remote
     -- Miscellaneous
-    17690,  -- Frostwolf Insignia Rank 1 (Horde)
-    17691,  -- Stormpike Insignia Rank 1 (Alliance)
-    17900,  -- Stormpike Insignia Rank 2 (Alliance)
-    17901,  -- Stormpike Insignia Rank 3 (Alliance)
-    17902,  -- Stormpike Insignia Rank 4 (Alliance)
-    17903,  -- Stormpike Insignia Rank 5 (Alliance)
-    17904,  -- Stormpike Insignia Rank 6 (Alliance)
-    17905,  -- Frostwolf Insignia Rank 2 (Horde)
-    17906,  -- Frostwolf Insignia Rank 3 (Horde)
-    17907,  -- Frostwolf Insignia Rank 4 (Horde)
-    17908,  -- Frostwolf Insignia Rank 5 (Horde)
-    17909,  -- Frostwolf Insignia Rank 6 (Horde)
-    22631,  -- Atiesh, Greatstaff of the Guardian
-    32757,  -- Blessed Medallion of Karabor
-    35230,  -- Darnarian's Scroll of Teleportation
-    43824,  -- The Schools of Arcane Magic - Mastery
-    46874,  -- Argent Crusader's Tabard
-    50287,  -- Boots of the Bay
-    52251,  -- Jaina's Locket
-    58487,  -- Potion of Deepholm
-    61379,  -- Gidwin's Hearthstone
-    63206,  -- Wrap of Unity (Alliance)
-    63207,  -- Wrap of Unity (Horde)
-    63352,  -- Shroud of Cooperation (Alliance)
-    63353,  -- Shroud of Cooperation (Horde)
-    63378,  -- Hellscream's Reach Tabard
-    63379,  -- Baradin's Wardens Tabard
-    64457,  -- The Last Relic of Argus
-    65274,  -- Cloak of Coordination (Horde)
-    65360,  -- Cloak of Coordination (Alliance)
-    95050,  -- The Brassiest Knuckle (Horde)
-    95051,  -- The Brassiest Knuckle (Alliance)
-    95567,  -- Kirin Tor Beacon
-    95568,  -- Sunreaver Beacon
-    87548,  -- Lorewalker's Lodestone
-    93672,  -- Dark Portal
+    17690, -- Frostwolf Insignia Rank 1 (Horde)
+    17691, -- Stormpike Insignia Rank 1 (Alliance)
+    17900, -- Stormpike Insignia Rank 2 (Alliance)
+    17901, -- Stormpike Insignia Rank 3 (Alliance)
+    17902, -- Stormpike Insignia Rank 4 (Alliance)
+    17903, -- Stormpike Insignia Rank 5 (Alliance)
+    17904, -- Stormpike Insignia Rank 6 (Alliance)
+    17905, -- Frostwolf Insignia Rank 2 (Horde)
+    17906, -- Frostwolf Insignia Rank 3 (Horde)
+    17907, -- Frostwolf Insignia Rank 4 (Horde)
+    17908, -- Frostwolf Insignia Rank 5 (Horde)
+    17909, -- Frostwolf Insignia Rank 6 (Horde)
+    22631, -- Atiesh, Greatstaff of the Guardian
+    32757, -- Blessed Medallion of Karabor
+    35230, -- Darnarian's Scroll of Teleportation
+    43824, -- The Schools of Arcane Magic - Mastery
+    46874, -- Argent Crusader's Tabard
+    50287, -- Boots of the Bay
+    52251, -- Jaina's Locket
+    58487, -- Potion of Deepholm
+    61379, -- Gidwin's Hearthstone
+    63206, -- Wrap of Unity (Alliance)
+    63207, -- Wrap of Unity (Horde)
+    63352, -- Shroud of Cooperation (Alliance)
+    63353, -- Shroud of Cooperation (Horde)
+    63378, -- Hellscream's Reach Tabard
+    63379, -- Baradin's Wardens Tabard
+    64457, -- The Last Relic of Argus
+    65274, -- Cloak of Coordination (Horde)
+    65360, -- Cloak of Coordination (Alliance)
+    95050, -- The Brassiest Knuckle (Horde)
+    95051, -- The Brassiest Knuckle (Alliance)
+    95567, -- Kirin Tor Beacon
+    95568, -- Sunreaver Beacon
+    87548, -- Lorewalker's Lodestone
+    93672, -- Dark Portal
     103678, -- Time-Lost Artifact
     110560, -- Garrison Hearthstone
     118662, -- Bladespire Relic
@@ -124,20 +125,20 @@ local items = {
     144391, -- Pugilist's Powerful Punching Ring (Alliance)
     144392, -- Pugilist's Powerful Punching Ring (Horde)
     151016, -- Fractured Necrolyte Skull
-    166559  -- Commander's Signet of Battle
+    166559 -- Commander's Signet of Battle
 }
 
 local heartstones = {
     -- items usable instead of hearthstone
-    28585,  -- Ruby Slippers
-    37118,  -- Scroll of Recall
-    44314,  -- Scroll of Recall II
-    44315,  -- Scroll of Recall III
-    37118,  -- Scroll of Recall
-    44314,  -- Scroll of Recall II
-    44315,  -- Scroll of Recall III
-    54452,  -- Ethereal Portal
-    64488,  -- The Innkeeper's Daughter
+    28585, -- Ruby Slippers
+    37118, -- Scroll of Recall
+    44314, -- Scroll of Recall II
+    44315, -- Scroll of Recall III
+    37118, -- Scroll of Recall
+    44314, -- Scroll of Recall II
+    44315, -- Scroll of Recall III
+    54452, -- Ethereal Portal
+    64488, -- The Innkeeper's Daughter
     142298, -- Astonishingly Scarlet Slippers
     142542, -- Tome of Town Portal
     162973, -- Greatfather Winter's Hearthstone
@@ -162,17 +163,17 @@ local heartstones = {
     200630, -- Ohn'ir Windsage's Hearthstone
     208704, -- Deepdweller's Earthen Hearthstone
     209035, -- Hearthstone of the Flame
-    212337  -- Stone of the Hearth
+    212337 -- Stone of the Hearth
 }
 
 local engineeringItems = {
     -- Engineering Gadgets
-    18984,  -- Dimensional Ripper - Everlook
-    18986,  -- Ultrasafe Transporter: Gadgetzan
-    30542,  -- Dimensional Ripper - Area 52
-    30544,  -- Ultrasafe Transporter: Toshley's Station
-    48933,  -- Wormhole Generator: Northrend
-    87215,  -- Wormhole Generator: Pandaria
+    18984, -- Dimensional Ripper - Everlook
+    18986, -- Ultrasafe Transporter: Gadgetzan
+    30542, -- Dimensional Ripper - Area 52
+    30544, -- Ultrasafe Transporter: Toshley's Station
+    48933, -- Wormhole Generator: Northrend
+    87215, -- Wormhole Generator: Pandaria
     112059, -- Wormhole Centrifuge
     151652, -- Wormhole Generator: Argus
     168807, -- Wormhole Generator: Kul Tiras
@@ -181,121 +182,125 @@ local engineeringItems = {
     198156, -- Wormhole Generator: Dragon Isles
     221966, -- Wormhole GeneratorL Khaz Algar
     132523, -- Reaves Battery, unfortunately we can't check for Wormhole Generator module
-    144341  -- Rechargeable Reaves Battery, same as with Reaves Battery
+    144341 -- Rechargeable Reaves Battery, same as with Reaves Battery
 }
 
 local scrolls = {
-    6948    -- Hearthstone
+    6948 -- Hearthstone
 }
 
 -- Gold Challenge portals
 local challengeSpells = {
-	--DH Classic
-	{ 159902, 'TRUE' }, -- Path of the Burning Mountain
-	{ 373262, 'TRUE' }, -- Path of the Fallen Guardian
-	{ 131232, 'TRUE' }, -- Path of the Necromancer
-	{ 131231, 'TRUE' }, -- Path of the Scarlet Blade
-	{ 131229, 'TRUE' }, -- Path of the Scarlet Mitre
-	{ 393222, 'TRUE' }, -- Path of the Watcher's Legacy
-	--DH BC
-	--DH Cata
-	{ 445424, 'TRUE' }, -- Path of the Grim Batol
-	{ 424142, 'TRUE' }, -- Path of the Tidehunter
-	{ 410080, 'TRUE' }, -- Path of the Wind's Domain
-	--DH MOP
-	{ 131228, 'TRUE' }, -- Path of the Black Ox
-	{ 131204, 'TRUE' }, -- Path of the Jade Serpent
-	{ 131222, 'TRUE' }, -- Path of the Mogu King
-	{ 131225, 'TRUE' }, -- Path of the Setting Sun
-	{ 131206, 'TRUE' }, -- Path of the Shado-Pan
-	{ 131205, 'TRUE' }, -- Path of the Stout Brew
-	--DH WOD
-	{ 159895, 'TRUE' }, -- Path of the Bloodmaul
-	{ 159899, 'TRUE' }, -- Path of the Crescent Moon
-	{ 159900, 'TRUE' }, -- Path of the Dark Rail
-	{ 159896, 'TRUE' }, -- Path of the Iron Prow
-	{ 159898, 'TRUE' }, -- Path of the Skies
-	{ 159901, 'TRUE' }, -- Path of the Verdant
-	{ 159897, 'TRUE' }, -- Path of the Vigilant
-	--DH Legion
-	{ 424153, 'TRUE' }, -- Path of the Ancient Horrors
-	{ 410078, 'TRUE' }, -- Path of the Earth-Warder
-	{ 393766, 'TRUE' }, -- Path of the Grand Magistrix
-	{ 424163, 'TRUE' }, -- Path of the Nightmare Lord
-	{ 393764, 'TRUE' }, -- Path of the Proven Worth
-	--DH BFA
-	{ 410074, 'TRUE' }, -- Path of the Festering Rot
-	{ 410071, 'TRUE' }, -- Path of the Freebooter
-	{ 424187, 'TRUE' }, -- Path of the Golden Tomb
-	{ 424167, 'TRUE' }, -- Path of the Heart's Bane
-	{ 373274, 'TRUE' }, -- Path of the Scrappy Prince
-	{ 445418, 'TRUE' }, -- Path of the Siege of Boralus
-	--DH SL
-	{ 354466, 'TRUE' }, -- Path of the Ascendant
-	{ 354462, 'TRUE' }, -- Path of the Courageous
-	{ 373192, 'TRUE' }, -- Path of the First Ones
-	{ 354464, 'TRUE' }, -- Path of the Misty Forest
-	{ 354463, 'TRUE' }, -- Path of the Plagued
-	{ 354468, 'TRUE' }, -- Path of the Scheming Loa
-	{ 354465, 'TRUE' }, -- Path of the Sinful Soul
-	{ 373190, 'TRUE' }, -- Path of the Sire
-	{ 354469, 'TRUE' }, -- Path of the Stone Warden
-	{ 367416, 'TRUE' }, -- Path of the Streetwise Merchant
-	{ 373191, 'TRUE' }, -- Path of the Tormented Soul
-	{ 354467, 'TRUE' }, -- Path of the Undefeated
-	--DH DF
-	{ 393279, 'TRUE' }, -- Path of the Arcane Secrets
-	{ 432257, 'TRUE' }, -- Path of the Bitter Lagacy
-	{ 393256, 'TRUE' }, -- Path of the Clutch Defender
-	{ 393273, 'TRUE' }, -- Path of the Draconic Diploma
-	{ 393276, 'TRUE' }, -- Path of the Obsidian Hoard
-	{ 432254, 'TRUE' }, -- Path of the Primal Prison
-	{ 393267, 'TRUE' }, -- Path of the Rotting Woods
-	{ 432258, 'TRUE' }, -- Path of the Scorching Dream
-	{ 393283, 'TRUE' }, -- Path of the Titanic Reservoir
-	{ 424197, 'TRUE' }, -- Path of the Twisted Time
-	{ 393262, 'TRUE' }, -- Path of the Windswept Plains
-	--DH TWW
-	{ 445417, 'TRUE' }, -- Path of the Ara-Kara, City of Echoes
-	{ 445440, 'TRUE' }, -- Path of the Brewery
-	{ 445416, 'TRUE' }, -- Path of the City of Threads
-	{ 445441, 'TRUE' }, -- Path of the Darkflame Cleft
-	{ 445414, 'TRUE' }, -- Path of the Dawnbreaker
-	{ 445444, 'TRUE' }, -- Path of the Priory of the Sacred Flame
-	{ 445443, 'TRUE' }, -- Path of the Rookery
-	{ 445269, 'TRUE' }  -- Path of the Stonevault
+    -- DH Classic
+    {159902, 'TRUE'}, -- Path of the Burning Mountain
+    {373262, 'TRUE'}, -- Path of the Fallen Guardian
+    {131232, 'TRUE'}, -- Path of the Necromancer
+    {131231, 'TRUE'}, -- Path of the Scarlet Blade
+    {131229, 'TRUE'}, -- Path of the Scarlet Mitre
+    {393222, 'TRUE'}, -- Path of the Watcher's Legacy
+    -- DH BC
+    -- DH Cata
+    {445424, 'TRUE'}, -- Path of the Grim Batol
+    {424142, 'TRUE'}, -- Path of the Tidehunter
+    {410080, 'TRUE'}, -- Path of the Wind's Domain
+    -- DH MOP
+    {131228, 'TRUE'}, -- Path of the Black Ox
+    {131204, 'TRUE'}, -- Path of the Jade Serpent
+    {131222, 'TRUE'}, -- Path of the Mogu King
+    {131225, 'TRUE'}, -- Path of the Setting Sun
+    {131206, 'TRUE'}, -- Path of the Shado-Pan
+    {131205, 'TRUE'}, -- Path of the Stout Brew
+    -- DH WOD
+    {159895, 'TRUE'}, -- Path of the Bloodmaul
+    {159899, 'TRUE'}, -- Path of the Crescent Moon
+    {159900, 'TRUE'}, -- Path of the Dark Rail
+    {159896, 'TRUE'}, -- Path of the Iron Prow
+    {159898, 'TRUE'}, -- Path of the Skies
+    {159901, 'TRUE'}, -- Path of the Verdant
+    {159897, 'TRUE'}, -- Path of the Vigilant
+    -- DH Legion
+    {424153, 'TRUE'}, -- Path of the Ancient Horrors
+    {410078, 'TRUE'}, -- Path of the Earth-Warder
+    {393766, 'TRUE'}, -- Path of the Grand Magistrix
+    {424163, 'TRUE'}, -- Path of the Nightmare Lord
+    {393764, 'TRUE'}, -- Path of the Proven Worth
+    -- DH BFA
+    {410074, 'TRUE'}, -- Path of the Festering Rot
+    {410071, 'TRUE'}, -- Path of the Freebooter
+    {424187, 'TRUE'}, -- Path of the Golden Tomb
+    {424167, 'TRUE'}, -- Path of the Heart's Bane
+    {373274, 'TRUE'}, -- Path of the Scrappy Prince
+    {445418, 'TRUE'}, -- Path of the Siege of Boralus
+    -- DH SL
+    {354466, 'TRUE'}, -- Path of the Ascendant
+    {354462, 'TRUE'}, -- Path of the Courageous
+    {373192, 'TRUE'}, -- Path of the First Ones
+    {354464, 'TRUE'}, -- Path of the Misty Forest
+    {354463, 'TRUE'}, -- Path of the Plagued
+    {354468, 'TRUE'}, -- Path of the Scheming Loa
+    {354465, 'TRUE'}, -- Path of the Sinful Soul
+    {373190, 'TRUE'}, -- Path of the Sire
+    {354469, 'TRUE'}, -- Path of the Stone Warden
+    {367416, 'TRUE'}, -- Path of the Streetwise Merchant
+    {373191, 'TRUE'}, -- Path of the Tormented Soul
+    {354467, 'TRUE'}, -- Path of the Undefeated
+    -- DH DF
+    {393279, 'TRUE'}, -- Path of the Arcane Secrets
+    {432257, 'TRUE'}, -- Path of the Bitter Lagacy
+    {393256, 'TRUE'}, -- Path of the Clutch Defender
+    {393273, 'TRUE'}, -- Path of the Draconic Diploma
+    {393276, 'TRUE'}, -- Path of the Obsidian Hoard
+    {432254, 'TRUE'}, -- Path of the Primal Prison
+    {393267, 'TRUE'}, -- Path of the Rotting Woods
+    {432258, 'TRUE'}, -- Path of the Scorching Dream
+    {393283, 'TRUE'}, -- Path of the Titanic Reservoir
+    {424197, 'TRUE'}, -- Path of the Twisted Time
+    {393262, 'TRUE'}, -- Path of the Windswept Plains
+    -- DH TWW
+    {445417, 'TRUE'}, -- Path of the Ara-Kara, City of Echoes
+    {445440, 'TRUE'}, -- Path of the Brewery
+    {445416, 'TRUE'}, -- Path of the City of Threads
+    {445441, 'TRUE'}, -- Path of the Darkflame Cleft
+    {445414, 'TRUE'}, -- Path of the Dawnbreaker
+    {445444, 'TRUE'}, -- Path of the Priory of the Sacred Flame
+    {445443, 'TRUE'}, -- Path of the Rookery
+    {445269, 'TRUE'} -- Path of the Stonevault
 }
 
-local whistle = { 
+local whistle = {
     141605, -- Flight Master's Whistle
-	168862 -- G.E.A.R. Tracking Beacon
+    168862 -- G.E.A.R. Tracking Beacon
 }
 
 local obj = LibStub:GetLibrary('LibDataBroker-1.1'):NewDataObject(addonName, {
     type = 'data source',
     text = L['P'],
-    icon = 'Interface\\Icons\\INV_Misc_Rune_06',
+    icon = 'Interface\\Icons\\INV_Misc_Rune_06'
 })
 local portals
 local frame = CreateFrame('frame')
 
 local function CreateCheckbox(checkboxText, key, checkboxTooltip)
-    local checkbox = CreateFrame("CheckButton", "BPCheckboxID" .. checkboxes, settingsFrame, "UICheckButtonTemplate")
+    local checkbox = CreateFrame("CheckButton", "BPCheckboxID" .. checkboxes,
+                                 settingsFrame, "UICheckButtonTemplate")
     checkbox.Text:SetText(checkboxText)
-    checkbox:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 10, -30 + (checkboxes * -30))
+    checkbox:SetPoint("TOPLEFT", settingsFrame, "TOPLEFT", 10,
+                      -30 + (checkboxes * -30))
 end
 
-
-frame:SetScript('OnEvent', function(self, event, ...) if self[event] then return self[event](self, event, ...) end end)
+frame:SetScript('OnEvent', function(self, event, ...)
+    if self[event] then return self[event](self, event, ...) end
+end)
 frame:RegisterEvent('PLAYER_LOGIN')
-
 
 local function CreateSettingsPanel()
     if Settings then
         OptionsFrame = CreateFrame("Frame", "OptionsFrame", UIParent)
         OptionsFrame.name = "Broker Portals"
 
-        local showItemsCheckBox = CreateFrame("CheckButton", "ShowItemsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showItemsCheckBox = CreateFrame("CheckButton",
+                                              "ShowItemsCheckBox", OptionsFrame,
+                                              "InterfaceOptionsCheckButtonTemplate")
         showItemsCheckBox:SetPoint("TOPLEFT", 16, -16)
         showItemsCheckBox.Text:SetText(L["SHOW_ITEMS"])
         showItemsCheckBox.tooltipText = L["SHOW_ITEMS_TOOLTIP"]
@@ -305,15 +310,18 @@ local function CreateSettingsPanel()
             PortalsDB.showItems = not PortalsDB.showItems
             parentFrame = self:GetParent()
             children = {parentFrame:GetChildren()}
-            for _,child in ipairs(children) do
-                if child:GetDebugName() == "showItemsSubCatCheckBox" or child:GetDebugName() == "showEngineeringSubCatCheckBox" then
+            for _, child in ipairs(children) do
+                if child:GetDebugName() == "showItemsSubCatCheckBox" or
+                    child:GetDebugName() == "showEngineeringSubCatCheckBox" then
                     child:SetEnabled(PortalsDB.showItems)
                 end
             end
         end)
 
-
-        local showItemsSubCatCheckBox = CreateFrame("CheckButton", "showItemsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showItemsSubCatCheckBox = CreateFrame("CheckButton",
+                                                    "showItemsSubCatCheckBox",
+                                                    OptionsFrame,
+                                                    "InterfaceOptionsCheckButtonTemplate")
         showItemsSubCatCheckBox:SetPoint("TOPLEFT", 320, -16)
         showItemsSubCatCheckBox.Text:SetText(L["SHOW_ITEMS_SUBCAT"])
         showItemsSubCatCheckBox.tooltipText = L["SHOW_ITEMS_SUBCAT_TOOLTIP"]
@@ -323,8 +331,10 @@ local function CreateSettingsPanel()
             PortalsDB.showItemsSubCat = not PortalsDB.showItemsSubCat
         end)
 
-
-        local showHSItemsCheckBox = CreateFrame("CheckButton", "showHSItemsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showHSItemsCheckBox = CreateFrame("CheckButton",
+                                                "showHSItemsCheckBox",
+                                                OptionsFrame,
+                                                "InterfaceOptionsCheckButtonTemplate")
         showHSItemsCheckBox:SetPoint("TOPLEFT", 16, -64)
         showHSItemsCheckBox.Text:SetText(L["SHOW_HS_ITEMS"])
         showHSItemsCheckBox.tooltipText = L["SHOW_HS_ITEMS_TOOLTIP"]
@@ -334,45 +344,57 @@ local function CreateSettingsPanel()
             PortalsDB.showHSItems = not PortalsDB.showHSItems
             parentFrame = self:GetParent()
             children = {parentFrame:GetChildren()}
-            for _,child in ipairs(children) do
+            for _, child in ipairs(children) do
                 if child:GetDebugName() == "showHSItemsSubCatCheckBox" then
                     child:SetEnabled(PortalsDB.showHSItems)
                 end
             end
         end)
 
-        local showHSItemsSubCatCheckBox = CreateFrame("CheckButton", "showHSItemsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showHSItemsSubCatCheckBox =
+            CreateFrame("CheckButton", "showHSItemsSubCatCheckBox",
+                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showHSItemsSubCatCheckBox:SetPoint("TOPLEFT", 320, -64)
         showHSItemsSubCatCheckBox.Text:SetText(L["SHOW_HS_ITEMS_SUBCAT"])
-        showHSItemsSubCatCheckBox.tooltipText = L["SHOW_HS_ITEMS_SUBCAT_TOOLTIP"]
+        showHSItemsSubCatCheckBox.tooltipText =
+            L["SHOW_HS_ITEMS_SUBCAT_TOOLTIP"]
         showHSItemsSubCatCheckBox:SetChecked(PortalsDB.showHSItemsSubCat)
 
         showHSItemsSubCatCheckBox:SetScript("OnClick", function(self)
             PortalsDB.showHSItemsSubCat = not PortalsDB.showHSItemsSubCat
         end)
 
-        local showEngineeringSubCatCheckBox = CreateFrame("CheckButton", "showEngineeringSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showEngineeringSubCatCheckBox =
+            CreateFrame("CheckButton", "showEngineeringSubCatCheckBox",
+                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showEngineeringSubCatCheckBox:SetPoint("TOPLEFT", 16, -110)
         showEngineeringSubCatCheckBox.Text:SetText(L["SHOW_ENGINEERING_SUBCAT"])
-        showEngineeringSubCatCheckBox.tooltipText = L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"]
+        showEngineeringSubCatCheckBox.tooltipText =
+            L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"]
         showEngineeringSubCatCheckBox:SetChecked(PortalsDB.showEngineeringSubCat)
 
         showEngineeringSubCatCheckBox:SetScript("OnClick", function(self)
-            PortalsDB.showEngineeringSubCat = not PortalsDB.showEngineeringSubCat
+            PortalsDB.showEngineeringSubCat =
+                not PortalsDB.showEngineeringSubCat
         end)
 
-
-        local showTeleportsSubCatCheckBox = CreateFrame("CheckButton", "showTeleportsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showTeleportsSubCatCheckBox =
+            CreateFrame("CheckButton", "showTeleportsSubCatCheckBox",
+                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showTeleportsSubCatCheckBox:SetPoint("TOPLEFT", 320, -110)
         showTeleportsSubCatCheckBox.Text:SetText(L["SHOW_TELEPORTS_SUBCAT"])
-        showTeleportsSubCatCheckBox.tooltipText = L["SHOW_TELEPORTS_SUBCAT_TOOLTIP"]
+        showTeleportsSubCatCheckBox.tooltipText =
+            L["SHOW_TELEPORTS_SUBCAT_TOOLTIP"]
         showTeleportsSubCatCheckBox:SetChecked(PortalsDB.showTeleportsSubCat)
 
         showTeleportsSubCatCheckBox:SetScript("OnClick", function(self)
             PortalsDB.showTeleportsSubCat = not PortalsDB.showTeleportsSubCat
         end)
 
-        local minimapButtonBox = CreateFrame("CheckButton", "showMinimapButtonCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local minimapButtonBox = CreateFrame("CheckButton",
+                                             "showMinimapButtonCheckBox",
+                                             OptionsFrame,
+                                             "InterfaceOptionsCheckButtonTemplate")
         minimapButtonBox:SetPoint("TOPLEFT", 16, -158)
         minimapButtonBox.Text:SetText(L['ATT_MINIMAP'])
         minimapButtonBox.tooltipText = L['ATT_MINIMAP']
@@ -382,7 +404,9 @@ local function CreateSettingsPanel()
             ToggleMinimap()
         end)
 
-        local announceCheckBox = CreateFrame("CheckButton", "announceCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local announceCheckBox = CreateFrame("CheckButton", "announceCheckBox",
+                                             OptionsFrame,
+                                             "InterfaceOptionsCheckButtonTemplate")
         announceCheckBox:SetPoint("TOPLEFT", 320, -158)
         announceCheckBox.Text:SetText(L["ANNOUNCE"])
         announceCheckBox.tooltipText = L["ANNOUNCE_TOOLTIP"]
@@ -392,35 +416,46 @@ local function CreateSettingsPanel()
             PortalsDB.announce = not PortalsDB.announce
         end)
 
-        local fontSizeSlider = CreateFrame("Slider", "fontSizeSlider", OptionsFrame, "OptionsSliderTemplate")
+        local fontSizeSlider = CreateFrame("Slider", "fontSizeSlider",
+                                           OptionsFrame, "OptionsSliderTemplate")
         fontSizeSlider:SetPoint("TOPLEFT", 16, -206)
-        fontSizeSlider.Text:SetText(L['DROPDOWN_FONT_SIZE'] .. PortalsDB.fontSize)
+        fontSizeSlider.Text:SetText(L['DROPDOWN_FONT_SIZE'] ..
+                                        PortalsDB.fontSize)
         fontSizeSlider.tooltipText = L['DROPDOWN_FONT_SIZE']
         fontSizeSlider:SetMinMaxValues(8, 32)
         fontSizeSlider.Low:SetText(8)
         fontSizeSlider.High:SetText(32)
         fontSizeSlider:SetValueStep(1)
-        fontSizeSlider:SetScript('OnShow', function(self) self:SetValue(PortalsDB.fontSize) end)
-        fontSizeSlider:SetScript('OnValueChanged', function(self,value)
+        fontSizeSlider:SetScript('OnShow', function(self)
+            self:SetValue(PortalsDB.fontSize)
+        end)
+        fontSizeSlider:SetScript('OnValueChanged', function(self, value)
             PortalsDB.fontSize = floor(tonumber(value))
             self.Text:SetText(L['DROPDOWN_FONT_SIZE'] .. PortalsDB.fontSize)
         end)
 
-        local scrollSizeSlider = CreateFrame("Slider", "scrollSizeSlider", OptionsFrame, "OptionsSliderTemplate")
+        local scrollSizeSlider = CreateFrame("Slider", "scrollSizeSlider",
+                                             OptionsFrame,
+                                             "OptionsSliderTemplate")
         scrollSizeSlider:SetPoint("TOPLEFT", 320, -206)
-        scrollSizeSlider.Text:SetText(L['SCROLL_LIST_SIZE'] .. PortalsDB.scrollListSize)
+        scrollSizeSlider.Text:SetText(L['SCROLL_LIST_SIZE'] ..
+                                          PortalsDB.scrollListSize)
         scrollSizeSlider.tooltipText = L['SCROLL_LIST_SIZE']
         scrollSizeSlider:SetMinMaxValues(30, 60)
         scrollSizeSlider.Low:SetText(30)
         scrollSizeSlider.High:SetText(60)
         scrollSizeSlider:SetValueStep(1)
-        scrollSizeSlider:SetScript('OnShow', function(self) self:SetValue(PortalsDB.scrollListSize) end)
-        scrollSizeSlider:SetScript('OnValueChanged', function(self,value)
+        scrollSizeSlider:SetScript('OnShow', function(self)
+            self:SetValue(PortalsDB.scrollListSize)
+        end)
+        scrollSizeSlider:SetScript('OnValueChanged', function(self, value)
             PortalsDB.scrollListSize = floor(tonumber(value))
             self.Text:SetText(L['SCROLL_LIST_SIZE'] .. PortalsDB.scrollListSize)
         end)
 
-        local showItemsCooldownCheckBox = CreateFrame("CheckButton", "showItemsCooldownCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local showItemsCooldownCheckBox =
+            CreateFrame("CheckButton", "showItemsCooldownCheckBox",
+                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         showItemsCooldownCheckBox:SetPoint("TOPLEFT", 16, -254)
         showItemsCooldownCheckBox.Text:SetText(L["SHOW_ITEM_COOLDOWNS"])
         showItemsCooldownCheckBox.tooltipText = L["SHOW_ITEM_COOLDOWNS_TOOLTIP"]
@@ -430,7 +465,9 @@ local function CreateSettingsPanel()
             PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns
         end)
 
-        local sortItemsAlphabeticalyCheckBox = CreateFrame("CheckButton", "sortItemsAlphabeticalyCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+        local sortItemsAlphabeticalyCheckBox =
+            CreateFrame("CheckButton", "sortItemsAlphabeticalyCheckBox",
+                        OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         sortItemsAlphabeticalyCheckBox:SetPoint("TOPLEFT", 320, -254)
         sortItemsAlphabeticalyCheckBox.Text:SetText(L["SORT_ITEMS"])
         sortItemsAlphabeticalyCheckBox.tooltipText = L["SORT_ITEMS_TOOLTIP"]
@@ -440,47 +477,54 @@ local function CreateSettingsPanel()
             PortalsDB.sortItems = not PortalsDB.sortItems
         end)
 
-
         if not isCataclysmClassic then
-                local showChallengeTeleportsCheckBox = CreateFrame("CheckButton", "showChallengeTeleportsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-                showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -302)
-                showChallengeTeleportsCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS"])
-                showChallengeTeleportsCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"]
-                showChallengeTeleportsCheckBox:SetChecked(PortalsDB.showChallengeTeleports)
+            local showChallengeTeleportsCheckBox =
+                CreateFrame("CheckButton", "showChallengeTeleportsCheckBox",
+                            OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+            showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -302)
+            showChallengeTeleportsCheckBox.Text:SetText(
+                L["SHOW_CHALLENGE_TELEPORTS"])
+            showChallengeTeleportsCheckBox.tooltipText =
+                L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"]
+            showChallengeTeleportsCheckBox:SetChecked(
+                PortalsDB.showChallengeTeleports)
 
-                showChallengeTeleportsCheckBox:SetScript("OnClick", function(self)
-                    PortalsDB.showChallengeTeleports = not PortalsDB.showChallengeTeleports
-                    for _,child in ipairs(children) do
-                        if child:GetDebugName() == "showChallengeSubCatCheckBox" then
-                            child:SetEnabled(PortalsDB.showChallengeTeleports)
-                        end
+            showChallengeTeleportsCheckBox:SetScript("OnClick", function(self)
+                PortalsDB.showChallengeTeleports =
+                    not PortalsDB.showChallengeTeleports
+                for _, child in ipairs(children) do
+                    if child:GetDebugName() == "showChallengeSubCatCheckBox" then
+                        child:SetEnabled(PortalsDB.showChallengeTeleports)
                     end
-                end)
+                end
+            end)
 
-                local showChallengeSubCatCheckBox = CreateFrame("CheckButton", "showChallengeSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-                showChallengeSubCatCheckBox:SetPoint("TOPLEFT", 320, -302)
-                showChallengeSubCatCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS_SUBCAT"])
-                showChallengeSubCatCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_SUBCAT_TOOLTIP"]
-                showChallengeSubCatCheckBox:SetChecked(PortalsDB.showChallengeSubCat)
+            local showChallengeSubCatCheckBox =
+                CreateFrame("CheckButton", "showChallengeSubCatCheckBox",
+                            OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
+            showChallengeSubCatCheckBox:SetPoint("TOPLEFT", 320, -302)
+            showChallengeSubCatCheckBox.Text:SetText(
+                L["SHOW_CHALLENGE_TELEPORTS_SUBCAT"])
+            showChallengeSubCatCheckBox.tooltipText =
+                L["SHOW_CHALLENGE_TELEPORTS_SUBCAT_TOOLTIP"]
+            showChallengeSubCatCheckBox:SetChecked(PortalsDB.showChallengeSubCat)
 
-                showChallengeSubCatCheckBox:SetScript("OnClick", function(self)
-                    PortalsDB.showChallengeSubCat = not PortalsDB.showChallengeSubCat
-                end)
+            showChallengeSubCatCheckBox:SetScript("OnClick", function(self)
+                PortalsDB.showChallengeSubCat =
+                    not PortalsDB.showChallengeSubCat
+            end)
         end
 
-        category = Settings.RegisterCanvasLayoutCategory(OptionsFrame, OptionsFrame.name)
-        Settings.RegisterAddOnCategory(category)    
+        category = Settings.RegisterCanvasLayoutCategory(OptionsFrame,
+                                                         OptionsFrame.name)
+        Settings.RegisterAddOnCategory(category)
     end
 end
 
 local function pairsByKeys(t, sortTable)
     local a = {}
-    for n in pairs(t) do
-        table.insert(a, n)
-    end
-    if sortTable then
-        table.sort(a)
-    end
+    for n in pairs(t) do table.insert(a, n) end
+    if sortTable then table.sort(a) end
 
     local i = 0
     local iter = function()
@@ -495,9 +539,7 @@ local function pairsByKeys(t, sortTable)
 end
 
 local function tconcat(t1, t2)
-    for i = 1, #t2 do
-        t1[#t1 + 1] = t2[i]
-    end
+    for i = 1, #t2 do t1[#t1 + 1] = t2[i] end
     return t1
 end
 
@@ -571,74 +613,74 @@ end
 local function SetupSpells()
     local spells = {
         Alliance = {
-            { 3561, 'TP_RUNE' },   -- TP:Stormwind
-            { 3562, 'TP_RUNE' },   -- TP:Ironforge
-            { 3565, 'TP_RUNE' },   -- TP:Darnassus
-            { 32271, 'TP_RUNE' },  -- TP:Exodar
-            { 49359, 'TP_RUNE' },  -- TP:Theramore
-            { 33690, 'TP_RUNE' },  -- TP:Shattrath
-            { 53140, 'TP_RUNE' },  -- TP:Dalaran
-            { 88342, 'TP_RUNE' },  -- TP:Tol Barad
-            { 132621, 'TP_RUNE' }, -- TP:Vale of Eternal Blossoms
-            { 120145, 'TP_RUNE' }, -- TP:Ancient Dalaran
-            { 176248, 'TP_RUNE' }, -- TP:StormShield
-            { 224869, 'TP_RUNE' }, -- TP:Dalaran - Broken Isles
-            { 193759, 'TP_RUNE' }, -- TP:Hall of the Guardian
-            { 281403, 'TP_RUNE' }, -- TP:Boralus
-            { 344587, 'TP_RUNE' }, -- TP:Oribos
-            { 395277, 'TP_RUNE' }, -- TP:Valdrakken
-            { 446540, 'TP_RUNE' }, -- TP:Dornogal
-            { 10059, 'P_RUNE' },   -- P:Stormwind
-            { 11416, 'P_RUNE' },   -- P:Ironforge
-            { 11419, 'P_RUNE' },   -- P:Darnassus
-            { 32266, 'P_RUNE' },   -- P:Exodar
-            { 49360, 'P_RUNE' },   -- P:Theramore
-            { 33691, 'P_RUNE' },   -- P:Shattrath
-            { 53142, 'P_RUNE' },   -- P:Dalaran
-            { 88345, 'P_RUNE' },   -- P:Tol Barad
-            { 120146, 'P_RUNE' },  -- P:Ancient Dalaran
-            { 132620, 'P_RUNE' },  -- P:Vale of Eternal Blossoms
-            { 176246, 'P_RUNE' },  -- P:StormShield
-            { 224871, 'P_RUNE' },  -- P:Dalaran - Broken Isles
-            { 281400, 'P_RUNE' },  -- P:Boralus
-            { 344597, 'P_RUNE' },  -- P:Oribos
-            { 395289, 'P_RUNE' },  -- P:Valdrakken
-            { 446534, 'P_RUNE' }   -- P:Dornogal
+            {3561, 'TP_RUNE'}, -- TP:Stormwind
+            {3562, 'TP_RUNE'}, -- TP:Ironforge
+            {3565, 'TP_RUNE'}, -- TP:Darnassus
+            {32271, 'TP_RUNE'}, -- TP:Exodar
+            {49359, 'TP_RUNE'}, -- TP:Theramore
+            {33690, 'TP_RUNE'}, -- TP:Shattrath
+            {53140, 'TP_RUNE'}, -- TP:Dalaran
+            {88342, 'TP_RUNE'}, -- TP:Tol Barad
+            {132621, 'TP_RUNE'}, -- TP:Vale of Eternal Blossoms
+            {120145, 'TP_RUNE'}, -- TP:Ancient Dalaran
+            {176248, 'TP_RUNE'}, -- TP:StormShield
+            {224869, 'TP_RUNE'}, -- TP:Dalaran - Broken Isles
+            {193759, 'TP_RUNE'}, -- TP:Hall of the Guardian
+            {281403, 'TP_RUNE'}, -- TP:Boralus
+            {344587, 'TP_RUNE'}, -- TP:Oribos
+            {395277, 'TP_RUNE'}, -- TP:Valdrakken
+            {446540, 'TP_RUNE'}, -- TP:Dornogal
+            {10059, 'P_RUNE'}, -- P:Stormwind
+            {11416, 'P_RUNE'}, -- P:Ironforge
+            {11419, 'P_RUNE'}, -- P:Darnassus
+            {32266, 'P_RUNE'}, -- P:Exodar
+            {49360, 'P_RUNE'}, -- P:Theramore
+            {33691, 'P_RUNE'}, -- P:Shattrath
+            {53142, 'P_RUNE'}, -- P:Dalaran
+            {88345, 'P_RUNE'}, -- P:Tol Barad
+            {120146, 'P_RUNE'}, -- P:Ancient Dalaran
+            {132620, 'P_RUNE'}, -- P:Vale of Eternal Blossoms
+            {176246, 'P_RUNE'}, -- P:StormShield
+            {224871, 'P_RUNE'}, -- P:Dalaran - Broken Isles
+            {281400, 'P_RUNE'}, -- P:Boralus
+            {344597, 'P_RUNE'}, -- P:Oribos
+            {395289, 'P_RUNE'}, -- P:Valdrakken
+            {446534, 'P_RUNE'} -- P:Dornogal
         },
         Horde = {
-            { 3563, 'TP_RUNE' },   -- TP:Undercity
-            { 3566, 'TP_RUNE' },   -- TP:Thunder Bluff
-            { 3567, 'TP_RUNE' },   -- TP:Orgrimmar
-            { 32272, 'TP_RUNE' },  -- TP:Silvermoon
-            { 49358, 'TP_RUNE' },  -- TP:Stonard
-            { 35715, 'TP_RUNE' },  -- TP:Shattrath
-            { 53140, 'TP_RUNE' },  -- TP:Dalaran
-            { 88344, 'TP_RUNE' },  -- TP:Tol Barad
-            { 132627, 'TP_RUNE' }, -- TP:Vale of Eternal Blossoms
-            { 120145, 'TP_RUNE' }, -- TP:Ancient Dalaran
-            { 176242, 'TP_RUNE' }, -- TP:Warspear
-            { 224869, 'TP_RUNE' }, -- TP:Dalaran - Broken Isles
-            { 193759, 'TP_RUNE' }, -- TP:Hall of the Guardian
-            { 281404, 'TP_RUNE' }, -- TP:Dazar'alor
-            { 344587, 'TP_RUNE' }, -- TP:Oribos
-            { 395277, 'TP_RUNE' }, -- TP:Valdrakken
-            { 446540, 'TP_RUNE' }, -- TP:Dornogal
-            { 11418, 'P_RUNE' },   -- P:Undercity
-            { 11420, 'P_RUNE' },   -- P:Thunder Bluff
-            { 11417, 'P_RUNE' },   -- P:Orgrimmar
-            { 32267, 'P_RUNE' },   -- P:Silvermoon
-            { 49361, 'P_RUNE' },   -- P:Stonard
-            { 35717, 'P_RUNE' },   -- P:Shattrath
-            { 53142, 'P_RUNE' },   -- P:Dalaran
-            { 88346, 'P_RUNE' },   -- P:Tol Barad
-            { 120146, 'P_RUNE' },  -- P:Ancient Dalaran
-            { 132626, 'P_RUNE' },  -- P:Vale of Eternal Blossoms
-            { 176244, 'P_RUNE' },  -- P:Warspear
-            { 224871, 'P_RUNE' },  -- P:Dalaran - Broken Isles
-            { 281402, 'P_RUNE' },  -- P:Dazar'alor
-            { 344597, 'P_RUNE' },  -- P:Oribos
-            { 395289, 'P_RUNE' },  -- P:Valdrakken
-            { 446534, 'P_RUNE' }   -- P:Dornogal
+            {3563, 'TP_RUNE'}, -- TP:Undercity
+            {3566, 'TP_RUNE'}, -- TP:Thunder Bluff
+            {3567, 'TP_RUNE'}, -- TP:Orgrimmar
+            {32272, 'TP_RUNE'}, -- TP:Silvermoon
+            {49358, 'TP_RUNE'}, -- TP:Stonard
+            {35715, 'TP_RUNE'}, -- TP:Shattrath
+            {53140, 'TP_RUNE'}, -- TP:Dalaran
+            {88344, 'TP_RUNE'}, -- TP:Tol Barad
+            {132627, 'TP_RUNE'}, -- TP:Vale of Eternal Blossoms
+            {120145, 'TP_RUNE'}, -- TP:Ancient Dalaran
+            {176242, 'TP_RUNE'}, -- TP:Warspear
+            {224869, 'TP_RUNE'}, -- TP:Dalaran - Broken Isles
+            {193759, 'TP_RUNE'}, -- TP:Hall of the Guardian
+            {281404, 'TP_RUNE'}, -- TP:Dazar'alor
+            {344587, 'TP_RUNE'}, -- TP:Oribos
+            {395277, 'TP_RUNE'}, -- TP:Valdrakken
+            {446540, 'TP_RUNE'}, -- TP:Dornogal
+            {11418, 'P_RUNE'}, -- P:Undercity
+            {11420, 'P_RUNE'}, -- P:Thunder Bluff
+            {11417, 'P_RUNE'}, -- P:Orgrimmar
+            {32267, 'P_RUNE'}, -- P:Silvermoon
+            {49361, 'P_RUNE'}, -- P:Stonard
+            {35717, 'P_RUNE'}, -- P:Shattrath
+            {53142, 'P_RUNE'}, -- P:Dalaran
+            {88346, 'P_RUNE'}, -- P:Tol Barad
+            {120146, 'P_RUNE'}, -- P:Ancient Dalaran
+            {132626, 'P_RUNE'}, -- P:Vale of Eternal Blossoms
+            {176244, 'P_RUNE'}, -- P:Warspear
+            {224871, 'P_RUNE'}, -- P:Dalaran - Broken Isles
+            {281402, 'P_RUNE'}, -- P:Dazar'alor
+            {344597, 'P_RUNE'}, -- P:Oribos
+            {395289, 'P_RUNE'}, -- P:Valdrakken
+            {446534, 'P_RUNE'} -- P:Dornogal
         }
     }
 
@@ -647,22 +689,22 @@ local function SetupSpells()
         portals = spells[select(1, UnitFactionGroup('player'))]
     elseif class == 'DEATHKNIGHT' then
         portals = {
-            { 50977, 'TRUE' } -- Death Gate
+            {50977, 'TRUE'} -- Death Gate
         }
     elseif class == 'DRUID' then
         portals = {
-            { 18960,  'TRUE' }, -- TP:Moonglade
-            { 147420, 'TRUE' }, -- TP:One with Nature
-            { 193753, 'TRUE' }  -- TP:Dreamwalk
+            {18960, 'TRUE'}, -- TP:Moonglade
+            {147420, 'TRUE'}, -- TP:One with Nature
+            {193753, 'TRUE'} -- TP:Dreamwalk
         }
     elseif class == 'SHAMAN' then
         portals = {
-            { 556, 'TRUE' } -- Astral Recall
+            {556, 'TRUE'} -- Astral Recall
         }
     elseif class == 'MONK' then
         portals = {
-            { 126892, 'TRUE' }, -- Zen Pilgrimage
-            { 126895, 'TRUE' }  -- Zen Pilgrimage: Return
+            {126892, 'TRUE'}, -- Zen Pilgrimage
+            {126895, 'TRUE'} -- Zen Pilgrimage: Return
         }
     else
         portals = {}
@@ -670,16 +712,15 @@ local function SetupSpells()
 
     local _, race = UnitRace('player')
     if race == 'DarkIronDwarf' then
-        table.insert(portals, { 265225, 'TRUE' }) -- Mole Machine
+        table.insert(portals, {265225, 'TRUE'}) -- Mole Machine
     end
     if race == 'Vulpera' then
-        table.insert(portals, { 312370, 'TRUE' }) -- Make Camp
-        table.insert(portals, { 312372, 'TRUE' }) -- Return To Camp
+        table.insert(portals, {312370, 'TRUE'}) -- Make Camp
+        table.insert(portals, {312372, 'TRUE'}) -- Return To Camp
     end
 
     wipe(spells)
 end
-
 
 local function GenerateMenuEntries(itemType, itemList, menuCategory)
     local itemsGenerated = 0
@@ -688,9 +729,10 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         for _, unTransSpell in ipairs(itemList) do
             if IsPlayerSpell(unTransSpell[1]) then
                 local spellName
-                local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(unTransSpell[1])
+                local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(
+                                                                  unTransSpell[1])
                 if type(spell) == "table" then
-                    spellId   = spell.spellID
+                    spellId = spell.spellID
                     spellIcon = spell.iconID
                     spellName = spell.name
                 else
@@ -702,16 +744,13 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
                         methods[menuCategory] = {}
                     end
                     methods[menuCategory][spellName] = {
-                        itemID   = spellId,
+                        itemID = spellId,
                         itemName = spellName,
                         itemIcon = spellIcon,
                         itemType = itemType,
-                        itemRGB  = nil,
+                        itemRGB = nil,
                         isPortal = unTransSpell[2] == 'P_RUNE',
-                        secure = {
-                            type = 'spell',
-                            spell = spellName
-                        }
+                        secure = {type = 'spell', spell = spellName}
                     }
                     itemsGenerated = itemsGenerated + 1
                 end
@@ -721,20 +760,18 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         local i = 0
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
-                local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
+                local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon =
+                    GetItemInfo(itemList[i])
                 if not methods[menuCategory] then
                     methods[menuCategory] = {}
                 end
                 methods[menuCategory][itemName] = {
-                    itemID   = itemList[i],
+                    itemID = itemList[i],
                     itemName = itemName,
                     itemIcon = itemIcon,
                     itemType = itemType,
-                    itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
-                    secure = {
-                        type = 'item',
-                        item = itemName
-                    }
+                    itemRGB = ITEM_QUALITY_COLORS[itemQuality],
+                    secure = {type = 'item', item = itemName}
                 }
                 itemsGenerated = itemsGenerated + 1
             end
@@ -748,59 +785,60 @@ local function PrepareMenuData()
 
     wipe(methods)
 
-    if not portals then
-        SetupSpells()
-    end
+    if not portals then SetupSpells() end
 
-    if portals then
-        GenerateMenuEntries("spell", portals, "mainspells")
-    end
+    if portals then GenerateMenuEntries("spell", portals, "mainspells") end
 
     if not isCataclysmClassic then
-        challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges")
+        challengeSpellCount = GenerateMenuEntries("spell", challengeSpells,
+                                                  "challenges")
     end
 
     GenerateMenuEntries("items", items, "mainitems")
-    engineringItemsCount = GenerateMenuEntries("items", engineeringItems, "engineering")
-    heartstoneItemsCount = GenerateMenuEntries("items", heartstones, "heartstones")
+    engineringItemsCount = GenerateMenuEntries("items", engineeringItems,
+                                               "engineering")
+    heartstoneItemsCount = GenerateMenuEntries("items", heartstones,
+                                               "heartstones")
     databaseLoaded = true
 end
 
-local function UpdateIcon(icon)
-    obj.icon = icon
-end
+local function UpdateIcon(icon) obj.icon = icon end
 
 local function ShowMenuEntries(category, sortTable)
     if methods[category] then
         for _, menuEntry in pairsByKeys(methods[category], sortTable) do
             if menuEntry.itemType == "spell" then
                 local spellCooldown
-                if isCataclysmClassic then spellCooldown = GetSpellCooldown(menuEntry.itemName) else spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime end
+                if isCataclysmClassic then
+                    spellCooldown = GetSpellCooldown(menuEntry.itemName)
+                else
+                    spellCooldown =
+                        GetSpellCooldown(menuEntry.itemName).startTime
+                end
                 if menuEntry.secure and spellCooldown == 0 then
-                    dewdrop:AddLine(
-                        'textHeight', PortalsDB.fontSize,
-                        'text', menuEntry.itemName,
-                        'secure', menuEntry.secure,
-                        'icon', tostring(menuEntry.itemIcon),
-                        'func', function()
-                            UpdateIcon(menuEntry.itemIcon)
-                            if announce and menuyEntry.isPortal and chatType then
-                                SendChatMessage(L['ANNOUNCEMENT'] .. ' ' .. menuEntry.itemName, chatType)
-                            end
-                        end,
-                        'closeWhenClicked', true)
+                    dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
+                                    menuEntry.itemName, 'secure',
+                                    menuEntry.secure, 'icon',
+                                    tostring(menuEntry.itemIcon), 'func',
+                                    function()
+                        UpdateIcon(menuEntry.itemIcon)
+                        if announce and menuyEntry.isPortal and chatType then
+                            SendChatMessage(
+                                L['ANNOUNCEMENT'] .. ' ' .. menuEntry.itemName,
+                                chatType)
+                        end
+                    end, 'closeWhenClicked', true)
                 end
             else
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', menuEntry.itemName,
-                    'textR', menuEntry.itemRGB.r,
-                    'textG', menuEntry.itemRGB.g,
-                    'textB', menuEntry.itemRGB.b,
-                    'secure', menuEntry.secure,
-                    'icon', tostring(menuEntry.itemIcon),
-                    'func', function() UpdateIcon(menuEntry.itemIcon) end,
-                    'closeWhenClicked', true)
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
+                                menuEntry.itemName, 'textR',
+                                menuEntry.itemRGB.r, 'textG',
+                                menuEntry.itemRGB.g, 'textB',
+                                menuEntry.itemRGB.b, 'secure', menuEntry.secure,
+                                'icon', tostring(menuEntry.itemIcon), 'func',
+                                function()
+                    UpdateIcon(menuEntry.itemIcon)
+                end, 'closeWhenClicked', true)
             end
         end
         dewdrop:AddLine()
@@ -809,15 +847,15 @@ end
 
 local function GetItemCooldowns()
     local cooldown, cooldowns, hours, mins, secs
-    if cooldowns == nil then
-        cooldowns = {}
-    end
+    if cooldowns == nil then cooldowns = {} end
 
     for i = 1, #items do
-        if GetItemCount(items[i]) > 0 or (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
+        if GetItemCount(items[i]) > 0 or
+            (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
             startTime, duration = GetItemCooldown(items[i])
             cooldown = duration - (GetTime() - startTime)
-            local name = GetItemInfo(items[i]) or select(2, C_ToyBox.GetToyInfo(items[i]))
+            local name = GetItemInfo(items[i]) or
+                             select(2, C_ToyBox.GetToyInfo(items[i]))
             if name then
                 if cooldown <= 0 then
                     cooldown = L['READY']
@@ -830,11 +868,15 @@ local function GetItemCooldowns()
     end
 
     for i = 1, #engineeringItems do
-        if GetItemCount(engineeringItems[i]) > 0 or (PlayerHasToy(engineeringItems[i]) and C_ToyBox.IsToyUsable(engineeringItems[i])) then
+        if GetItemCount(engineeringItems[i]) > 0 or
+            (PlayerHasToy(engineeringItems[i]) and
+                C_ToyBox.IsToyUsable(engineeringItems[i])) then
             startTime, duration = GetItemCooldown(engineeringItems[i])
             cooldown = duration - (GetTime() - startTime)
             if cooldown > 0 then
-                local name = GetItemInfo(engineeringItems[i]) or select(2, C_ToyBox.GetToyInfo(engineeringItems[i]))
+                local name = GetItemInfo(engineeringItems[i]) or
+                                 select(2, C_ToyBox.GetToyInfo(
+                                            engineeringItems[i]))
                 if name then
                     cooldown = SecondsToTime(cooldown)
                     cooldowns[name] = cooldown
@@ -850,7 +892,8 @@ local function GetScrollCooldown()
     local cooldown, startTime, duration
 
     for i = 1, #scrolls do
-        if GetItemCount(scrolls[i]) > 0 or (PlayerHasToy(scrolls[i]) and C_ToyBox.IsToyUsable(scrolls[i])) then
+        if GetItemCount(scrolls[i]) > 0 or
+            (PlayerHasToy(scrolls[i]) and C_ToyBox.IsToyUsable(scrolls[i])) then
             startTime, duration = GetItemCooldown(scrolls[i])
             cooldown = duration - (GetTime() - startTime)
             if cooldown <= 0 then
@@ -886,22 +929,16 @@ local function ShowHearthstone()
         if hasItem(scrolls[i]) then
             name, _, _, _, _, _, _, _, _, icon = GetItemInfo(scrolls[i])
             text = L['INN'] .. ' ' .. bindLoc
-            secure = {
-                type = 'item',
-                item = name
-            }
+            secure = {type = 'item', item = name}
             break
         end
     end
 
     if secure ~= nil then
-        dewdrop:AddLine(
-            'textHeight', PortalsDB.fontSize,
-            'text', text,
-            'secure', secure,
-            'icon', tostring(icon),
-            'func', function() UpdateIcon(icon) end,
-            'closeWhenClicked', true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', text,
+                        'secure', secure, 'icon', tostring(icon), 'func',
+                        function() UpdateIcon(icon) end, 'closeWhenClicked',
+                        true)
     end
 end
 
@@ -909,19 +946,13 @@ local function ShowWhistle()
     local secure, icon, name
     if hasItem(whistle[1]) then
         name, _, _, _, _, _, _, _, _, icon = GetItemInfo(whistle[1])
-        secure = {
-            type = 'item',
-            item = name
-        }
+        secure = {type = 'item', item = name}
     end
     if secure ~= nil then
-        dewdrop:AddLine(
-            'textHeight', PortalsDB.fontSize,
-            'text', name,
-            'secure', secure,
-            'icon', tostring(icon),
-            'func', function() UpdateIcon(icon) end,
-            'closeWhenClicked', true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', name,
+                        'secure', secure, 'icon', tostring(icon), 'func',
+                        function() UpdateIcon(icon) end, 'closeWhenClicked',
+                        true)
         dewdrop:AddLine()
     end
 end
@@ -944,12 +975,11 @@ local function UpdateMenu(level, value)
         dewdrop:AddLine('text', 'Broker_Portals', 'isTitle', true)
         PrepareMenuData()
 
-        local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
+        local chatType = (UnitInRaid("player") and "RAID") or
+                             (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
 
-        if not portals then
-            SetupSpells()
-        end
+        if not portals then SetupSpells() end
 
         if portals then
             if not PortalsDB.showTeleportsSubCat then
@@ -966,7 +996,8 @@ local function UpdateMenu(level, value)
             end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and
+            challengeSpellCount > 0 then
             if not PortalsDB.showChallengeSubCat then
                 ShowMenuEntries("challenges", PortalsDB.sortItems)
             end
@@ -980,75 +1011,60 @@ local function UpdateMenu(level, value)
 
         if portals then
             if PortalsDB.showTeleportsSubCat then
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', L["TP_P"],
-                    'icon', tostring(teleportsIcon),
-                    'hasArrow', true,
-                    'value', 'mainspells')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
+                                L["TP_P"], 'icon', tostring(teleportsIcon),
+                                'hasArrow', true, 'value', 'mainspells')
             end
         end
 
         if PortalsDB.showItems then
             if PortalsDB.showItemsSubCat then
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', L["MAIN_ITEMS"],
-                    'icon', tostring(variousItemsIcon),
-                    'hasArrow', true,
-                    'value', 'mainitems')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
+                                L["MAIN_ITEMS"], 'icon',
+                                tostring(variousItemsIcon), 'hasArrow', true,
+                                'value', 'mainitems')
             end
         end
 
         if PortalsDB.showItems and engineringItemsCount > 0 then
             if PortalsDB.showEngineeringSubCat then
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', engineeringName,
-                    'icon', tostring(engineeringIcon),
-                    'hasArrow', true,
-                    'value', 'engineering')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
+                                engineeringName, 'icon',
+                                tostring(engineeringIcon), 'hasArrow', true,
+                                'value', 'engineering')
             end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and
+            challengeSpellCount > 0 then
             if PortalsDB.showChallengeSubCat then
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', L['CHALLENGE_TELEPORTS'],
-                    'icon', tostring(teleportsIcon),
-                    'hasArrow', true,
-                    'value', 'challenges')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
+                                L['CHALLENGE_TELEPORTS'], 'icon',
+                                tostring(teleportsIcon), 'hasArrow', true,
+                                'value', 'challenges')
             end
         end
 
         if PortalsDB.showHSItems and heartstoneItemsCount > 0 then
             if PortalsDB.showHSItemsSubCat then
-                dewdrop:AddLine(
-                    'textHeight', PortalsDB.fontSize,
-                    'text', L['HEARTHSTONE_ANALOGUES'],
-                    'icon', tostring(heartstonesIcon),
-                    'hasArrow', true,
-                    'value', 'heartstones')
+                dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text',
+                                L['HEARTHSTONE_ANALOGUES'], 'icon',
+                                tostring(heartstonesIcon), 'hasArrow', true,
+                                'value', 'heartstones')
             end
         end
 
         ShowHearthstone()
         ShowWhistle()
 
-        dewdrop:AddLine(
-            'textHeight', PortalsDB.fontSize,
-            'text', L['OPTIONS'],
-            'hasArrow', false,
-            'func', function() Settings.OpenToCategory(category:GetID()); end,
-            'closeWhenClicked', true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['OPTIONS'],
+                        'hasArrow', false, 'func', function()
+            Settings.OpenToCategory(category:GetID());
+        end, 'closeWhenClicked', true)
 
-        dewdrop:AddLine(
-            'textHeight', PortalsDB.fontSize,
-            'text', CLOSE,
-            'tooltipTitle', CLOSE,
-            'tooltipText', CLOSE_DESC,
-            'closeWhenClicked', true)
+        dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', CLOSE,
+                        'tooltipTitle', CLOSE, 'tooltipText', CLOSE_DESC,
+                        'closeWhenClicked', true)
 
     elseif level == 2 and value == 'mainspells' then
         ShowMenuEntries("mainspells", true)
@@ -1078,7 +1094,7 @@ function frame:PLAYER_LOGIN()
         PortalsDB.showChallengeSubCat = false
         PortalsDB.showTeleportsSubCat = false
         PortalsDB.scrollListSize = 33
-	PortalsDB.sortItems = false
+        PortalsDB.sortItems = false
         PortalsDB.announce = false
         PortalsDB.announce = false
         PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
@@ -1086,8 +1102,8 @@ function frame:PLAYER_LOGIN()
     end
     -- upgrade from versions
     if PortalsDB.version == 8 then
-	PortalsDB.sortItems = false
-	PortalsDB.version = 9
+        PortalsDB.sortItems = false
+        PortalsDB.version = 9
     elseif PortalsDB.version == 7 then
         PortalsDB.showEngineeringSubCat = true
         PortalsDB.showChallengeSubCat = false
@@ -1117,9 +1133,7 @@ function frame:PLAYER_LOGIN()
         PortalsDB.version = 4
     end
 
-    if icon then
-        icon:Register('Broker_Portals', obj, PortalsDB.minimap)
-    end
+    if icon then icon:Register('Broker_Portals', obj, PortalsDB.minimap) end
     CreateSettingsPanel()
     self:UnregisterEvent('PLAYER_LOGIN')
 end
@@ -1128,21 +1142,22 @@ end
 local function GetTipAnchor(frame)
     local x, y = frame:GetCenter()
     if not x or not y then return 'TOPLEFT', 'BOTTOMLEFT' end
-    local hhalf = (x > UIParent:GetWidth() * 2 / 3) and 'RIGHT' or (x < UIParent:GetWidth() / 3) and 'LEFT' or ''
+    local hhalf = (x > UIParent:GetWidth() * 2 / 3) and 'RIGHT' or
+                      (x < UIParent:GetWidth() / 3) and 'LEFT' or ''
     local vhalf = (y > UIParent:GetHeight() / 2) and 'TOP' or 'BOTTOM'
-    return vhalf .. hhalf, frame, (vhalf == 'TOP' and 'BOTTOM' or 'TOP') .. hhalf
+    return vhalf .. hhalf, frame,
+           (vhalf == 'TOP' and 'BOTTOM' or 'TOP') .. hhalf
 end
 
 function obj.OnClick(self, button)
     GameTooltip:Hide()
     if button == 'RightButton' then
-        dewdrop:Open(self, 'children', function(level, value) UpdateMenu(level, value) end)
+        dewdrop:Open(self, 'children',
+                     function(level, value) UpdateMenu(level, value) end)
     end
 end
 
-function obj.OnLeave()
-    GameTooltip:Hide()
-end
+function obj.OnLeave() GameTooltip:Hide() end
 
 function obj.OnEnter(self)
     GameTooltip:SetOwner(self, 'ANCHOR_NONE')
@@ -1150,19 +1165,24 @@ function obj.OnEnter(self)
     GameTooltip:ClearLines()
 
     GameTooltip:AddLine('Broker Portals')
-    GameTooltip:AddDoubleLine(L['RCLICK'], L['SEE_SPELLS'], 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+    GameTooltip:AddDoubleLine(L['RCLICK'], L['SEE_SPELLS'], 0.9, 0.6, 0.2, 0.2,
+                              1, 0.2)
     GameTooltip:AddLine(' ')
 
     local scrollCooldown = GetScrollCooldown()
     if scrollCooldown == L['READY'] then
-        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(),
+                                  scrollCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
     else
-       GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+        GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(),
+                                  scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
     end
 
     if isCataclysmClassic then
         GameTooltip:AddLine(" ")
-        GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]).."/"..getReagentCount(L["P_RUNE"]), 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+        GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]) ..
+                                      "/" .. getReagentCount(L["P_RUNE"]), 0.9,
+                                  0.6, 0.2, 0.2, 1, 0.2)
     end
 
     if PortalsDB.showItemCooldowns then
@@ -1171,9 +1191,11 @@ function obj.OnEnter(self)
             GameTooltip:AddLine(' ')
             for name, cooldown in pairs(cooldowns) do
                 if cooldown == L['READY'] then
-                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2,
+                                              0.2, 1, 0.2)
                 else
-                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+                    GameTooltip:AddDoubleLine(name, cooldown, 0.9, 0.6, 0.2, 1,
+                                              1, 0.2)
                 end
             end
         end
@@ -1182,9 +1204,11 @@ function obj.OnEnter(self)
     if not isCataclysmClassic then
         local whistleCooldown = GetWhistleCooldown()
         if whistleCooldown == L['READY'] then
-            GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+            GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown,
+                                      0.9, 0.6, 0.2, 0.2, 1, 0.2)
         else
-           GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+            GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown,
+                                      0.9, 0.6, 0.2, 1, 1, 0.2)
         end
     end
     GameTooltip:Show()
