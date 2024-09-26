@@ -19,6 +19,7 @@ local GetNumGroupMembers = GetNumGroupMembers
 local GetSpellBookItemName = GetSpellBookItemName or C_SpellBook.GetSpellBookItemName
 local GetSpellCooldown = GetSpellCooldown or C_Spell.GetSpellCooldown
 local GetSpellInfo = GetSpellInfo or C_Spell.GetSpellInfo
+local GetSpellDescription = GetSpellDescription or C_Spell.GetSpellDescription
 local GetTime = GetTime
 local IsPlayerSpell = IsPlayerSpell
 local PlayerHasToy = PlayerHasToy
