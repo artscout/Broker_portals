@@ -639,6 +639,7 @@ end
 
 local function GenerateMenuEntries(itemType, itemList, menuCategory)
     local itemsGenerated = 0
+    if not methods[menuCategory] then methods[menuCategory] = {} end
 
     if itemType == "spell" then
         for _, unTransSpell in ipairs(itemList) do
@@ -654,8 +655,11 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
                 end
 
                 if spellId then
-                    if not methods[menuCategory] then methods[menuCategory] = {} end
-                    spellDescription = GetSpellDescription(spellId)
+                    local spellDescription
+                    SpellQuery = Spell:CreateFromSpellID(spellId)
+                    SpellQuery:ContinueOnSpellLoad(function()
+                        spellDescription = SpellQuery:GetSpellDescription()
+                    end)
                     methods[menuCategory][spellName] = {
                         itemID   = spellId,
                         itemName = spellName,
@@ -675,21 +679,33 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
                 local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
-                local itemSpellDescription = nil
+                local spellDescription
                 _, itemSpellId = GetItemSpell(itemList[i])
                 if itemSpellId then
-                    itemSpellDescription = GetSpellDescription(itemSpellId)
+                    SpellQuery = Spell:CreateFromSpellID(itemSpellId)
+                    SpellQuery:ContinueOnSpellLoad(function()
+                        spellDescription = SpellQuery:GetSpellDescription()
+                        methods[menuCategory][itemName] = {
+                            itemID   = itemList[i],
+                            itemName = itemName,
+                            itemIcon = itemIcon,
+                            itemType = itemType,
+                            itemDesc = spellDescription,
+                            itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
+                            secure   = {type = 'item', item = itemName}
+                        }
+                    end)
+                else
+                    methods[menuCategory][itemName] = {
+                        itemID   = itemList[i],
+                        itemName = itemName,
+                        itemIcon = itemIcon,
+                        itemType = itemType,
+                        itemDesc = spellDescription,
+                        itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
+                        secure   = {type = 'item', item = itemName}
+                    }
                 end
-                if not methods[menuCategory] then methods[menuCategory] = {} end
-                methods[menuCategory][itemName] = {
-                    itemID   = itemList[i],
-                    itemName = itemName,
-                    itemIcon = itemIcon,
-                    itemType = itemType,
-                    itemDesc = itemSpellDescription,
-                    itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
-                    secure   = {type = 'item', item = itemName}
-                }
                 itemsGenerated = itemsGenerated + 1
             end
             i = i + 1
@@ -951,6 +967,7 @@ end
 
 function frame:PLAYER_LOGIN()
     -- PortalsDB.minimap is there for smooth upgrade of SVs from old version
+    PrepareMenuData()
     if (not PortalsDB) or (PortalsDB.version == nil) then
         PortalsDB = {}
         PortalsDB.minimap = {}
