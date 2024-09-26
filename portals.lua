@@ -655,11 +655,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
                 end
 
                 if spellId then
-                    local spellDescription
-                    SpellQuery = Spell:CreateFromSpellID(spellId)
-                    SpellQuery:ContinueOnSpellLoad(function()
-                        spellDescription = SpellQuery:GetSpellDescription()
-                    end)
+                    local spellDescription = GetSpellDescription(spellId)
                     methods[menuCategory][spellName] = {
                         itemID   = spellId,
                         itemName = spellName,
