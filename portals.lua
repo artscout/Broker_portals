@@ -30,6 +30,7 @@ local UnitInRaid = UnitInRaid
 local UnitRace = UnitRace
 local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
+local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
 local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
 local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
@@ -420,7 +421,7 @@ local function CreateSettingsPanel()
 
         sortItemsAlphabeticalyCheckBox:SetScript("OnClick", function(self) PortalsDB.sortItems = not PortalsDB.sortItems end)
 
-        if not isCataclysmClassic then
+        if not isCataclysmClassic and not isClassic then
             local showChallengeTeleportsCheckBox = CreateFrame("CheckButton", "showChallengeTeleportsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
             showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -302)
             showChallengeTeleportsCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS"])
