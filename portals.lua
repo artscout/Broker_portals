@@ -285,6 +285,16 @@ end
 frame:SetScript('OnEvent', function(self, event, ...) if self[event] then return self[event](self, event, ...) end end)
 frame:RegisterEvent('PLAYER_LOGIN')
 
+local function BPToggleMinimap()
+    local hide = not PortalsDB.minimap.hide
+    PortalsDB.minimap.hide = hide
+    if hide then
+        icon:Hide('Broker_Portals')
+    else
+        icon:Show('Broker_Portals')
+    end
+end
+
 local function CreateSettingsPanel()
     if Settings then
         OptionsFrame = CreateFrame("Frame", "OptionsFrame", UIParent)
@@ -356,7 +366,7 @@ local function CreateSettingsPanel()
         minimapButtonBox.tooltipText = L['ATT_MINIMAP']
         minimapButtonBox:SetChecked(not PortalsDB.minimap.hide)
 
-        minimapButtonBox:SetScript("OnClick", function(self) ToggleMinimap() end)
+        minimapButtonBox:SetScript("OnClick", function(self) BPToggleMinimap() end)
 
         local announceCheckBox = CreateFrame("CheckButton", "announceCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
         announceCheckBox:SetPoint("TOPLEFT", 320, -158)
@@ -863,16 +873,6 @@ local function ShowWhistle()
     end
 end
 
-local function ToggleMinimap()
-    local hide = not PortalsDB.minimap.hide
-    PortalsDB.minimap.hide = hide
-    if hide then
-        icon:Hide('Broker_Portals')
-    else
-        icon:Show('Broker_Portals')
-    end
-end
-
 local function UpdateMenu(level, value)
     dewdrop:SetFontSize(PortalsDB.fontSize)
     dewdrop:SetScrollListSize(PortalsDB.scrollListSize)
@@ -1071,5 +1071,5 @@ function obj.OnEnter(self)
 end
 
 -- slash command definition
-SlashCmdList['BROKER_PORTALS'] = function() ToggleMinimap() end
+SlashCmdList['BROKER_PORTALS'] = function() BPToggleMinimap() end
 SLASH_BROKER_PORTALS1 = '/portals'
