@@ -1,4 +1,4 @@
-## Interface: 11503, 11504, 40400, 40401, 110005, 110000, 110002
+## Interface: 11505, 40400, 40401, 110005, 110000, 110002
 ## Title: Broker - |cffffffffPortals|r
 ## Notes: Provides access to all Portal and Teleport spells on right click of one button.
 ## Author: CrazyBenny of Stormrage-EU and Bissental on FlameGor-EU
