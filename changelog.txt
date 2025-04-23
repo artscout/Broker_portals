@@ -1,3 +1,6 @@
+1.14.4
+   - Merged pull requests from Amadeus fixing itemLink id detection and adding some items
+
 1.14.3
    - Add spell description to ToolTip for spells on items and other spells
 
