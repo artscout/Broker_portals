@@ -469,6 +469,10 @@ local function tconcat(t1, t2)
     return t1
 end
 
+local function GetItemIDFromLink(itemlink)
+	return tonumber(tostring(itemlink):match("item:(%d+)"))
+end
+
 -- returns true, if player has item with given ID in inventory or bags and it's not on cooldown
 local function hasItem(itemID)
     local item, found, id
@@ -477,8 +481,8 @@ local function hasItem(itemID)
     for slotId = 1, 19 do
         item = GetInventoryItemLink('player', slotId)
         if item then
-            found, _, id = item:find('^|c%x+|Hitem:(%d+):.+')
-            if found and tonumber(id) == itemID then
+            local id = GetItemIDFromLink(item)
+            if id and tonumber(id) == itemID then
                 if GetInventoryItemCooldown('player', slotId) ~= 0 then
                     return false
                 else
@@ -506,8 +510,8 @@ local function hasItem(itemID)
         for slot = 1, GetContainerNumSlots(bag) do
             item = GetContainerItemLink(bag, slot)
             if item then
-                found, _, id = item:find('^|c%x+|Hitem:(%d+):.+')
-                if found and tonumber(id) == itemID then
+                local id = GetItemIDFromLink(item)
+                if id and tonumber(id) == itemID then
                     if GetContainerItemCooldown(bag, slot) ~= 0 then
                         return false
                     else
