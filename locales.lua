@@ -49,6 +49,17 @@ L["MAIN_ITEMS"] = "Various items"
 
 L["ANNOUNCE_TOOLTIP"] = "When checked every call to teleport/portal spell will be announced to the party/raid"
 
+L["CHALLENGE_TP_VANILLA"] = "Vanilla Challenges teleports"
+L["CHALLENGE_TP_CATA"] = "Cataclysm Challenges teleports"
+L["CHALLENGE_TP_MOP"] = "Pandaria Challenges teleports"
+L["CHALLENGE_TP_WOD"] = "Draenor Challenges teleports"
+L["CHALLENGE_TP_LEGION"] = "Legion Challenges teleports"
+L["CHALLENGE_TP_BFA"] = "BFA Challenges teleports"
+L["CHALLENGE_TP_SL"] = "ShadowLands Challenges teleports"
+L["CHALLENGE_TP_DF"] = "DragonFlight Challenges teleports"
+L["CHALLENGE_TP_TWW"] = "The War Within Challenges teleports"
+
+
 if GetLocale() == "ptBR" then
 
 --[[Translation missing --]]
@@ -298,6 +309,17 @@ L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"] = "При включении предмет
 L["MAIN_ITEMS"] = "Различные предметы"
 L["ANNOUNCE_TOOLTIP"] = "При включении применение заклинаний телепортов/порталов будет анонсировано группе/рейду"
 L["SORT_ITEMS_TOOLTIP"] = "При включении предметы будут выводиться в алфавитном порядке, в противном случае сортировка будет в порядке, в котором предметы занесены в базу данных"
+
+L["CHALLENGE_TP_VANILLA"] = "Телепорты испытаний Ваниллы"
+L["CHALLENGE_TP_CATA"] = "Телепорты испытаний Катаклизма"
+L["CHALLENGE_TP_MOP"] = "Телепорты испытаний Пандарии"
+L["CHALLENGE_TP_WOD"] = "Телепорты испытаний Дренора"
+L["CHALLENGE_TP_LEGION"] = "Телепорты испытаний Легиона"
+L["CHALLENGE_TP_BFA"] = "Телепорты испытаний BFA"
+L["CHALLENGE_TP_SL"] = "Телепорты испытаний ShadowLands"
+L["CHALLENGE_TP_DF"] = "Телепорты испытаний DragonFlight"
+L["CHALLENGE_TP_TWW"] = "Телепорты испытаний The War Within"
+
 
 end
 

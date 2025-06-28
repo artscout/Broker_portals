@@ -43,8 +43,20 @@ local teleportsIcon = 237509 -- Teleport to Dalaran icon used
 local variousItemsIcon = 134248 -- Key icon used
 
 local engineringItemsCount = 0
-local challengeSpellCount = 0
+local challengeSpellCount  = 0
 local heartstoneItemsCount = 0
+
+local challengeVanillaCount = 0
+local challengeCataCount    = 0
+local challengeMOPCount     = 0
+local challengeWODCount     = 0
+local challengeLegionCount  = 0
+local challengeBFACount     = 0
+local challengeSLCount      = 0
+local challengeDFCount      = 0
+local challengeTWWCount     = 0
+
+local challengeCategories = {}
 
 local databaseLoaded = false
 local category = nil
@@ -195,8 +207,119 @@ local scrolls = {
     6948 -- Hearthstone
 }
 
+
+local challengeVanillaSpells = {
+    {3561, 'TRUE'}, -- TP:Stormwind
+
+    {159902, 'TRUE'}, -- Path of the Burning Mountain
+    {373262, 'TRUE'}, -- Path of the Fallen Guardian
+    {131232, 'TRUE'}, -- Path of the Necromancer
+    {131231, 'TRUE'}, -- Path of the Scarlet Blade
+    {131229, 'TRUE'}, -- Path of the Scarlet Mitre
+    {393222, 'TRUE'}, -- Path of the Watcher's Legacy
+}
+
+local challengeCataSpells = {
+    {3561, 'TRUE'}, -- TP:Stormwind
+
+    {445424, 'TRUE'}, -- Path of the Grim Batol
+    {424142, 'TRUE'}, -- Path of the Tidehunter
+    {410080, 'TRUE'}, -- Path of the Wind's Domain
+}
+
+local challengeMOPSpells = {
+    {3561, 'TRUE'}, -- TP:Stormwind
+
+    {131228, 'TRUE'}, -- Path of the Black Ox
+    {131204, 'TRUE'}, -- Path of the Jade Serpent
+    {131222, 'TRUE'}, -- Path of the Mogu King
+    {131225, 'TRUE'}, -- Path of the Setting Sun
+    {131206, 'TRUE'}, -- Path of the Shado-Pan
+    {131205, 'TRUE'}, -- Path of the Stout Brew
+}
+
+local challengeWODSpells = {
+    {3562, 'TRUE'}, -- TP:Stormwind
+
+    {159895, 'TRUE'}, -- Path of the Bloodmaul
+    {159899, 'TRUE'}, -- Path of the Crescent Moon
+    {159900, 'TRUE'}, -- Path of the Dark Rail
+    {159896, 'TRUE'}, -- Path of the Iron Prow
+    {159898, 'TRUE'}, -- Path of the Skies
+    {159901, 'TRUE'}, -- Path of the Verdant
+    {159897, 'TRUE'}, -- Path of the Vigilant
+}
+
+local challengeLegionSpells = {
+    {3561, 'TRUE'}, -- TP:Stormwind
+
+    {424153, 'TRUE'}, -- Path of the Ancient Horrors
+    {410078, 'TRUE'}, -- Path of the Earth-Warder
+    {393766, 'TRUE'}, -- Path of the Grand Magistrix
+    {424163, 'TRUE'}, -- Path of the Nightmare Lord
+    {393764, 'TRUE'}, -- Path of the Proven Worth
+}
+
+local challengeBFASpells = {
+    {3561, 'TRUE'}, -- TP:Stormwind
+
+    {410074, 'TRUE'}, -- Path of the Festering Rot
+    {410071, 'TRUE'}, -- Path of the Freebooter
+    {424187, 'TRUE'}, -- Path of the Golden Tomb
+    {424167, 'TRUE'}, -- Path of the Heart's Bane
+    {373274, 'TRUE'}, -- Path of the Scrappy Prince
+    {445418, 'TRUE'}, -- Path of the Siege of Boralus
+}
+
+local challengeSLSpells = {
+    {3562, 'TRUE'}, -- TP:Stormwind
+
+    {354466, 'TRUE'}, -- Path of the Ascendant
+    {354462, 'TRUE'}, -- Path of the Courageous
+    {373192, 'TRUE'}, -- Path of the First Ones
+    {354464, 'TRUE'}, -- Path of the Misty Forest
+    {354463, 'TRUE'}, -- Path of the Plagued
+    {354468, 'TRUE'}, -- Path of the Scheming Loa
+    {354465, 'TRUE'}, -- Path of the Sinful Soul
+    {373190, 'TRUE'}, -- Path of the Sire
+    {354469, 'TRUE'}, -- Path of the Stone Warden
+    {367416, 'TRUE'}, -- Path of the Streetwise Merchant
+    {373191, 'TRUE'}, -- Path of the Tormented Soul
+    {354467, 'TRUE'}, -- Path of the Undefeated
+}
+
+local challengeDFSpells = {
+    {3561, 'TRUE'}, -- TP:Stormwind
+
+    {393279, 'TRUE'}, -- Path of the Arcane Secrets
+    {432257, 'TRUE'}, -- Path of the Bitter Lagacy
+    {393256, 'TRUE'}, -- Path of the Clutch Defender
+    {393273, 'TRUE'}, -- Path of the Draconic Diploma
+    {393276, 'TRUE'}, -- Path of the Obsidian Hoard
+    {432254, 'TRUE'}, -- Path of the Primal Prison
+    {393267, 'TRUE'}, -- Path of the Rotting Woods
+    {432258, 'TRUE'}, -- Path of the Scorching Dream
+    {393283, 'TRUE'}, -- Path of the Titanic Reservoir
+    {424197, 'TRUE'}, -- Path of the Twisted Time
+    {393262, 'TRUE'}, -- Path of the Windswept Plains
+}
+
+local challengeTWWSpells = {
+    {3562, 'TRUE'}, -- TP:Stormwind
+
+    {445417, 'TRUE'}, -- Path of the Ara-Kara, City of Echoes
+    {445440, 'TRUE'}, -- Path of the Brewery
+    {445416, 'TRUE'}, -- Path of the City of Threads
+    {445441, 'TRUE'}, -- Path of the Darkflame Cleft
+    {445414, 'TRUE'}, -- Path of the Dawnbreaker
+    {445444, 'TRUE'}, -- Path of the Priory of the Sacred Flame
+    {445443, 'TRUE'}, -- Path of the Rookery
+    {445269, 'TRUE'} -- Path of the Stonevault
+}
+
 -- Gold Challenge portals
 local challengeSpells = {
+    {3561, 'TRUE'},
     -- DH Classic
     {159902, 'TRUE'}, -- Path of the Burning Mountain
     {373262, 'TRUE'}, -- Path of the Fallen Guardian
@@ -661,7 +784,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
     local itemsGenerated = 0
 
     if itemType == "spell" then
-        for _, unTransSpell in ipairs(itemList) do
+    for _, unTransSpell in ipairs(itemList) do
             if IsPlayerSpell(unTransSpell[1]) then
                 local spellName
                 local spell, _, spellIcon, _, _, _, spellId = GetSpellInfo(unTransSpell[1])
@@ -721,12 +844,60 @@ end
 local function PrepareMenuData()
 
     wipe(methods)
+    wipe(challengeCategories)
 
     if not portals then SetupSpells() end
 
     if portals then GenerateMenuEntries("spell", portals, "mainspells") end
 
-    if not isCataclysmClassic and not isClassic then challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges") end
+    if not isCataclysmClassic and not isClassic then
+        challengeVanillaCount = GenerateMenuEntries("spell", challengeVanillaSpells, "challengesVanilla")
+        if challengeVanillaCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesVanilla", name = L["CHALLENGE_TP_VANILLA"]}
+        end
+
+        challengeCataCount    = GenerateMenuEntries("spell", challengeCataSpells, "challengesCata")
+        if challengeCataCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesCata", name = L["CHALLENGE_TP_CATA"]}
+        end
+
+        challengeMOPCount     = GenerateMenuEntries("spell", challengeMOPSpells, "challengesMOP")
+        if challengeMOPCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesMOP", name = L["CHALLENGE_TP_MOP"]}
+        end
+
+        challengeWODCount     = GenerateMenuEntries("spell", challengeWODSpells, "challengesWOD")
+        if challengeWODCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesWOD", name = L["CHALLENGE_TP_WOD"]}
+        end
+
+        challengeLegionCount  = GenerateMenuEntries("spell", challengeLegionSpells, "challengesLegion")
+        if challengeLegionCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesLegion", name = L["CHALLENGE_TP_LEGION"]}
+        end
+
+        challengeBFACount     = GenerateMenuEntries("spell", challengeBFASpells, "challengesBFA")
+        if challengeBFACount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesBFA", name = L["CHALLENGE_TP_BFA"]}
+        end
+
+        challengeSLCount      = GenerateMenuEntries("spell", challengeSLSpells, "challengesSL")
+        if challengeSLCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesSL", name = L["CHALLENGE_TP_SL"]}
+        end
+
+        challengeDFCount      = GenerateMenuEntries("spell", challengeDFSpells, "challengesDF")
+        if challengeDFCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesDF", name = L["CHALLENGE_TP_DF"]}
+        end
+
+        challengeTWWCount     = GenerateMenuEntries("spell", challengeTWWSpells, "challengesTWW")
+        if challengeTWWCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesTWW", name = L["CHALLENGE_TP_TWW"]}
+        end
+
+        challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges")
+    end
 
     GenerateMenuEntries("items", items, "mainitems")
 
@@ -955,9 +1126,13 @@ local function UpdateMenu(level, value)
     elseif level == 2 and value == 'heartstones' then
         ShowMenuEntries("heartstones", PortalsDB.sortItems)
     elseif level == 2 and value == 'challenges' then
-        ShowMenuEntries("challenges", PortalsDB.sortItems)
+        for _, challengeCategory in ipairs(challengeCategories) do
+            dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', challengeCategory["name"], 'icon', tostring(teleportsIcon), 'hasArrow', true, 'value', challengeCategory["category"])
+        end
     elseif level == 2 and value == 'engineering' then
         ShowMenuEntries("engineering", PortalsDB.sortItems)
+    elseif level == 3 then
+        ShowMenuEntries(value, PortalsDB.sortItems)
     end
 end
 
