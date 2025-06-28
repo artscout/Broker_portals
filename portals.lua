@@ -209,8 +209,6 @@ local scrolls = {
 
 
 local challengeVanillaSpells = {
-    {3561, 'TRUE'}, -- TP:Stormwind
-
     {159902, 'TRUE'}, -- Path of the Burning Mountain
     {373262, 'TRUE'}, -- Path of the Fallen Guardian
     {131232, 'TRUE'}, -- Path of the Necromancer
@@ -220,16 +218,12 @@ local challengeVanillaSpells = {
 }
 
 local challengeCataSpells = {
-    {3561, 'TRUE'}, -- TP:Stormwind
-
     {445424, 'TRUE'}, -- Path of the Grim Batol
     {424142, 'TRUE'}, -- Path of the Tidehunter
     {410080, 'TRUE'}, -- Path of the Wind's Domain
 }
 
 local challengeMOPSpells = {
-    {3561, 'TRUE'}, -- TP:Stormwind
-
     {131228, 'TRUE'}, -- Path of the Black Ox
     {131204, 'TRUE'}, -- Path of the Jade Serpent
     {131222, 'TRUE'}, -- Path of the Mogu King
@@ -239,8 +233,6 @@ local challengeMOPSpells = {
 }
 
 local challengeWODSpells = {
-    {3562, 'TRUE'}, -- TP:Stormwind
-
     {159895, 'TRUE'}, -- Path of the Bloodmaul
     {159899, 'TRUE'}, -- Path of the Crescent Moon
     {159900, 'TRUE'}, -- Path of the Dark Rail
@@ -251,8 +243,6 @@ local challengeWODSpells = {
 }
 
 local challengeLegionSpells = {
-    {3561, 'TRUE'}, -- TP:Stormwind
-
     {424153, 'TRUE'}, -- Path of the Ancient Horrors
     {410078, 'TRUE'}, -- Path of the Earth-Warder
     {393766, 'TRUE'}, -- Path of the Grand Magistrix
@@ -261,8 +251,6 @@ local challengeLegionSpells = {
 }
 
 local challengeBFASpells = {
-    {3561, 'TRUE'}, -- TP:Stormwind
-
     {410074, 'TRUE'}, -- Path of the Festering Rot
     {410071, 'TRUE'}, -- Path of the Freebooter
     {424187, 'TRUE'}, -- Path of the Golden Tomb
@@ -272,8 +260,6 @@ local challengeBFASpells = {
 }
 
 local challengeSLSpells = {
-    {3562, 'TRUE'}, -- TP:Stormwind
-
     {354466, 'TRUE'}, -- Path of the Ascendant
     {354462, 'TRUE'}, -- Path of the Courageous
     {373192, 'TRUE'}, -- Path of the First Ones
@@ -289,8 +275,6 @@ local challengeSLSpells = {
 }
 
 local challengeDFSpells = {
-    {3561, 'TRUE'}, -- TP:Stormwind
-
     {393279, 'TRUE'}, -- Path of the Arcane Secrets
     {432257, 'TRUE'}, -- Path of the Bitter Lagacy
     {393256, 'TRUE'}, -- Path of the Clutch Defender
@@ -305,8 +289,6 @@ local challengeDFSpells = {
 }
 
 local challengeTWWSpells = {
-    {3562, 'TRUE'}, -- TP:Stormwind
-
     {445417, 'TRUE'}, -- Path of the Ara-Kara, City of Echoes
     {445440, 'TRUE'}, -- Path of the Brewery
     {445416, 'TRUE'}, -- Path of the City of Threads
@@ -319,7 +301,6 @@ local challengeTWWSpells = {
 
 -- Gold Challenge portals
 local challengeSpells = {
-    {3561, 'TRUE'},
     -- DH Classic
     {159902, 'TRUE'}, -- Path of the Burning Mountain
     {373262, 'TRUE'}, -- Path of the Fallen Guardian
