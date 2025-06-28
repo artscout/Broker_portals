@@ -20,6 +20,9 @@ local GetSpellBookItemName = GetSpellBookItemName or C_SpellBook.GetSpellBookIte
 local GetSpellCooldown = GetSpellCooldown or C_Spell.GetSpellCooldown
 local GetSpellInfo = GetSpellInfo or C_Spell.GetSpellInfo
 local GetSpellDescription = GetSpellDescription or C_Spell.GetSpellDescription
+local GetItemCount = GetItemCount or C_Item.GetItemCount
+local GetItemInfo = GetItemInfo or C_Item.GetItemInfo
+local GetItemSpell = GetItemSpell or C_Item.GetItemSpell
 local GetTime = GetTime
 local IsPlayerSpell = IsPlayerSpell
 local PlayerHasToy = PlayerHasToy
@@ -32,6 +35,7 @@ local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
 local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
+local isMoPClassic = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
 local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
 local heartstonesIcon = 134414 -- icon of Heartstone
@@ -722,11 +726,14 @@ local function PrepareMenuData()
 
     if portals then GenerateMenuEntries("spell", portals, "mainspells") end
 
-    if not isCataclysmClassic then challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges") end
+    if not isCataclysmClassic and not isClassic then challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges") end
 
     GenerateMenuEntries("items", items, "mainitems")
+
     engineringItemsCount = GenerateMenuEntries("items", engineeringItems, "engineering")
+
     heartstoneItemsCount = GenerateMenuEntries("items", heartstones, "heartstones")
+
     databaseLoaded = true
 end
 
@@ -738,7 +745,7 @@ local function ShowMenuEntries(category, sortTable)
         for _, menuEntry in pairsByKeys(methods[category], sortTable) do
             if menuEntry.itemType == "spell" then
                 local spellCooldown
-                if isCataclysmClassic then
+                if isCataclysmClassic or isMoPClassic then
                     spellCooldown = GetSpellCooldown(menuEntry.itemName)
                 else
                     spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime
@@ -886,7 +893,6 @@ local function UpdateMenu(level, value)
     if level == 1 then
         dewdrop:AddLine('text', 'Broker_Portals', 'isTitle', true)
         PrepareMenuData()
-
         local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
 
@@ -899,7 +905,7 @@ local function UpdateMenu(level, value)
             if not PortalsDB.showEngineeringSubCat and engineringItemsCount > 0 then ShowMenuEntries("engineering", PortalsDB.sortItems) end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and not isClassic and challengeSpellCount > 0 then
             if not PortalsDB.showChallengeSubCat then ShowMenuEntries("challenges", PortalsDB.sortItems) end
         end
 
@@ -923,7 +929,7 @@ local function UpdateMenu(level, value)
             end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and not isClassic and challengeSpellCount > 0 then
             if PortalsDB.showChallengeSubCat then
                 dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['CHALLENGE_TELEPORTS'], 'icon', tostring(teleportsIcon), 'hasArrow', true, 'value', 'challenges')
             end
@@ -1046,7 +1052,7 @@ function obj.OnEnter(self)
         GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
     end
 
-    if isCataclysmClassic then
+    if isCataclysmClassic or isClassic then
         GameTooltip:AddLine(" ")
         GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]) .. "/" .. getReagentCount(L["P_RUNE"]), 0.9, 0.6, 0.2, 0.2, 1, 0.2)
     end
@@ -1065,7 +1071,7 @@ function obj.OnEnter(self)
         end
     end
 
-    if not isCataclysmClassic then
+    if not isCataclysmClassic and not isClassic then
         local whistleCooldown = GetWhistleCooldown()
         if whistleCooldown == L['READY'] then
             GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)

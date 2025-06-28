@@ -1,3 +1,6 @@
+1.14.5
+   - MoP Classic support
+
 1.14.4
    - Merged pull requests from Amadeus fixing itemLink id detection and adding some items
 
