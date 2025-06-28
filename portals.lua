@@ -218,7 +218,7 @@ local challengeVanillaSpells = {
 }
 
 local challengeCataSpells = {
-    {445424, 'TRUE'}, -- Path of the Grim Batol
+    {445424, 'TRUE'}, -- Path of the Twilight Fortress
     {424142, 'TRUE'}, -- Path of the Tidehunter
     {410080, 'TRUE'}, -- Path of the Wind's Domain
 }
@@ -251,12 +251,15 @@ local challengeLegionSpells = {
 }
 
 local challengeBFASpells = {
+    {467553, 'TRUE'}, -- Path of the Azerite Refinery (Alliance entrance)
+    {467555, 'TRUE'}, -- Path of the Azerite Refinery (Horde entrance)
     {410074, 'TRUE'}, -- Path of the Festering Rot
     {410071, 'TRUE'}, -- Path of the Freebooter
     {424187, 'TRUE'}, -- Path of the Golden Tomb
     {424167, 'TRUE'}, -- Path of the Heart's Bane
     {373274, 'TRUE'}, -- Path of the Scrappy Prince
-    {445418, 'TRUE'}, -- Path of the Siege of Boralus
+    {445418, 'TRUE'}, -- Path of the Siege of Boralus (Alliance)
+    {464256, 'TRUE'}, -- Path of the Siege of Boralus (Horde)
 }
 
 local challengeSLSpells = {
@@ -289,14 +292,20 @@ local challengeDFSpells = {
 }
 
 local challengeTWWSpells = {
-    {445417, 'TRUE'}, -- Path of the Ara-Kara, City of Echoes
-    {445440, 'TRUE'}, -- Path of the Brewery
+    {445414, 'TRUE'}, -- Path of Arathi Flagship
+    {445416, 'TRUE'}, -- Path of Nerubean Ascension
+    {445417, 'TRUE'}, -- Path of the Ruined City
+    {445424, 'TRUE'}, -- Path of Twilight Fortress
+    {445440, 'TRUE'}, -- Path of the Flaming Brewery
     {445416, 'TRUE'}, -- Path of the City of Threads
-    {445441, 'TRUE'}, -- Path of the Darkflame Cleft
+    {445441, 'TRUE'}, -- Path of the Warding Candles
     {445414, 'TRUE'}, -- Path of the Dawnbreaker
-    {445444, 'TRUE'}, -- Path of the Priory of the Sacred Flame
-    {445443, 'TRUE'}, -- Path of the Rookery
-    {445269, 'TRUE'} -- Path of the Stonevault
+    {445444, 'TRUE'}, -- Path of the Light's Reverence
+    {445443, 'TRUE'}, -- Path of the Fallen Stormriders
+    {445269, 'TRUE'}, -- Path of the Corrupted Foundry
+    {467546, 'TRUE'}, -- Path of the Waterworks
+    {1216786, 'TRUE'}, -- Path of the Circuit Breaker
+    {1226482, 'TRUE'}, -- Path of the Full House
 }
 
 -- Gold Challenge portals
@@ -310,7 +319,7 @@ local challengeSpells = {
     {393222, 'TRUE'}, -- Path of the Watcher's Legacy
     -- DH BC
     -- DH Cata
-    {445424, 'TRUE'}, -- Path of the Grim Batol
+    {445424, 'TRUE'}, -- Path of the Twilight Fortress
     {424142, 'TRUE'}, -- Path of the Tidehunter
     {410080, 'TRUE'}, -- Path of the Wind's Domain
     -- DH MOP
@@ -335,12 +344,15 @@ local challengeSpells = {
     {424163, 'TRUE'}, -- Path of the Nightmare Lord
     {393764, 'TRUE'}, -- Path of the Proven Worth
     -- DH BFA
+    {467553, 'TRUE'}, -- Path of the Azerite Refinery (Alliance entrance)
+    {467555, 'TRUE'}, -- Path of the Azerite Refinery (Horde entrance)
     {410074, 'TRUE'}, -- Path of the Festering Rot
     {410071, 'TRUE'}, -- Path of the Freebooter
     {424187, 'TRUE'}, -- Path of the Golden Tomb
     {424167, 'TRUE'}, -- Path of the Heart's Bane
     {373274, 'TRUE'}, -- Path of the Scrappy Prince
-    {445418, 'TRUE'}, -- Path of the Siege of Boralus
+    {445418, 'TRUE'}, -- Path of the Siege of Boralus (Alliance)
+    {464256, 'TRUE'}, -- Path of the Siege of Boralus (Horde)
     -- DH SL
     {354466, 'TRUE'}, -- Path of the Ascendant
     {354462, 'TRUE'}, -- Path of the Courageous
@@ -367,14 +379,20 @@ local challengeSpells = {
     {424197, 'TRUE'}, -- Path of the Twisted Time
     {393262, 'TRUE'}, -- Path of the Windswept Plains
     -- DH TWW
-    {445417, 'TRUE'}, -- Path of the Ara-Kara, City of Echoes
-    {445440, 'TRUE'}, -- Path of the Brewery
+    {445414, 'TRUE'}, -- Path of Arathi Flagship
+    {445416, 'TRUE'}, -- Path of Nerubean Ascension
+    {445417, 'TRUE'}, -- Path of the Ruined City
+    {445424, 'TRUE'}, -- Path of Twilight Fortress
+    {445440, 'TRUE'}, -- Path of the Flaming Brewery
     {445416, 'TRUE'}, -- Path of the City of Threads
-    {445441, 'TRUE'}, -- Path of the Darkflame Cleft
+    {445441, 'TRUE'}, -- Path of the Warding Candles
     {445414, 'TRUE'}, -- Path of the Dawnbreaker
-    {445444, 'TRUE'}, -- Path of the Priory of the Sacred Flame
-    {445443, 'TRUE'}, -- Path of the Rookery
-    {445269, 'TRUE'} -- Path of the Stonevault
+    {445444, 'TRUE'}, -- Path of the Light's Reverence
+    {445443, 'TRUE'}, -- Path of the Fallen Stormriders
+    {445269, 'TRUE'}, -- Path of the Corrupted Foundry
+    {467546, 'TRUE'}, -- Path of the Waterworks
+    {1216786, 'TRUE'}, -- Path of the Circuit Breaker
+    {1226482, 'TRUE'}, -- Path of the Full House
 }
 
 local whistle = {
