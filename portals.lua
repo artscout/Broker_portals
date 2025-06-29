@@ -1191,6 +1191,8 @@ function frame:PLAYER_LOGIN()
 
     if icon then icon:Register('Broker_Portals', obj, PortalsDB.minimap) end
     CreateSettingsPanel()
+    PrepareMenuData()
+    PrepareMenuData()
     self:UnregisterEvent('PLAYER_LOGIN')
 end
 
