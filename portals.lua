@@ -817,22 +817,24 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
                 local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
-                local itemSpellDescription = nil
-                _, itemSpellId = GetItemSpell(itemList[i])
-                if itemSpellId then
-                    itemSpellDescription = GetSpellDescription(itemSpellId)
+                if itemName and itemQuality and itemIcon then
+                    local itemSpellDescription = nil
+                    _, itemSpellId = GetItemSpell(itemList[i])
+                    if itemSpellId then
+                        itemSpellDescription = GetSpellDescription(itemSpellId)
+                    end
+                    if not methods[menuCategory] then methods[menuCategory] = {} end
+                    methods[menuCategory][itemName] = {
+                        itemID   = itemList[i],
+                        itemName = itemName,
+                        itemIcon = itemIcon,
+                        itemType = itemType,
+                        itemDesc = itemSpellDescription,
+                        itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
+                        secure   = {type = 'item', item = itemName}
+                    }
+                    itemsGenerated = itemsGenerated + 1
                 end
-                if not methods[menuCategory] then methods[menuCategory] = {} end
-                methods[menuCategory][itemName] = {
-                    itemID   = itemList[i],
-                    itemName = itemName,
-                    itemIcon = itemIcon,
-                    itemType = itemType,
-                    itemDesc = itemSpellDescription,
-                    itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
-                    secure   = {type = 'item', item = itemName}
-                }
-                itemsGenerated = itemsGenerated + 1
             end
             i = i + 1
         end
