@@ -1,3 +1,6 @@
+1.15.2
+   - Fix for toys not being called as items in some cases
+
 1.15.1
    - Bugfix release
 

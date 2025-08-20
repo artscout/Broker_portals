@@ -613,7 +613,7 @@ local function hasItem(itemID)
                 if GetInventoryItemCooldown('player', slotId) ~= 0 then
                     return false
                 else
-                    return true
+                    return true, "item"
                 end
             end
         end
@@ -628,7 +628,7 @@ local function hasItem(itemID)
         if cooldown > 0 then
             return false
         else
-            return true
+            return true, "toy"
         end
     end
 
@@ -642,7 +642,7 @@ local function hasItem(itemID)
                     if GetContainerItemCooldown(bag, slot) ~= 0 then
                         return false
                     else
-                        return true
+                        return true, "item"
                     end
                 end
             end
@@ -816,12 +816,18 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         local i = 0
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
+		local itemHandle, itemSpellId, itemRealType, itemSecure
+		_, itemRealType = hasItem(itemList[i])
                 local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
                 if itemName and itemQuality and itemIcon then
+                    itemSecure = {type = 'item', item = itemName}
                     local itemSpellDescription = nil
                     _, itemSpellId = GetItemSpell(itemList[i])
                     if itemSpellId then
                         itemSpellDescription = GetSpellDescription(itemSpellId)
+                    end
+                    if itemRealType == "toy" then
+                        itemSecure = {type = 'toy', toy = itemList[i]}
                     end
                     if not methods[menuCategory] then methods[menuCategory] = {} end
                     methods[menuCategory][itemName] = {
@@ -831,7 +837,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
                         itemType = itemType,
                         itemDesc = itemSpellDescription,
                         itemRGB  = ITEM_QUALITY_COLORS[itemQuality],
-                        secure   = {type = 'item', item = itemName}
+                        secure   = itemSecure --{type = 'item', item = itemName}
                     }
                     itemsGenerated = itemsGenerated + 1
                 end
