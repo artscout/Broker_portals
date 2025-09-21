@@ -1146,55 +1146,40 @@ end
 function frame:PLAYER_LOGIN()
     -- PortalsDB.minimap is there for smooth upgrade of SVs from old version
     if (not PortalsDB) or (PortalsDB.version == nil) then
-        PortalsDB = {}
-        PortalsDB.minimap = {}
-        PortalsDB.minimap.hide = false
-        PortalsDB.showItems = true
-        PortalsDB.showHSItems = true
-        PortalsDB.showItemCooldowns = true
+        PortalsDB                        = {}
+        PortalsDB.minimap                = {}
+        PortalsDB.minimap.hide           = false
+        PortalsDB.showItems              = true
+        PortalsDB.showItemsSubCat        = false
+        PortalsDB.showHSItems            = true
+        PortalsDB.showHSItemsSubCat      = false
+        PortalsDB.showItemCooldowns      = true
         PortalsDB.showChallengeTeleports = true
-        PortalsDB.showChallengeSubCat = false
-        PortalsDB.showEngineeringSubCat = true
-        PortalsDB.showChallengeSubCat = false
-        PortalsDB.showTeleportsSubCat = false
-        PortalsDB.scrollListSize = 33
-        PortalsDB.sortItems = false
-        PortalsDB.announce = false
-        PortalsDB.announce = false
-        PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-        PortalsDB.version = 9
-    end
-    -- upgrade from versions
-    if PortalsDB.version == 8 then
-        PortalsDB.sortItems = false
-        PortalsDB.version = 9
-    elseif PortalsDB.version == 7 then
-        PortalsDB.showEngineeringSubCat = true
-        PortalsDB.showChallengeSubCat = false
-        PortalsDB.showTeleportsSubCat = false
-        PortalsDB.scrollListSize = 33
-        PortalsDB.version = 8
-    elseif PortalsDB.version == 6 then
-        PortalsDB.showEngineeringSubCat = true
-        PortalsDB.version = 7
-    elseif PortalsDB.version == 5 then
-        PortalsDB.showChallengeTeleports = true
-        PortalsDB.version = 6
-    elseif PortalsDB.version == 4 then
-        PortalsDB.fontSize = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-        PortalsDB.version = 5
-    elseif PortalsDB.version == 3 then
-        PortalsDB.announce = false
-        PortalsDB.version = 4
-    elseif PortalsDB.version == 2 then
-        PortalsDB.showItemCooldowns = true
-        PortalsDB.announce = false
-        PortalsDB.version = 4
-    elseif PortalsDB.version < 2 then
-        PortalsDB.showItems = true
-        PortalsDB.showItemCooldowns = true
-        PortalsDB.announce = false
-        PortalsDB.version = 4
+        PortalsDB.showChallengeSubCat    = false
+        PortalsDB.showEngineeringSubCat  = true
+        PortalsDB.showTeleportsSubCat    = false
+        PortalsDB.scrollListSize         = 33
+        PortalsDB.sortItems              = false
+        PortalsDB.announce               = false
+        PortalsDB.fontSize               = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
+        PortalsDB.version                = 9
+    else -- check if all parameters exist and if not then re-add parameter with default value
+        PortalsDB.minimap                = (PortalsDB.minimap ~= nil and PortalsDB.minimap) or {}
+        PortalsDB.minimap.hide           = (PortalsDB.minimap.hide ~= nil and PortalsDB.minimap.hide) or false
+        PortalsDB.showItems              = (PortalsDB.showItems ~= nil and PortalsDB.showItems) or true
+        PortalsDB.showItemsSubCat        = (PortalsDB.showItemsSubCat ~= nil and PortalsDB.showItemsSubCat) or false
+        PortalsDB.showHSItems            = (PortalsDB.showHSItems ~= nil and PortalsDB.showHSItems) or true
+        PortalsDB.showHSItemsSubCat      = (PortalsDB.showHSItemsSubCat ~= nil and PortalsDB.showHSItemsSubCat) or false
+        PortalsDB.showItemCooldowns      = (PortalsDB.showItemCooldowns ~= nil and PortalsDB.showItemCooldowns) or true
+        PortalsDB.showChallengeTeleports = (PortalsDB.showChallengeTeleports and PortalsDB.showChallengeTeleports) or true
+        PortalsDB.showChallengeSubCat    = (PortalsDB.showChallengeSubCat ~= nil and PortalsDB.showChallengeSubCat) or false
+        PortalsDB.showEngineeringSubCat  = (PortalsDB.showEngineeringSubCat ~= nil and PortalsDB.showEngineeringSubCat) or true
+        PortalsDB.showTeleportsSubCat    = (PortalsDB.showTeleportsSubCat ~= nil and PortalsDB.showTeleportsSubCat) or false
+        PortalsDB.scrollListSize         = (PortalsDB.scrollListSize ~= nil and PortalsDB.scrollListSize) or 33
+        PortalsDB.sortItems              = (PortalsDB.sortItems ~= nil and PortalsDB.sortItems) or false
+        PortalsDB.announce               = (PortalsDB.announce~= nil and PortalsDB.announce) or false
+        PortalsDB.fontSize               = (PortalsDB.fontSize ~= nil and PortalsDB.fontSize) or UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
+        PortalsDB.version                = 9
     end
 
     if icon then icon:Register('Broker_Portals', obj, PortalsDB.minimap) end
