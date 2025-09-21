@@ -1,3 +1,6 @@
+1.15.3
+   - Set default values for options that got missing for some reason
+
 1.15.2
    - Fix for toys not being called as items in some cases
 
