@@ -181,7 +181,13 @@ local heartstones = {
     200630, -- Ohn'ir Windsage's Hearthstone
     208704, -- Deepdweller's Earthen Hearthstone
     209035, -- Hearthstone of the Flame
-    212337 -- Stone of the Hearth
+    210455, -- Draenic Hologem
+    212337, -- Stone of the Hearth
+    228940, -- Notorious Thread's Hearthstone
+    235016, -- Redeployment Module
+    236687, -- Explosive Hearthstone
+    245970, -- P.O.S.T. Master's Express Hearthstone
+    246565 -- Costmic Hearthstone
 }
 
 local engineeringItems = {
@@ -816,8 +822,8 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
         local i = 0
         for i = 1, #itemList do
             if hasItem(itemList[i]) then
-		local itemHandle, itemSpellId, itemRealType, itemSecure
-		_, itemRealType = hasItem(itemList[i])
+                local itemHandle, itemSpellId, itemRealType, itemSecure
+                _, itemRealType = hasItem(itemList[i])
                 local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
                 if itemName and itemQuality and itemIcon then
                     itemSecure = {type = 'item', item = itemName}
