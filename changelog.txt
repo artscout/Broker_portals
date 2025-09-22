@@ -1,3 +1,6 @@
+1.15.4
+   - Add Delver's Mana-Bound Ethergate
+
 1.15.3
    - Set default values for options that got missing for some reason
 
