@@ -1,8 +1,8 @@
-## Interface: 50500, 40402, 110105, 110107, 11507
+## Interface: 50500, 40402, 110105, 110107, 11507, 20505
 ## Title: Broker - |cffffffffPortals|r
 ## Notes: Provides access to all Portal and Teleport spells on right click of one button.
 ## Author: CrazyBenny of Stormrage-EU and Bissental on FlameGor-EU
-## LastUpdate: 2024-09-22T02:09:00Z
+## LastUpdate: 2026-01-07T11:30:00Z
 ## Version: @project-version@
 ## OptionalDeps: LibDBIcon-1.0
 
