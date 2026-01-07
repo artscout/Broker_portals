@@ -34,8 +34,11 @@ local UnitRace = UnitRace
 local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
 local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+local isTBCClassic   = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+local isWotlkClassic = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
 local isMoPClassic = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
+local challengeAvailable = select(4, GetBuildInfo()) > 49999
 local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
 local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
 local heartstonesIcon = 134414 -- icon of Heartstone
@@ -555,7 +558,7 @@ local function CreateSettingsPanel()
 
         sortItemsAlphabeticalyCheckBox:SetScript("OnClick", function(self) PortalsDB.sortItems = not PortalsDB.sortItems end)
 
-        if not isCataclysmClassic and not isClassic then
+        if challengeAvailable then
             local showChallengeTeleportsCheckBox = CreateFrame("CheckButton", "showChallengeTeleportsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
             showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -302)
             showChallengeTeleportsCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS"])
@@ -864,7 +867,7 @@ local function PrepareMenuData()
 
     if portals then GenerateMenuEntries("spell", portals, "mainspells") end
 
-    if not isCataclysmClassic and not isClassic then
+    if challengeAvailable then
         challengeVanillaCount = GenerateMenuEntries("spell", challengeVanillaSpells, "challengesVanilla")
         if challengeVanillaCount > 0 then
             challengeCategories[#challengeCategories + 1] = {category = "challengesVanilla", name = L["CHALLENGE_TP_VANILLA"]}
@@ -930,7 +933,7 @@ local function ShowMenuEntries(category, sortTable)
         for _, menuEntry in pairsByKeys(methods[category], sortTable) do
             if menuEntry.itemType == "spell" then
                 local spellCooldown
-                if isCataclysmClassic or isMoPClassic then
+                if isCataclysmClassic or isMoPClassic or isTBCClassic then
                     spellCooldown = GetSpellCooldown(menuEntry.itemName)
                 else
                     spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime
@@ -1090,7 +1093,7 @@ local function UpdateMenu(level, value)
             if not PortalsDB.showEngineeringSubCat and engineringItemsCount > 0 then ShowMenuEntries("engineering", PortalsDB.sortItems) end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and not isClassic and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and challengeAvailable and challengeSpellCount > 0 then
             if not PortalsDB.showChallengeSubCat then ShowMenuEntries("challenges", PortalsDB.sortItems) end
         end
 
@@ -1114,7 +1117,7 @@ local function UpdateMenu(level, value)
             end
         end
 
-        if PortalsDB.showChallengeTeleports and not isCataclysmClassic and not isClassic and challengeSpellCount > 0 then
+        if PortalsDB.showChallengeTeleports and challengeAvailable and challengeSpellCount > 0 then
             if PortalsDB.showChallengeSubCat then
                 dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['CHALLENGE_TELEPORTS'], 'icon', tostring(teleportsIcon), 'hasArrow', true, 'value', 'challenges')
             end
