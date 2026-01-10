@@ -1,3 +1,6 @@
+1,15,6
+   -Add Lucky Tortollan Charm
+
 1.15.5
    - Add TBC Classic Anniversary support
 

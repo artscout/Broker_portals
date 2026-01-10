@@ -146,6 +146,7 @@ local items = {
     144392, -- Pugilist's Powerful Punching Ring (Horde)
     151016, -- Fractured Necrolyte Skull
     166559, -- Commander's Signet of Battle
+    202046, -- Lucky Tortollan Charm
     230850, -- Delve-O-Bot 7001
 }
 
