@@ -192,7 +192,8 @@ local heartstones = {
     236687, -- Explosive Hearthstone
     243056, -- Delver's Mana-Bound Ethergate
     245970, -- P.O.S.T. Master's Express Hearthstone
-    246565 -- Costmic Hearthstone
+    246565, -- Costmic Hearthstone
+    260221  -- Naaru's Embrace (TBC Anniversary toy)
 }
 
 local engineeringItems = {

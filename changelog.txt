@@ -1,4 +1,7 @@
-1,15,6
+1.15.7
+   - Add Naaru's Embrace (TNC Anniversary toy)
+
+1.15.6
    - Add Lucky Tortollan Charm
 
 1.15.5
