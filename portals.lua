@@ -128,7 +128,6 @@ local items = {
     95567, -- Kirin Tor Beacon
     95568, -- Sunreaver Beacon
     87548, -- Lorewalker's Lodestone
-    93672, -- Dark Portal
     103678, -- Time-Lost Artifact
     110560, -- Garrison Hearthstone
     118662, -- Bladespire Relic
@@ -161,6 +160,7 @@ local heartstones = {
     44315, -- Scroll of Recall III
     54452, -- Ethereal Portal
     64488, -- The Innkeeper's Daughter
+    93672, -- Dark Portal (Retail version)
     142298, -- Astonishingly Scarlet Slippers
     142542, -- Tome of Town Portal
     162973, -- Greatfather Winter's Hearthstone
@@ -640,7 +640,11 @@ local function hasItem(itemID)
         if cooldown > 0 then
             return false
         else
-            return true, "toy"
+            if isTBCClassic then
+                return true, "item"
+            else
+                return true, "toy"
+            end
         end
     end
 
