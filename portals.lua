@@ -33,17 +33,17 @@ local UnitInRaid = UnitInRaid
 local UnitRace = UnitRace
 local UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
 
-local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
-local isTBCClassic   = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
-local isWotlkClassic = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
+local isClassicEra       = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+local isTBCClassic       = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+local isWotlkClassic     = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
-local isMoPClassic = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
+local isMoPClassic       = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
 local challengeAvailable = select(4, GetBuildInfo()) > 49999
-local engineeringName = C_TradeSkillUI.GetTradeSkillDisplayName(202)
-local engineeringIcon = C_TradeSkillUI.GetTradeSkillTexture(202)
-local heartstonesIcon = 134414 -- icon of Heartstone
-local teleportsIcon = 237509 -- Teleport to Dalaran icon used
-local variousItemsIcon = 134248 -- Key icon used
+local engineeringName    = C_TradeSkillUI.GetTradeSkillDisplayName(202)
+local engineeringIcon    = C_TradeSkillUI.GetTradeSkillTexture(202)
+local heartstonesIcon    = 134414 -- icon of Heartstone
+local teleportsIcon      = 237509 -- Teleport to Dalaran icon used
+local variousItemsIcon   = 134248 -- Key icon used
 
 local engineringItemsCount = 0
 local challengeSpellCount  = 0
@@ -632,16 +632,13 @@ local function hasItem(itemID)
     end
 
     -- check Toybox
-    if PlayerHasToy(itemID) and C_ToyBox.IsToyUsable(itemID) then
-        local startTime, duration, cooldown
-        startTime, duration = GetItemCooldown(itemID)
-        cooldown = duration - (GetTime() - startTime)
-
-        if cooldown > 0 then
-            return false
-        else
-            if isTBCClassic then
-                return true, "item"
+    if not isTBCClassic and not isClassicEra then
+        if PlayerHasToy(itemID) and C_ToyBox.IsToyUsable(itemID) then
+            local startTime, duration, cooldown
+            startTime, duration = GetItemCooldown(itemID)
+            cooldown = duration - (GetTime() - startTime)
+            if cooldown > 0 then
+                return false
             else
                 return true, "toy"
             end
@@ -1237,7 +1234,7 @@ function obj.OnEnter(self)
         GameTooltip:AddDoubleLine(L['HEARTHSTONE'] .. ': ' .. GetBindLocation(), scrollCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
     end
 
-    if isCataclysmClassic or isClassic then
+    if isCataclysmClassic or isClassicEra then
         GameTooltip:AddLine(" ")
         GameTooltip:AddDoubleLine(L["TP_P"], getReagentCount(L["TP_RUNE"]) .. "/" .. getReagentCount(L["P_RUNE"]), 0.9, 0.6, 0.2, 0.2, 1, 0.2)
     end
@@ -1256,7 +1253,7 @@ function obj.OnEnter(self)
         end
     end
 
-    if not isCataclysmClassic and not isClassic then
+    if not isCataclysmClassic and not isClassicEra then
         local whistleCooldown = GetWhistleCooldown()
         if whistleCooldown == L['READY'] then
             GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)

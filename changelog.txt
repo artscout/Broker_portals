@@ -1,3 +1,6 @@
+1.15.9
+   - Again fix for toys, avoid using toybox commpletely for TBC Classic / Classic Era
+
 1.15.8
    - Fixed ToyBox usage on TBC Classic Anniversary (essentially disabling toy detection)
 
