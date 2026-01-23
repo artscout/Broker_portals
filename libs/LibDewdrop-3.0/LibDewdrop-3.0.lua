@@ -1182,6 +1182,7 @@ local function CheckSize(level)
             extra = extra + 16
         end
         if not button.notCheckable then extra = extra + 24 end
+        -- button.text:SetFont(STANDARD_TEXT_FONT, button.textHeight)
         if button.text:GetStringWidth() + extra > width then
             width = button.text:GetStringWidth() + extra
         end
@@ -1277,6 +1278,9 @@ local function ReleaseButton(level, index)
     local button = level.scrollFrame.child.buttons[index]
     button:Hide()
     if button.highlight then button.highlight:Hide() end
+    --	button.arrow:SetVertexColor(1, 1, 1)
+    --	button.arrow:SetHeight(16)
+    --	button.arrow:SetWidth(16)
     table.remove(level.scrollFrame.child.buttons, index)
     table.insert(buttons, button)
     for k in pairs(button) do
@@ -1722,6 +1726,293 @@ local function AcquireLevel(level)
     return l
 end
 
+local function validateOptions(options, position, baseOptions, fromPass)
+    if not baseOptions then baseOptions = options end
+    if type(options) ~= "table" then
+        return "Options must be a table.", position
+    end
+    local kind = options.type
+    if type(kind) ~= "string" then
+        return '"type" must be a string.', position
+    elseif kind ~= "group" and kind ~= "range" and kind ~= "text" and kind ~=
+        "execute" and kind ~= "toggle" and kind ~= "color" and kind ~=
+        "dragLink" and kind ~= "header" then
+        return
+            '"type" must either be "range", "text", "group", "toggle", "execute", "color", "dragLink", or "header".',
+            position
+    end
+    if options.aliases then
+        if type(options.aliases) ~= "table" and type(options.aliases) ~=
+            "string" then
+            return '"alias" must be a table or string', position
+        end
+    end
+    if not fromPass then
+        if kind == "execute" then
+            if type(options.func) ~= "string" and type(options.func) ~=
+                "function" then
+                return '"func" must be a string or function', position
+            end
+        elseif kind == "range" or kind == "text" or kind == "toggle" then
+            if type(options.set) ~= "string" and type(options.set) ~= "function" then
+                return '"set" must be a string or function', position
+            end
+            if kind == "text" and options.get == false then
+            elseif type(options.get) ~= "string" and type(options.get) ~=
+                "function" then
+                return '"get" must be a string or function', position
+            end
+        elseif kind == "group" and options.pass then
+            if options.pass ~= true then
+                return '"pass" must be either nil, true, or false', position
+            end
+            if not options.func then
+                if type(options.set) ~= "string" and type(options.set) ~=
+                    "function" then
+                    return '"set" must be a string or function', position
+                end
+                if type(options.get) ~= "string" and type(options.get) ~=
+                    "function" then
+                    return '"get" must be a string or function', position
+                end
+            elseif type(options.func) ~= "string" and type(options.func) ~=
+                "function" then
+                return '"func" must be a string or function', position
+            end
+        end
+    end
+    if options ~= baseOptions then
+        if kind == "header" then
+        elseif type(options.desc) ~= "string" then
+            return '"desc" must be a string', position
+        elseif options.desc:len() == 0 then
+            return '"desc" cannot be a 0-length string', position
+        end
+    end
+    if options ~= baseOptions or kind == "range" or kind == "text" or kind ==
+        "toggle" or kind == "color" then
+        if options.type == "header" and not options.cmdName and not options.name then
+        elseif options.cmdName then
+            if type(options.cmdName) ~= "string" then
+                return '"cmdName" must be a string or nil', position
+            elseif options.cmdName:len() == 0 then
+                return '"cmdName" cannot be a 0-length string', position
+            end
+            if type(options.guiName) ~= "string" then
+                if not options.guiNameIsMap then
+                    return '"guiName" must be a string or nil', position
+                end
+            elseif options.guiName:len() == 0 then
+                return '"guiName" cannot be a 0-length string', position
+            end
+        else
+            if type(options.name) ~= "string" then
+                return '"name" must be a string', position
+            elseif options.name:len() == 0 then
+                return '"name" cannot be a 0-length string', position
+            end
+        end
+    end
+    if options.guiNameIsMap then
+        if type(options.guiNameIsMap) ~= "boolean" then
+            return '"guiNameIsMap" must be a boolean or nil', position
+        elseif options.type ~= "toggle" then
+            return
+                'if "guiNameIsMap" is true, then "type" must be set to \'toggle\'',
+                position
+        elseif type(options.map) ~= "table" then
+            return '"map" must be a table', position
+        end
+    end
+    if options.message and type(options.message) ~= "string" then
+        return '"message" must be a string or nil', position
+    end
+    if options.error and type(options.error) ~= "string" then
+        return '"error" must be a string or nil', position
+    end
+    if options.current and type(options.current) ~= "string" then
+        return '"current" must be a string or nil', position
+    end
+    if options.order then
+        if type(options.order) ~= "number" or
+            (-1 < options.order and options.order < 0.999) then
+            return '"order" must be a non-zero number or nil', position
+        end
+    end
+    if options.disabled then
+        if type(options.disabled) ~= "function" and type(options.disabled) ~=
+            "string" and options.disabled ~= true then
+            return '"disabled" must be a function, string, or boolean', position
+        end
+    end
+    if options.cmdHidden then
+        if type(options.cmdHidden) ~= "function" and type(options.cmdHidden) ~=
+            "string" and options.cmdHidden ~= true then
+            return '"cmdHidden" must be a function, string, or boolean',
+                   position
+        end
+    end
+    if options.guiHidden then
+        if type(options.guiHidden) ~= "function" and type(options.guiHidden) ~=
+            "string" and options.guiHidden ~= true then
+            return '"guiHidden" must be a function, string, or boolean',
+                   position
+        end
+    end
+    if options.hidden then
+        if type(options.hidden) ~= "function" and type(options.hidden) ~=
+            "string" and options.hidden ~= true then
+            return '"hidden" must be a function, string, or boolean', position
+        end
+    end
+    if kind == "text" then
+        if type(options.validate) == "table" then
+            local t = options.validate
+            local iTable = nil
+            for k, v in pairs(t) do
+                if type(k) == "number" then
+                    if iTable == nil then
+                        iTable = true
+                    elseif not iTable then
+                        return
+                            '"validate" must either have all keys be indexed numbers or strings',
+                            position
+                    elseif k < 1 or k > #t then
+                        return
+                            '"validate" numeric keys must be indexed properly. >= 1 and <= #t',
+                            position
+                    end
+                else
+                    if iTable == nil then
+                        iTable = false
+                    elseif iTable then
+                        return
+                            '"validate" must either have all keys be indexed numbers or strings',
+                            position
+                    end
+                end
+                if type(v) ~= "string" then
+                    return '"validate" values must all be strings', position
+                end
+            end
+            if options.multiToggle and options.multiToggle ~= true then
+                return
+                    '"multiToggle" must be a boolean or nil if "validate" is a table',
+                    position
+            end
+        elseif options.validate == "keybinding" then
+            -- no other checks
+        else
+            if type(options.usage) ~= "string" then
+                return '"usage" must be a string', position
+            elseif options.validate and type(options.validate) ~= "string" and
+                type(options.validate) ~= "function" then
+                return '"validate" must be a string, function, or table',
+                       position
+            end
+        end
+        if options.multiToggle and type(options.validate) ~= "table" then
+            return '"validate" must be a table if "multiToggle" is true',
+                   position
+        end
+    elseif kind == "range" then
+        if options.min or options.max then
+            if type(options.min) ~= "number" then
+                return '"min" must be a number', position
+            elseif type(options.max) ~= "number" then
+                return '"max" must be a number', position
+            elseif options.min >= options.max then
+                return '"min" must be less than "max"', position
+            end
+        end
+        if options.step then
+            if type(options.step) ~= "number" then
+                return '"step" must be a number', position
+            elseif options.step < 0 then
+                return '"step" must be nonnegative', position
+            end
+        end
+        if options.bigStep then
+            if type(options.bigStep) ~= "number" then
+                return '"bigStep" must be a number', position
+            elseif options.bigStep < 0 then
+                return '"bigStep" must be nonnegative', position
+            end
+        end
+        if options.isPercent and options.isPercent ~= true then
+            return '"isPercent" must either be nil, true, or false', position
+        end
+    elseif kind == "toggle" then
+        if options.map then
+            if type(options.map) ~= "table" then
+                return '"map" must be a table', position
+            elseif type(options.map[true]) ~= "string" then
+                return '"map[true]" must be a string', position
+            elseif type(options.map[false]) ~= "string" then
+                return '"map[false]" must be a string', position
+            end
+        end
+    elseif kind == "color" then
+        if options.hasAlpha and options.hasAlpha ~= true then
+            return '"hasAlpha" must be nil, true, or false', position
+        end
+    elseif kind == "group" then
+        if options.pass and options.pass ~= true then
+            return '"pass" must be nil, true, or false', position
+        end
+        if type(options.args) ~= "table" then
+            return '"args" must be a table', position
+        end
+        for k, v in pairs(options.args) do
+            if type(k) ~= "number" then
+                if type(k) ~= "string" then
+                    return '"args" keys must be strings or numbers', position
+                elseif k:len() == 0 then
+                    return '"args" keys must not be 0-length strings.', position
+                end
+            end
+            if type(v) ~= "table" then
+                return '"args" values must be tables',
+                       position and position .. "." .. k or k
+            end
+            local newposition
+            if position then
+                newposition = position .. ".args." .. k
+            else
+                newposition = "args." .. k
+            end
+            local err, pos = validateOptions(v, newposition, baseOptions,
+                                             options.pass)
+            if err then return err, pos end
+        end
+    elseif kind == "execute" then
+        if type(options.confirm) ~= "string" and type(options.confirm) ~=
+            "boolean" and type(options.confirm) ~= "nil" then
+            return '"confirm" must be a string, boolean, or nil', position
+        end
+    end
+    if options.icon and type(options.icon) ~= "string" then
+        return '"icon" must be a string', position
+    end
+    if options.iconWidth or options.iconHeight then
+        if type(options.iconWidth) ~= "number" or type(options.iconHeight) ~=
+            "number" then
+            return '"iconHeight" and "iconWidth" must be numbers', position
+        end
+    end
+    if options.iconCoordLeft or options.iconCoordRight or options.iconCoordTop or
+        options.iconCoordBottom then
+        if type(options.iconCoordLeft) ~= "number" or
+            type(options.iconCoordRight) ~= "number" or
+            type(options.iconCoordTop) ~= "number" or
+            type(options.iconCoordBottom) ~= "number" then
+            return
+                '"iconCoordLeft", "iconCoordRight", "iconCoordTop", and "iconCoordBottom" must be numbers',
+                position
+        end
+    end
+end
+
 local validatedOptions
 
 local values
@@ -1751,7 +2042,7 @@ local function confirmPopup(message, func, ...)
     StaticPopup_Show("LIBDEWDROP30_CONFIRM_DIALOG")
 end
 
-local function getMethod(settingname, handler, v, methodName, ...)
+local function getMethod(settingname, handler, v, methodName, ...) -- "..." is simply returned straight out cause you can't do "a,b,c = 111,f(),222"
     assert(v and type(v) == "table")
     assert(methodName and type(methodName) == "string")
 
@@ -1829,13 +2120,505 @@ function Dewdrop:SetScrollListSize(scrollListSize)
 end
 
 function Dewdrop:FeedAceOptionsTable(options, difference)
-    -- Implementation omitted for brevity - same as original
-    return false
+    self:argCheck(options, 2, "table")
+    self:argCheck(difference, 3, "nil", "number")
+    if not currentLevel then
+        self:error(
+            "Cannot call `FeedAceOptionsTable' outside of a Dewdrop declaration")
+    end
+    if not difference then difference = 0 end
+    if not validatedOptions then validatedOptions = {} end
+    if not validatedOptions[options] then
+        local err, position = validateOptions(options)
+
+        if err then
+            if position then
+                self:error(position .. ": " .. err)
+            else
+                self:error(err)
+            end
+        end
+
+        validatedOptions[options] = true
+    end
+    local level = levels[currentLevel]
+    if not level then self:error("Improper level given") end
+    if not values then
+        values = {}
+    else
+        for k, v in pairs(values) do values[k] = nil end
+    end
+
+    local current = level
+    while current do -- this traverses from higher level numbers to lower, building "values" with leaf nodes first and trunk nodes later
+        if current.num == difference + 1 then break end
+        table.insert(values, current.value)
+        current = levels[current.num - 1]
+    end
+
+    local realOptions = options
+    local handler = options.handler
+    local passTable
+    local passValue
+    while #values > 0 do -- This loop traverses values from the END (trunk nodes first, then onto leaf nodes)
+        if options.pass then
+            if options.get and options.set then
+                passTable = options
+            elseif not passTable then
+                passTable = options
+            end
+        else
+            passTable = nil
+        end
+        local value = table.remove(values)
+        options = options.args and options.args[value]
+        if not options then return end
+        handler = options.handler or handler
+        passValue = passTable and value or nil
+    end
+
+    if options.type == "group" then
+        local hidden = options.hidden
+        if type(hidden) == "function" or type(hidden) == "string" then
+            hidden = callMethod(options.name or "(options root)", handler,
+                                options, "hidden", options.passValue) or false
+        end
+        if hidden then return end
+        local disabled = options.disabled
+        if type(disabled) == "function" or type(disabled) == "string" then
+            disabled = callMethod(options.name or "(options root)", handler,
+                                  options, "disabled", options.passValue) or
+                           false
+        end
+        if disabled then
+            self:AddLine('text', DISABLED, 'disabled', true)
+            return
+        end
+        for k in pairs(options.args) do table.insert(values, k) end
+        if options.pass then
+            if options.get and options.set then
+                passTable = options
+            elseif not passTable then
+                passTable = options
+            end
+        else
+            passTable = nil
+        end
+        if not mysort then
+            mysort = function(a, b)
+                local alpha, bravo = mysort_args[a], mysort_args[b]
+                local alpha_order = alpha.order or 100
+                local bravo_order = bravo.order or 100
+                local alpha_name = alpha.guiName or alpha.name
+                local bravo_name = bravo.guiName or bravo.name
+                if alpha_order == bravo_order then
+                    if not alpha_name then
+                        return bravo_name
+                    elseif not bravo_name then
+                        return false
+                    else
+                        return alpha_name:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub(
+                                   "|r", ""):upper() <
+                                   bravo_name:gsub("|c%x%x%x%x%x%x%x%x", "")
+                                       :gsub("|r", ""):upper()
+                    end
+                else
+                    if alpha_order < 0 then
+                        if bravo_order > 0 then
+                            return false
+                        end
+                    else
+                        if bravo_order < 0 then
+                            return true
+                        end
+                    end
+                    return alpha_order < bravo_order
+                end
+            end
+        end
+        mysort_args = options.args
+        table.sort(values, mysort)
+        mysort_args = nil
+        local hasBoth =
+            #values >= 1 and (options.args[values[1]].order or 100) > 0 and
+                (options.args[values[#values]].order or 100) < 0
+        local last_order = 1
+        for _, k in ipairs(values) do
+            local v = options.args[k]
+            local handler = v.handler or handler
+            if hasBoth and last_order > 0 and (v.order or 100) < 0 then
+                hasBoth = false
+                self:AddLine()
+            end
+            local hidden, disabled = v.guiHidden or v.hidden, v.disabled
+
+            if type(hidden) == "function" or type(hidden) == "string" then
+                hidden = callMethod(k, handler, v, "hidden", v.passValue) or
+                             false
+            end
+            if not hidden then
+                if type(disabled) == "function" or type(disabled) == "string" then
+                    disabled =
+                        callMethod(k, handler, v, "disabled", v.passValue) or
+                            false
+                end
+                local name = (v.guiIconOnly and v.icon) and "" or
+                                 (v.guiName or v.name)
+                local desc = v.guiDesc or v.desc
+                local iconHeight = v.iconHeight or 16
+                local iconWidth = v.iconWidth or 16
+                local iconCoordLeft = v.iconCoordLeft
+                local iconCoordRight = v.iconCoordRight
+                local iconCoordBottom = v.iconCoordBottom
+                local iconCoordTop = v.iconCoordTop
+                local tooltipTitle, tooltipText
+                tooltipTitle = name
+                if name ~= desc then tooltipText = desc end
+                if type(v.usage) == "string" and v.usage:trim():len() > 0 then
+                    if tooltipText then
+                        tooltipText = tooltipText .. "\n\n" ..
+                                          USAGE_TOOLTIP:format(v.usage)
+                    else
+                        tooltipText = USAGE_TOOLTIP:format(v.usage)
+                    end
+                end
+                local v_p = passTable
+                if not v_p or (v.type ~= "execute" and v.get and v.set) or
+                    (v.type == "execute" and v.func) then v_p = v end
+                local passValue = v.passValue or (v_p ~= v and k) or nil
+                if v.type == "toggle" then
+                    local checked = callMethod(name, handler, v_p, "get",
+                                               passValue) or false
+                    local checked_arg = checked
+                    if type(v_p.get) == "string" and v_p.get:match("^~") then
+                        checked_arg = not checked
+                    end
+                    local func, arg1, arg2, arg3 =
+                        getMethod(name, handler, v_p, "set",
+                                  skip1Nil(passValue, not checked_arg))
+                    if v.guiNameIsMap then
+                        checked = checked and true or false
+                        name = tostring(v.map and v.map[checked]):gsub(
+                                   "|c%x%x%x%x%x%x%x%x(.-)|r", "%1")
+                        tooltipTitle = name
+                        checked = true -- nil
+                    end
+                    self:AddLine('text', name, 'checked', checked, 'isRadio',
+                                 v.isRadio, 'func', func, 'arg1', arg1, 'arg2',
+                                 arg2, 'arg3', arg3, 'disabled', disabled,
+                                 'tooltipTitle', tooltipTitle, 'tooltipText',
+                                 tooltipText)
+                elseif v.type == "execute" then
+                    local func, arg1, arg2, arg3, arg4
+                    local confirm = v.confirm
+                    if confirm == true then
+                        confirm = DEFAULT_CONFIRM_MESSAGE:format(tooltipText or
+                                                                     tooltipTitle)
+                        func, arg1, arg2, arg3, arg4 = confirmPopup, confirm,
+                                                       getMethod(name, handler,
+                                                                 v_p, "func",
+                                                                 passValue)
+                    elseif type(confirm) == "string" then
+                        func, arg1, arg2, arg3, arg4 = confirmPopup, confirm,
+                                                       getMethod(name, handler,
+                                                                 v_p, "func",
+                                                                 passValue)
+                    else
+                        func, arg1, arg2 =
+                            getMethod(name, handler, v_p, "func", passValue)
+                    end
+                    self:AddLine('text', name, 'checked', checked, 'func', func,
+                                 'arg1', arg1, 'arg2', arg2, 'arg3', arg3,
+                                 'arg4', arg4, 'disabled', disabled,
+                                 'tooltipTitle', tooltipTitle, 'tooltipText',
+                                 tooltipText, 'icon', v.icon, 'iconHeight',
+                                 iconHeight, 'iconWidth', iconWidth,
+                                 'iconCoordLeft', iconCoordLeft,
+                                 'iconCoordRight', iconCoordRight,
+                                 'iconCoordTop', iconCoordTop,
+                                 'iconCoordBottom', iconCoordBottom)
+                elseif v.type == "range" then
+                    local sliderValue
+                    sliderValue = callMethod(name, handler, v_p, "get",
+                                             passValue) or 0
+                    local sliderFunc, sliderArg1, sliderArg2 = getMethod(name,
+                                                                         handler,
+                                                                         v_p,
+                                                                         "set",
+                                                                         passValue)
+                    if tooltipText then
+                        tooltipText = format("%s\n\n%s", tooltipText,
+                                             RANGE_TOOLTIP)
+                    else
+                        tooltipText = RANGE_TOOLTIP
+                    end
+                    self:AddLine('text', name, 'hasArrow', true, 'hasSlider',
+                                 true, 'sliderMin', v.min or 0, 'sliderMax',
+                                 v.max or 1, 'sliderStep', v.step or 0,
+                                 'sliderBigStep', v.bigStep or nil,
+                                 'sliderIsPercent', v.isPercent or false,
+                                 'sliderValue', sliderValue, 'sliderFunc',
+                                 sliderFunc, 'sliderArg1', sliderArg1,
+                                 'sliderArg2', sliderArg2, 'fromAceOptions',
+                                 true, 'disabled', disabled, 'tooltipTitle',
+                                 tooltipTitle, 'tooltipText', tooltipText,
+                                 'icon', v.icon, 'iconHeight', iconHeight,
+                                 'iconWidth', iconWidth, 'iconCoordLeft',
+                                 iconCoordLeft, 'iconCoordRight',
+                                 iconCoordRight, 'iconCoordTop', iconCoordTop,
+                                 'iconCoordBottom', iconCoordBottom)
+                elseif v.type == "color" then
+                    local r, g, b, a = callMethod(name, handler, v_p, "get",
+                                                  passValue)
+                    if not r then r, g, b, a = 0, 0, 0, 0 end
+                    local colorFunc, colorArg1, colorArg2 = getMethod(name,
+                                                                      handler,
+                                                                      v_p,
+                                                                      "set",
+                                                                      passValue)
+                    self:AddLine('text', name, 'hasArrow', true,
+                                 'hasColorSwatch', true, 'r', r, 'g', g, 'b', b,
+                                 'opacity', v.hasAlpha and a or nil,
+                                 'hasOpacity', v.hasAlpha, 'colorFunc',
+                                 colorFunc, 'colorArg1', colorArg1, 'colorArg2',
+                                 colorArg2, 'disabled', disabled,
+                                 'tooltipTitle', tooltipTitle, 'tooltipText',
+                                 tooltipText)
+                elseif v.type == "text" then
+                    if type(v.validate) == "table" then
+                        local func, arg1, arg2
+                        if v.onClick then
+                            func, arg1, arg2 =
+                                getMethod(name, handler, v, "onClick", passValue)
+                        end
+                        local checked
+                        if v.isChecked then
+                            checked = callMethod(name, handler, v, "isChecked",
+                                                 passValue) or false
+                        end
+                        self:AddLine('text', name, 'hasArrow', true, 'value', k,
+                                     'func', func, 'arg1', arg1, 'arg2', arg2,
+                                     'mouseoverUnderline', func and true or nil,
+                                     'disabled', disabled, 'checked', checked,
+                                     'tooltipTitle', tooltipTitle,
+                                     'tooltipText', tooltipText, 'icon', v.icon,
+                                     'iconHeight', iconHeight, 'iconWidth',
+                                     iconWidth, 'iconCoordLeft', iconCoordLeft,
+                                     'iconCoordRight', iconCoordRight,
+                                     'iconCoordTop', iconCoordTop,
+                                     'iconCoordBottom', iconCoordBottom)
+                    else
+                        local editBoxText
+                        editBoxText = callMethod(name, handler, v_p, "get",
+                                                 passValue) or ""
+                        local editBoxFunc, editBoxArg1, editBoxArg2 = getMethod(
+                                                                          name,
+                                                                          handler,
+                                                                          v_p,
+                                                                          "set",
+                                                                          passValue)
+
+                        local editBoxValidateFunc, editBoxValidateArg1
+
+                        if v.validate and v.validate ~= "keybinding" then
+                            if v.validate == "keybinding" then
+                                if tooltipText then
+                                    tooltipText = format("%s\n\n%s",
+                                                         tooltipText,
+                                                         RESET_KEYBINDING_DESC)
+                                else
+                                    tooltipText = RESET_KEYBINDING_DESC
+                                end
+                            else
+                                editBoxValidateFunc, editBoxValidateArg1 =
+                                    getMethod(name, handler, v, "validate") -- no passvalue!
+                            end
+                        end
+
+                        self:AddLine('text', name, 'hasArrow', true, 'icon',
+                                     v.icon, 'iconHeight', iconHeight,
+                                     'iconWidth', iconWidth, 'iconCoordLeft',
+                                     iconCoordLeft, 'iconCoordRight',
+                                     iconCoordRight, 'iconCoordTop',
+                                     iconCoordTop, 'iconCoordBottom',
+                                     iconCoordBottom, 'hasEditBox', true,
+                                     'editBoxText', editBoxText, 'editBoxFunc',
+                                     editBoxFunc, 'editBoxArg1', editBoxArg1,
+                                     'editBoxArg2', editBoxArg2,
+                                     'editBoxValidateFunc', editBoxValidateFunc,
+                                     'editBoxValidateArg1', editBoxValidateArg1,
+                                     'editBoxIsKeybinding',
+                                     v.validate == "keybinding",
+                                     'editBoxKeybindingOnly', v.keybindingOnly,
+                                     'editBoxKeybindingExcept',
+                                     v.keybindingExcept, 'disabled', disabled,
+                                     'tooltipTitle', tooltipTitle,
+                                     'tooltipText', tooltipText)
+                    end
+                elseif v.type == "group" then
+                    local func, arg1, arg2
+                    if v.onClick then
+                        func, arg1, arg2 =
+                            getMethod(name, handler, v, "onClick", passValue)
+                    end
+                    local checked
+                    if v.isChecked then
+                        checked = callMethod(name, handler, v, "isChecked",
+                                             passValue) or false
+                    end
+                    self:AddLine('text', name, 'hasArrow', true, 'value', k,
+                                 'func', func, 'arg1', arg1, 'arg2', arg2,
+                                 'mouseoverUnderline', func and true or nil,
+                                 'disabled', disabled, 'checked', checked,
+                                 'tooltipTitle', tooltipTitle, 'tooltipText',
+                                 tooltipText, 'icon', v.icon, 'iconHeight',
+                                 iconHeight, 'iconWidth', iconWidth,
+                                 'iconCoordLeft', iconCoordLeft,
+                                 'iconCoordRight', iconCoordRight,
+                                 'iconCoordTop', iconCoordTop,
+                                 'iconCoordBottom', iconCoordBottom)
+                elseif v.type == "header" then
+                    if name == "" or not name then
+                        self:AddLine('isTitle', true, 'icon', v.icon,
+                                     'iconHeight', iconHeight, 'iconWidth',
+                                     iconWidth, 'iconCoordLeft', iconCoordLeft,
+                                     'iconCoordRight', iconCoordRight,
+                                     'iconCoordTop', iconCoordTop,
+                                     'iconCoordBottom', iconCoordBottom)
+                    else
+                        self:AddLine('text', name, 'isTitle', true, 'icon',
+                                     v.icon, 'iconHeight', iconHeight,
+                                     'iconWidth', iconWidth, 'iconCoordLeft',
+                                     iconCoordLeft, 'iconCoordRight',
+                                     iconCoordRight, 'iconCoordTop',
+                                     iconCoordTop, 'iconCoordBottom',
+                                     iconCoordBottom)
+                    end
+                end
+            end
+            last_order = v.order or 100
+        end
+    elseif options.type == "text" and type(options.validate) == "table" then
+        local current
+        local options_p = passTable
+        if not options_p or (options.get and options.set) then
+            options_p = options
+            passTable = nil
+            passValue = nil
+        end
+        local multiToggle = options.multiToggle
+        local passValue = options.passValue or passValue
+        if not multiToggle then
+            current = callMethod(k, handler, options_p, "get", passValue)
+        end
+        local indexed = true
+        for k, v in pairs(options.validate) do
+            if type(k) ~= "number" then indexed = false end
+            table.insert(values, k)
+        end
+        if not indexed then
+            if not othersort then
+                othersort = function(alpha, bravo)
+                    return othersort_validate[alpha]:gsub("|c%x%x%x%x%x%x%x%x",
+                                                          ""):gsub("|r", "")
+                               :upper() <
+                               othersort_validate[bravo]:gsub(
+                                   "|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                                   :upper()
+                end
+            end
+            othersort_validate = options.validate
+            table.sort(values, othersort)
+            othersort_validate = nil
+        end
+        for _, k in ipairs(values) do
+            local v = options.validate[k]
+            if type(k) == "number" then k = v end
+            local func, arg1, arg2, arg3, arg4 =
+                getMethod(k, handler, options_p, "set", skip1Nil(passValue, k))
+            local checked
+            if multiToggle then
+                checked = callMethod(k, handler, options_p, "get",
+                                     skip1Nil(passValue, k)) or false
+                if arg2 == nil then
+                    arg2 = not checked
+                elseif arg3 == nil then
+                    arg3 = not checked
+                else
+                    arg4 = not checked
+                end
+            else
+                checked = (k == current or
+                              (type(k) == "string" and type(current) == "string" and
+                                  k:lower() == current:lower()))
+                if checked then
+                    func, arg1, arg2, arg3, arg4 = nil, nil, nil, nil, nil
+                end
+            end
+            local tooltipTitle
+            local tooltipText
+            if options.validateDesc then
+                tooltipTitle = v
+                tooltipText = options.validateDesc[k]
+            else
+                tooltipTitle = options.guiName or options.name
+                tooltipText = v
+            end
+            self:AddLine('text', v, 'func', func, 'arg1', arg1, 'arg2', arg2,
+                         'arg3', arg3, 'arg4', arg4, 'isRadio', not multiToggle,
+                         'checked', checked, 'tooltipTitle', tooltipTitle,
+                         'tooltipText', tooltipText)
+        end
+        for k in pairs(values) do values[k] = nil end
+    else
+        return false
+    end
+    return true
 end
 
 function Dewdrop:FeedTable(s, difference)
-    -- Implementation omitted for brevity - same as original
-    return false
+    self:argCheck(s, 2, "table")
+    self:argCheck(difference, 3, "nil", "number")
+    if not currentLevel then
+        self:error("Cannot call `FeedTable' outside of a Dewdrop declaration")
+    end
+    if not difference then difference = 0 end
+    local level = levels[currentLevel]
+    if not level then self:error("Improper level given") end
+    if not values then
+        values = {}
+    else
+        for k, v in pairs(values) do values[k] = nil end
+    end
+    local t = s.subMenu and s or {subMenu = s}
+    local current = level
+    while current do
+        if current.num == difference + 1 then break end
+        table.insert(values, current.value)
+        current = levels[current.num - 1]
+    end
+
+    while #values > 0 do
+        local value = table.remove(values)
+        t = t.subMenu and t.subMenu[value]
+        if not t then return end
+    end
+
+    if t.subMenu or current.num == 1 then
+        for k in pairs(t.subMenu) do table.insert(values, k) end
+        table.sort(values)
+        for _, k in ipairs(values) do
+            local argTable = {"value", k}
+            for key, val in pairs(t.subMenu[k]) do
+                table.insert(argTable, key)
+                table.insert(argTable, val)
+            end
+            self:AddLine(unpack(argTable))
+        end
+        for k in pairs(values) do values[k] = nil end
+        return false
+    end
+    return true
 end
 
 function Refresh(level)
@@ -1882,7 +2665,760 @@ function Dewdrop:Refresh(level)
     end
 end
 
--- OpenSlider and OpenEditBox functions omitted for brevity - same as original
+function OpenSlider(parent)
+    if not sliderFrame then
+
+        sliderFrame = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
+        sliderFrame:SetWidth(100)
+        sliderFrame:SetHeight(170)
+        sliderFrame:SetScale(UIParent:GetScale())
+        sliderFrame:SetBackdrop(tmp('bgFile',
+                                    "Interface\\Tooltips\\UI-Tooltip-Background",
+                                    'edgeFile',
+                                    "Interface\\Tooltips\\UI-Tooltip-Border",
+                                    'tile', true, 'insets', tmp2('left', 5,
+                                                                 'right', 5,
+                                                                 'top', 5,
+                                                                 'bottom', 5),
+                                    'tileSize', 16, 'edgeSize', 16))
+        sliderFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+        if sliderFrame.SetTopLevel then sliderFrame:SetTopLevel(true) end
+        sliderFrame:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r,
+                                           TOOLTIP_DEFAULT_COLOR.g,
+                                           TOOLTIP_DEFAULT_COLOR.b)
+        sliderFrame:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r,
+                                     TOOLTIP_DEFAULT_BACKGROUND_COLOR.g,
+                                     TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
+        sliderFrame:EnableMouse(true)
+        sliderFrame:EnableMouseWheel(true)
+        sliderFrame:Hide()
+        sliderFrame:SetPoint("CENTER", UIParent, "CENTER")
+
+        local slider = CreateFrame("Slider", nil, sliderFrame)
+        sliderFrame.slider = slider
+        slider:SetOrientation("VERTICAL")
+        slider:SetMinMaxValues(0, 1)
+        slider:SetValueStep(0.000000001)
+        slider:SetValue(0.5)
+        slider:SetWidth(16)
+        slider:SetHeight(128)
+        slider:SetPoint("LEFT", sliderFrame, "LEFT", 15, 0)
+        slider:SetBackdrop(tmp('bgFile',
+                               "Interface\\Buttons\\UI-SliderBar-Background",
+                               'edgeFile',
+                               "Interface\\Buttons\\UI-SliderBar-Border",
+                               'tile', true, 'edgeSize', 8, 'tileSize', 8,
+                               'insets', tmp2('left', 3, 'right', 3, 'top', 3,
+                                              'bottom', 3)))
+        local texture = slider:CreateTexture()
+        slider:SetThumbTexture(
+            "Interface\\Buttons\\UI-SliderBar-Button-Vertical")
+        local text = slider:CreateFontString(nil, "ARTWORK")
+        sliderFrame.topText = text
+        text:SetFontObject(GameFontGreenSmall)
+        text:SetText("100%")
+        text:SetPoint("BOTTOM", slider, "TOP")
+        local text = slider:CreateFontString(nil, "ARTWORK")
+        sliderFrame.bottomText = text
+        text:SetFontObject(GameFontGreenSmall)
+        text:SetText("0%")
+        text:SetPoint("TOP", slider, "BOTTOM")
+
+        local editBox = CreateFrame("EditBox", nil, sliderFrame)
+        sliderFrame.currentText = editBox
+        editBox:SetFontObject(ChatFontNormal)
+        editBox:SetHeight(13)
+        editBox:SetPoint("RIGHT", sliderFrame, "RIGHT", -16, 0)
+        editBox:SetPoint("LEFT", slider, "RIGHT", 12, 0)
+        editBox:SetText("50%")
+        editBox:SetJustifyH("CENTER")
+
+        local width = editBox:GetWidth() / 2 + 10
+        local left = editBox:CreateTexture(nil, "BACKGROUND")
+        left:SetTexture("Interface\\ChatFrame\\UI-ChatInputBorder-Left")
+        left:SetTexCoord(0, width / 256, 0, 1)
+        left:SetWidth(width)
+        left:SetHeight(32)
+        left:SetPoint("LEFT", editBox, "LEFT", -10, 0)
+        local right = editBox:CreateTexture(nil, "BACKGROUND")
+        right:SetTexture("Interface\\ChatFrame\\UI-ChatInputBorder-Right")
+        right:SetTexCoord(1 - width / 256, 1, 0, 1)
+        right:SetWidth(width)
+        right:SetHeight(32)
+        right:SetPoint("RIGHT", editBox, "RIGHT", 10, 0)
+
+        local changed = false
+        local inside = false
+        slider:SetScript("OnValueChanged", function()
+            if sliderFrame.changing then return end
+            changed = true
+            local done = false
+            if sliderFrame.parent and sliderFrame.parent.sliderFunc then
+                local min = sliderFrame.parent.sliderMin or 0
+                local max = sliderFrame.parent.sliderMax or 1
+                local step
+                if sliderFrame.fineStep then
+                    step = sliderFrame.parent.sliderStep or (max - min) / 100
+                else
+                    step = sliderFrame.parent.sliderBigStep or
+                               sliderFrame.parent.sliderStep or (max - min) /
+                               100
+                end
+                local value = (1 - slider:GetValue()) * (max - min) + min
+                if step > 0 then
+                    value = math.floor((value - min) / step + 0.5) * step + min
+                    if value > max then
+                        value = max
+                    elseif value < min then
+                        value = min
+                    end
+                end
+                if value == sliderFrame.lastValue then return end
+                sliderFrame.lastValue = value
+                local text = sliderFrame.parent.sliderFunc(getArgs(
+                                                               sliderFrame.parent,
+                                                               'sliderArg', 1,
+                                                               value))
+                if sliderFrame.parent.fromAceOptions then
+                    text = nil
+                elseif type(text) == "string" or type(text) == "number" then
+                    sliderFrame.currentText:SetText(text)
+                    done = true
+                end
+            end
+            if not done then
+                local min = sliderFrame.parent.sliderMin or 0
+                local max = sliderFrame.parent.sliderMax or 1
+                local step
+                if sliderFrame.fineStep then
+                    step = sliderFrame.parent.sliderStep or (max - min) / 100
+                else
+                    step = sliderFrame.parent.sliderBigStep or
+                               sliderFrame.parent.sliderStep or (max - min) /
+                               100
+                end
+                local value = (1 - slider:GetValue()) * (max - min) + min
+                if step > 0 then
+                    value = math.floor((value - min) / step + 0.5) * step + min
+                    if value > max then
+                        value = max
+                    elseif value < min then
+                        value = min
+                    end
+                end
+                if sliderFrame.parent.sliderIsPercent then
+                    sliderFrame.currentText:SetText(
+                        string.format("%.0f%%", value * 100))
+                else
+                    if step < 0.1 then
+                        sliderFrame.currentText:SetText(
+                            string.format("%.2f", value))
+                    elseif step < 1 then
+                        sliderFrame.currentText:SetText(
+                            string.format("%.1f", value))
+                    else
+                        sliderFrame.currentText:SetText(
+                            string.format("%.0f", value))
+                    end
+                end
+            end
+        end)
+        local function onEnter()
+            StopCounting(sliderFrame.level)
+            showGameTooltip(sliderFrame.parent)
+        end
+        local function onLeave() GameTooltip:Hide() end
+        sliderFrame:SetScript("OnEnter", onEnter)
+        sliderFrame:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+            if changed then
+                local parent = sliderFrame.parent
+                local sliderFunc = parent.sliderFunc
+                for i = 1, sliderFrame.level - 1 do
+                    Refresh(levels[i])
+                end
+                local newParent
+                for _, button in ipairs(levels[sliderFrame.level - 1]
+                                            .scrollFrame.child.buttons) do
+                    if button.sliderFunc == sliderFunc then
+                        newParent = button
+                        break
+                    end
+                end
+                if newParent then
+                    OpenSlider(newParent)
+                else
+                    sliderFrame:Hide()
+                end
+            end
+        end)
+        editBox:SetScript("OnEnter", onEnter)
+        editBox:SetScript("OnLeave", onLeave)
+        slider:SetScript("OnMouseDown", function()
+            sliderFrame.mouseDown = true
+            GameTooltip:Hide()
+        end)
+        slider:SetScript("OnMouseUp", function()
+            sliderFrame.mouseDown = false
+            if changed --[[ and not inside]] then
+                local parent = sliderFrame.parent
+                local sliderFunc = parent.sliderFunc
+                for i = 1, sliderFrame.level - 1 do
+                    Refresh(levels[i])
+                end
+                local newParent
+                for _, button in ipairs(levels[sliderFrame.level - 1]
+                                            .scrollFrame.child.buttons) do
+                    if button.sliderFunc == sliderFunc then
+                        newParent = button
+                        break
+                    end
+                end
+                if newParent then
+                    OpenSlider(newParent)
+                else
+                    sliderFrame:Hide()
+                end
+            end
+            if inside then showGameTooltip(sliderFrame.parent) end
+        end)
+        slider:SetScript("OnEnter", function()
+            inside = true
+            StopCounting(sliderFrame.level)
+            showGameTooltip(sliderFrame.parent)
+        end)
+        slider:SetScript("OnLeave", function()
+            inside = false
+            GameTooltip:Hide()
+            if changed and not sliderFrame.mouseDown then
+                local parent = sliderFrame.parent
+                local sliderFunc = parent.sliderFunc
+                for i = 1, sliderFrame.level - 1 do
+                    Refresh(levels[i])
+                end
+                local newParent
+                for _, button in ipairs(levels[sliderFrame.level - 1]
+                                            .scrollFrame.child.buttons) do
+                    if button.sliderFunc == sliderFunc then
+                        newParent = button
+                        break
+                    end
+                end
+                if newParent then
+                    OpenSlider(newParent)
+                else
+                    sliderFrame:Hide()
+                end
+
+                changed = false
+            end
+        end)
+        sliderFrame:SetScript("OnMouseWheel", function(self, arg1)
+            local up = arg1 > 0
+
+            local min = sliderFrame.parent.sliderMin or 0
+            local max = sliderFrame.parent.sliderMax or 1
+            local step = sliderFrame.parent.sliderStep or (max - min) / 100
+            if step <= 0 then step = (max - min) / 100 end
+
+            local value = (1 - slider:GetValue()) * (max - min) + min
+            if up then
+                value = value + step
+            else
+                value = value - step
+            end
+            if value > max then
+                value = max
+            elseif value < min then
+                value = min
+            end
+            sliderFrame.fineStep = true
+            if max <= min then
+                slider:SetValue(0)
+            else
+                slider:SetValue(1 - (value - min) / (max - min))
+            end
+            sliderFrame.fineStep = nil
+        end)
+        slider:SetScript("OnMouseWheel", sliderFrame:GetScript("OnMouseWheel"))
+        editBox:SetScript("OnEnterPressed", function()
+            local value = editBox:GetNumber()
+
+            if sliderFrame.parent.sliderIsPercent then
+                value = value / 100
+            end
+
+            local min = sliderFrame.parent.sliderMin or 0
+            local max = sliderFrame.parent.sliderMax or 1
+
+            if value > max then
+                value = max
+            elseif value < min then
+                value = min
+            end
+            sliderFrame.fineStep = true
+            if max <= min then
+                slider:SetValue(0)
+            else
+                slider:SetValue(1 - (value - min) / (max - min))
+            end
+            sliderFrame.fineStep = nil
+
+            StartCounting(sliderFrame.level)
+        end)
+        editBox:SetScript("OnEscapePressed", function()
+            Dewdrop:Close(sliderFrame.level)
+            StartCounting(sliderFrame.level)
+        end)
+        editBox:SetAutoFocus(false)
+    end
+    sliderFrame.parent = parent
+    sliderFrame.level = parent.level.num + 1
+    sliderFrame.parentValue = parent.level.value
+    sliderFrame:SetFrameLevel(parent.level:GetFrameLevel() + 3)
+    sliderFrame.slider:SetFrameLevel(sliderFrame:GetFrameLevel() + 1)
+    sliderFrame.currentText:SetFrameLevel(sliderFrame:GetFrameLevel() + 1)
+    sliderFrame.currentText:ClearFocus()
+    sliderFrame.changing = true
+    if not parent.sliderMin or not parent.sliderMax then return end
+
+    if parent.arrow then
+        --		parent.arrow:SetVertexColor(0.2, 0.6, 0)
+        --		parent.arrow:SetHeight(24)
+        --		parent.arrow:SetWidth(24)
+        parent.selected = true
+        parent.highlight:Show()
+    end
+
+    sliderFrame:SetClampedToScreen(false)
+    if not parent.sliderValue then
+        parent.sliderValue = (parent.sliderMin + parent.sliderMax) / 2
+    end
+    if parent.sliderMax <= parent.sliderMin then
+        sliderFrame.slider:SetValue(0)
+    else
+        sliderFrame.slider:SetValue(
+            1 - (parent.sliderValue - parent.sliderMin) /
+                (parent.sliderMax - parent.sliderMin))
+    end
+    sliderFrame.changing = false
+    sliderFrame.bottomText:SetText(parent.sliderMinText or "0")
+    sliderFrame.topText:SetText(parent.sliderMaxText or "1")
+    local text
+    if parent.sliderFunc and not parent.fromAceOptions then
+        text = parent.sliderFunc(getArgs(parent, 'sliderArg', 1,
+                                         parent.sliderValue))
+    end
+    if type(text) == "number" or type(text) == "string" then
+        sliderFrame.currentText:SetText(text)
+    elseif parent.sliderIsPercent then
+        sliderFrame.currentText:SetText(string.format("%.0f%%",
+                                                      parent.sliderValue * 100))
+    else
+        if parent.sliderStep < 0.1 then
+            sliderFrame.currentText:SetText(
+                string.format("%.2f", parent.sliderValue))
+        elseif parent.sliderStep < 1 then
+            sliderFrame.currentText:SetText(
+                string.format("%.1f", parent.sliderValue))
+        else
+            sliderFrame.currentText:SetText(
+                string.format("%.0f", parent.sliderValue))
+        end
+    end
+
+    sliderFrame.lastValue = parent.sliderValue
+
+    local level = parent.level
+    sliderFrame:Show()
+    sliderFrame:ClearAllPoints()
+    if level.lastDirection == "RIGHT" then
+        if level.lastVDirection == "DOWN" then
+            sliderFrame:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 10)
+        else
+            sliderFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMRIGHT", 5, -10)
+        end
+    else
+        if level.lastVDirection == "DOWN" then
+            sliderFrame:SetPoint("TOPRIGHT", parent, "TOPLEFT", -5, 10)
+        else
+            sliderFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMLEFT", -5, -10)
+        end
+    end
+    local dirty
+    if level.lastDirection == "RIGHT" then
+        if sliderFrame:GetRight() > GetScreenWidth() then
+            level.lastDirection = "LEFT"
+            dirty = true
+        end
+    elseif sliderFrame:GetLeft() < 0 then
+        level.lastDirection = "RIGHT"
+        dirty = true
+    end
+    if level.lastVDirection == "DOWN" then
+        if sliderFrame:GetBottom() < 0 then
+            level.lastVDirection = "UP"
+            dirty = true
+        end
+    elseif sliderFrame:GetTop() > GetScreenWidth() then
+        level.lastVDirection = "DOWN"
+        dirty = true
+    end
+    if dirty then
+        sliderFrame:ClearAllPoints()
+        if level.lastDirection == "RIGHT" then
+            if level.lastVDirection == "DOWN" then
+                sliderFrame:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 10)
+            else
+                sliderFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMRIGHT", 5, -10)
+            end
+        else
+            if level.lastVDirection == "DOWN" then
+                sliderFrame:SetPoint("TOPRIGHT", parent, "TOPLEFT", -5, 10)
+            else
+                sliderFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMLEFT", -5,
+                                     -10)
+            end
+        end
+    end
+    local left, bottom = sliderFrame:GetLeft(), sliderFrame:GetBottom()
+    sliderFrame:ClearAllPoints()
+    sliderFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    if mod(level.num, 5) == 0 then
+        local left, bottom = level:GetLeft(), level:GetBottom()
+        level:ClearAllPoints()
+        level:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    end
+    sliderFrame:SetClampedToScreen(true)
+end
+
+function OpenEditBox(parent)
+    if not editBoxFrame then
+        editBoxFrame = CreateFrame("Frame", nil, nil,
+                                   BackdropTemplateMixin and "BackdropTemplate")
+        editBoxFrame:SetWidth(200)
+        editBoxFrame:SetHeight(40)
+        editBoxFrame:SetScale(UIParent:GetScale())
+        editBoxFrame:SetBackdrop(tmp('bgFile',
+                                     "Interface\\Tooltips\\UI-Tooltip-Background",
+                                     'edgeFile',
+                                     "Interface\\Tooltips\\UI-Tooltip-Border",
+                                     'tile', true, 'insets', tmp2('left', 5,
+                                                                  'right', 5,
+                                                                  'top', 5,
+                                                                  'bottom', 5),
+                                     'tileSize', 16, 'edgeSize', 16))
+        editBoxFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+        if editBoxFrame.SetTopLevel then editBoxFrame:SetTopLevel(true) end
+        editBoxFrame:SetBackdropBorderColor(TOOLTIP_DEFAULT_COLOR.r,
+                                            TOOLTIP_DEFAULT_COLOR.g,
+                                            TOOLTIP_DEFAULT_COLOR.b)
+        editBoxFrame:SetBackdropColor(TOOLTIP_DEFAULT_BACKGROUND_COLOR.r,
+                                      TOOLTIP_DEFAULT_BACKGROUND_COLOR.g,
+                                      TOOLTIP_DEFAULT_BACKGROUND_COLOR.b)
+        editBoxFrame:EnableMouse(true)
+        editBoxFrame:EnableMouseWheel(true)
+        editBoxFrame:Hide()
+        editBoxFrame:SetPoint("CENTER", UIParent, "CENTER")
+
+        local editBox = CreateFrame("EditBox", nil, editBoxFrame)
+        editBoxFrame.editBox = editBox
+        editBox:SetFontObject(ChatFontNormal)
+        editBox:SetWidth(160)
+        editBox:SetHeight(13)
+        editBox:SetPoint("CENTER", editBoxFrame, "CENTER", 0, 0)
+
+        local left = editBox:CreateTexture(nil, "BACKGROUND")
+        left:SetTexture("Interface\\ChatFrame\\UI-ChatInputBorder-Left")
+        left:SetTexCoord(0, 100 / 256, 0, 1)
+        left:SetWidth(100)
+        left:SetHeight(32)
+        left:SetPoint("LEFT", editBox, "LEFT", -10, 0)
+        local right = editBox:CreateTexture(nil, "BACKGROUND")
+        right:SetTexture("Interface\\ChatFrame\\UI-ChatInputBorder-Right")
+        right:SetTexCoord(156 / 256, 1, 0, 1)
+        right:SetWidth(100)
+        right:SetHeight(32)
+        right:SetPoint("RIGHT", editBox, "RIGHT", 10, 0)
+
+        editBox:SetScript("OnEnterPressed", function()
+            if editBoxFrame.parent and editBoxFrame.parent.editBoxValidateFunc then
+                local t = editBox.realText or editBox:GetText() or ""
+                local result = editBoxFrame.parent.editBoxValidateFunc(getArgs(
+                                                                           editBoxFrame.parent,
+                                                                           'editBoxValidateArg',
+                                                                           1, t))
+                if not result then
+                    UIErrorsFrame:AddMessage(VALIDATION_ERROR, 1, 0, 0)
+                    return
+                end
+            end
+            if editBoxFrame.parent and editBoxFrame.parent.editBoxFunc then
+                local t
+                if editBox.realText ~= "NONE" then
+                    t = editBox.realText or editBox:GetText() or ""
+                end
+                editBoxFrame.parent.editBoxFunc(
+                    getArgs(editBoxFrame.parent, 'editBoxArg', 1, t))
+            end
+            Dewdrop:Close(editBoxFrame.level)
+            for i = 1, editBoxFrame.level - 1 do Refresh(levels[i]) end
+            StartCounting(editBoxFrame.level - 1)
+        end)
+        editBox:SetScript("OnEscapePressed", function()
+            Dewdrop:Close(editBoxFrame.level)
+            StartCounting(editBoxFrame.level - 1)
+        end)
+        editBox:SetScript("OnReceiveDrag", function()
+            if GetCursorInfo then
+                local type, alpha, bravo = GetCursorInfo()
+                local text
+                if type == "spell" then
+                    text = GetSpellName(alpha, bravo)
+                elseif type == "item" then
+                    text = bravo
+                end
+                if not text then return end
+                ClearCursor()
+                editBox:SetText(text)
+            end
+        end)
+        local changing = false
+        local skipNext = false
+
+        function editBox:SpecialSetText(text)
+            local oldText = editBox:GetText() or ""
+            if not text then text = "" end
+            if text ~= oldText then
+                changing = true
+                self:SetText(tostring(text))
+                changing = false
+                skipNext = true
+            end
+        end
+
+        editBox:SetScript("OnTextChanged", function()
+            if skipNext then
+                skipNext = false
+            elseif not changing and editBoxFrame.parent and
+                editBoxFrame.parent.editBoxChangeFunc then
+                local t
+                if editBox.realText ~= "NONE" then
+                    t = editBox.realText or editBox:GetText() or ""
+                end
+                local text = editBoxFrame.parent.editBoxChangeFunc(getArgs(
+                                                                       editBoxFrame.parent,
+                                                                       'editBoxChangeArg',
+                                                                       1, t))
+                if text then editBox:SpecialSetText(text) end
+            end
+        end)
+        editBoxFrame:SetScript("OnEnter", function()
+            StopCounting(editBoxFrame.level)
+            showGameTooltip(editBoxFrame.parent)
+        end)
+        editBoxFrame:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        editBox:SetScript("OnEnter", function()
+            StopCounting(editBoxFrame.level)
+            showGameTooltip(editBoxFrame.parent)
+        end)
+        editBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        editBoxFrame:SetScript("OnKeyDown", function(self, arg1)
+            if not editBox.keybinding then return end
+            local screenshotKey = GetBindingKey("SCREENSHOT")
+            if screenshotKey and arg1 == screenshotKey then
+                Screenshot()
+                return
+            end
+
+            if arg1 == "LeftButton" then
+                arg1 = "BUTTON1"
+            elseif arg1 == "RightButton" then
+                arg1 = "BUTTON2"
+            elseif arg1 == "MiddleButton" then
+                arg1 = "BUTTON3"
+            elseif arg1 == "Button4" then
+                arg1 = "BUTTON4"
+            elseif arg1 == "Button5" then
+                arg1 = "BUTTON5"
+            end
+            if arg1 == "UNKNOWN" then
+                return
+            elseif arg1 == "SHIFT" or arg1 == "CTRL" or arg1 == "ALT" then
+                return
+            elseif arg1 == "ENTER" then
+                if editBox.keybindingOnly and
+                    not editBox.keybindingOnly[editBox.realText] then
+                    return editBox:GetScript("OnEscapePressed")()
+                elseif editBox.keybindingExcept and
+                    editBox.keybindingExcept[editBox.realText] then
+                    return editBox:GetScript("OnEscapePressed")()
+                else
+                    return editBox:GetScript("OnEnterPressed")()
+                end
+            elseif arg1 == "ESCAPE" then
+                if editBox.realText == "NONE" then
+                    return editBox:GetScript("OnEscapePressed")()
+                else
+                    editBox:SpecialSetText(NONE or "NONE")
+                    editBox.realText = "NONE"
+                    return
+                end
+            elseif editBox.keybindingOnly and not editBox.keybindingOnly[arg1] then
+                return
+            elseif editBox.keybindingExcept and editBox.keybindingExcept[arg1] then
+                return
+            end
+            local s = GetBindingText(arg1, "KEY_")
+            if s == "BUTTON1" then
+                s = KEY_BUTTON1
+            elseif s == "BUTTON2" then
+                s = KEY_BUTTON2
+            end
+            local real = arg1
+            if IsShiftKeyDown() then
+                s = "Shift-" .. s
+                real = "SHIFT-" .. real
+            end
+            if IsControlKeyDown() then
+                s = "Ctrl-" .. s
+                real = "CTRL-" .. real
+            end
+            if IsAltKeyDown() then
+                s = "Alt-" .. s
+                real = "ALT-" .. real
+            end
+            if editBox:GetText() ~= s then
+                editBox:SpecialSetText("-")
+                editBox:SpecialSetText(s)
+                editBox.realText = real
+                return editBox:GetScript("OnTextChanged")()
+            end
+        end)
+        editBoxFrame:SetScript("OnMouseDown",
+                               editBoxFrame:GetScript("OnKeyDown"))
+        editBox:SetScript("OnMouseDown", function(self, ...)
+            if GetCursorInfo and (CursorHasItem() or CursorHasSpell()) then
+                return editBox:GetScript("OnReceiveDrag")(self, ...)
+            end
+            return editBoxFrame:GetScript("OnKeyDown")(self, ...)
+        end)
+        editBoxFrame:SetScript("OnMouseWheel", function(self, arg1)
+            local up = (arg1 > 0) and "MOUSEWHEELUP" or "MOUSEWHEELDOWN"
+            return editBoxFrame:GetScript("OnKeyDown")(self, up)
+        end)
+        editBox:SetScript("OnMouseWheel", editBoxFrame:GetScript("OnMouseWheel"))
+    end
+    editBoxFrame.parent = parent
+    editBoxFrame.level = parent.level.num + 1
+    editBoxFrame.parentValue = parent.level.value
+    editBoxFrame:SetFrameLevel(parent.level:GetFrameLevel() + 3)
+    editBoxFrame.editBox:SetFrameLevel(editBoxFrame:GetFrameLevel() + 1)
+    editBoxFrame.editBox.realText = nil
+    editBoxFrame:SetClampedToScreen(false)
+
+    editBoxFrame.editBox:SpecialSetText("")
+    if parent.editBoxIsKeybinding then
+        local s = parent.editBoxText
+        if s == "" then s = "NONE" end
+        editBoxFrame.editBox.realText = s
+        if s and s ~= "NONE" then
+            local alpha, bravo = s:match("^(.+)%-(.+)$")
+            if not bravo then
+                alpha = nil
+                bravo = s
+            end
+            bravo = GetBindingText(bravo, "KEY_")
+            if alpha then
+                editBoxFrame.editBox:SpecialSetText(
+                    alpha:upper() .. "-" .. bravo)
+            else
+                editBoxFrame.editBox:SpecialSetText(bravo)
+            end
+        else
+            editBoxFrame.editBox:SpecialSetText(NONE or "NONE")
+        end
+    else
+        editBoxFrame.editBox:SpecialSetText(parent.editBoxText)
+    end
+
+    editBoxFrame.editBox.keybinding = parent.editBoxIsKeybinding
+    editBoxFrame.editBox.keybindingOnly = parent.editBoxKeybindingOnly
+    editBoxFrame.editBox.keybindingExcept = parent.editBoxKeybindingExcept
+    editBoxFrame.editBox:EnableKeyboard(not parent.editBoxIsKeybinding)
+    editBoxFrame:EnableKeyboard(parent.editBoxIsKeybinding)
+
+    if parent.arrow then
+        --		parent.arrow:SetVertexColor(0.2, 0.6, 0)
+        --		parent.arrow:SetHeight(24)
+        --		parent.arrow:SetWidth(24)
+        parent.selected = true
+        parent.highlight:Show()
+    end
+
+    local level = parent.level
+    editBoxFrame:Show()
+    editBoxFrame:ClearAllPoints()
+    if level.lastDirection == "RIGHT" then
+        if level.lastVDirection == "DOWN" then
+            editBoxFrame:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 10)
+        else
+            editBoxFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMRIGHT", 5, -10)
+        end
+    else
+        if level.lastVDirection == "DOWN" then
+            editBoxFrame:SetPoint("TOPRIGHT", parent, "TOPLEFT", -5, 10)
+        else
+            editBoxFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMLEFT", -5, -10)
+        end
+    end
+    local dirty
+    if level.lastDirection == "RIGHT" then
+        if editBoxFrame:GetRight() > GetScreenWidth() then
+            level.lastDirection = "LEFT"
+            dirty = true
+        end
+    elseif editBoxFrame:GetLeft() < 0 then
+        level.lastDirection = "RIGHT"
+        dirty = true
+    end
+    if level.lastVDirection == "DOWN" then
+        if editBoxFrame:GetBottom() < 0 then
+            level.lastVDirection = "UP"
+            dirty = true
+        end
+    elseif editBoxFrame:GetTop() > GetScreenWidth() then
+        level.lastVDirection = "DOWN"
+        dirty = true
+    end
+    if dirty then
+        editBoxFrame:ClearAllPoints()
+        if level.lastDirection == "RIGHT" then
+            if level.lastVDirection == "DOWN" then
+                editBoxFrame:SetPoint("TOPLEFT", parent, "TOPRIGHT", 5, 10)
+            else
+                editBoxFrame:SetPoint("BOTTOMLEFT", parent, "BOTTOMRIGHT", 5,
+                                      -10)
+            end
+        else
+            if level.lastVDirection == "DOWN" then
+                editBoxFrame:SetPoint("TOPRIGHT", parent, "TOPLEFT", -5, 10)
+            else
+                editBoxFrame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMLEFT", -5,
+                                      -10)
+            end
+        end
+    end
+    local left, bottom = editBoxFrame:GetLeft(), editBoxFrame:GetBottom()
+    editBoxFrame:ClearAllPoints()
+    editBoxFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    if mod(level.num, 5) == 0 then
+        local left, bottom = level:GetLeft(), level:GetBottom()
+        level:ClearAllPoints()
+        level:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left, bottom)
+    end
+    editBoxFrame:SetClampedToScreen(true)
+end
 
 function Dewdrop:EncodeKeybinding(text)
     if text == nil or text == "NONE" then return nil end
@@ -1980,7 +3516,14 @@ function Open(parent, func, level, value, point, relativePoint, cursorX, cursorY
 
     if level == 1 then baseFunc = func end
     levels[level].value = value
+    --	levels[level].parentText = parent.text and parent.text:GetText() or nil
+    --	levels[level].parentTooltipTitle = parent.tooltipTitle
+    --	levels[level].parentTooltipText = parent.tooltipText
+    --	levels[level].parentTooltipFunc = parent.tooltipFunc
     if type(parent) == "table" and parent.arrow then
+        --		parent.arrow:SetVertexColor(0.2, 0.6, 0)
+        --		parent.arrow:SetHeight(24)
+        --		parent.arrow:SetWidth(24)
         parent.selected = true
         parent.highlight:Show()
     end
@@ -2003,6 +3546,97 @@ function Open(parent, func, level, value, point, relativePoint, cursorX, cursorY
         end
         frame:SetPoint(point, type(parent) == "table" and parent or UIParent,
                        relativePoint)
+        if cursorX and cursorY then
+            local left = frame:GetLeft()
+            local width = frame:GetWidth()
+            local bottom = frame:GetBottom()
+            local height = frame:GetHeight()
+            local curX, curY = GetScaledCursorPosition()
+            frame:ClearAllPoints()
+            relativePoint = relativePoint or point
+            if point == "BOTTOM" or point == "TOP" then
+                if curX < GetScreenWidth() / 2 then
+                    point = point .. "LEFT"
+                else
+                    point = point .. "RIGHT"
+                end
+            elseif point == "CENTER" then
+                if curX < GetScreenWidth() / 2 then
+                    point = "LEFT"
+                else
+                    point = "RIGHT"
+                end
+            end
+            local xOffset, yOffset = 0, 0
+            if curY > GetScreenHeight() / 2 then yOffset = -height end
+            if curX > GetScreenWidth() / 2 then xOffset = -width end
+            frame:SetPoint(point,
+                           type(parent) == "table" and parent or UIParent,
+                           relativePoint, curX - left + xOffset,
+                           curY - bottom + yOffset)
+            if level == 1 then frame.lastDirection = "RIGHT" end
+        elseif cursorX then
+            local left = frame:GetLeft()
+            local width = frame:GetWidth()
+            local curX, curY = GetScaledCursorPosition()
+            frame:ClearAllPoints()
+            relativePoint = relativePoint or point
+            if point == "BOTTOM" or point == "TOP" then
+                if curX < GetScreenWidth() / 2 then
+                    point = point .. "LEFT"
+                else
+                    point = point .. "RIGHT"
+                end
+            elseif point == "CENTER" then
+                if curX < GetScreenWidth() / 2 then
+                    point = "LEFT"
+                else
+                    point = "RIGHT"
+                end
+            end
+            frame:SetPoint(point,
+                           type(parent) == "table" and parent or UIParent,
+                           relativePoint, curX - left - width / 2, 0)
+            if level == 1 then frame.lastDirection = "RIGHT" end
+        elseif cursorY then
+            local bottom = frame:GetBottom()
+            local height = frame:GetHeight()
+            local curX, curY = GetScaledCursorPosition()
+            frame:ClearAllPoints()
+            relativePoint = relativePoint or point
+            if point == "LEFT" or point == "RIGHT" then
+                if curX < GetScreenHeight() / 2 then
+                    point = point .. "BOTTOM"
+                else
+                    point = point .. "TOP"
+                end
+            elseif point == "CENTER" then
+                if curX < GetScreenHeight() / 2 then
+                    point = "BOTTOM"
+                else
+                    point = "TOP"
+                end
+            end
+            frame:SetPoint(point,
+                           type(parent) == "table" and parent or UIParent,
+                           relativePoint, 0, curY - bottom - height / 2)
+            if level == 1 then frame.lastDirection = "DOWN" end
+        end
+        if (strsub(point, 1, 3) ~= strsub(relativePoint, 1, 3)) then
+            if frame:GetBottom() < 0 then
+                local point, parent, relativePoint, x, y = frame:GetPoint(1)
+                local change = GetScreenHeight() - frame:GetTop()
+                local otherChange = -frame:GetBottom()
+                if otherChange < change then change = otherChange end
+                frame:SetPoint(point, parent, relativePoint, x, y + change)
+            elseif frame:GetTop() > GetScreenHeight() then
+                local point, parent, relativePoint, x, y = frame:GetPoint(1)
+                local change = GetScreenHeight() - frame:GetTop()
+                local otherChange = -frame:GetBottom()
+                if otherChange < change then change = otherChange end
+                frame:SetPoint(point, parent, relativePoint, x, y + change)
+            end
+        end
     end
     CheckDualMonitor(frame)
     frame:SetClampedToScreen(true)
@@ -2091,8 +3725,11 @@ function Dewdrop:Close(level)
     if level > 1 and levels[level - 1] and levels[level - 1].scrollFrame.child.buttons then
         local buttons = levels[level - 1].scrollFrame.child.buttons
         for _, button in ipairs(buttons) do
+            --			button.arrow:SetWidth(16)
+            --			button.arrow:SetHeight(16)
             button.selected = nil
             button.highlight:Hide()
+            --			button.arrow:SetVertexColor(1, 1, 1)
         end
     end
     if sliderFrame and sliderFrame.level >= level then sliderFrame:Hide() end
@@ -2301,6 +3938,8 @@ function Dewdrop:AddLine(...)
             button.value = info.value
             local l = levels[level + 1]
             if l and info.value == l.value then
+                --				button.arrow:SetWidth(24)
+                --				button.arrow:SetHeight(24)
                 button.selected = true
                 button.highlight:Show()
             end
@@ -2317,11 +3956,17 @@ function Dewdrop:AddLine(...)
         i = i + 1
     end
     button.closeWhenClicked = info.closeWhenClicked
+    --	button.textHeight = info.textHeight or UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT or 10
 
     local fontsize = self.fontsize
     local fontcolor
 
     button.textHeight = fontsize
+    -- button.text:SetFont("Fonts\\MORPHEUS.TTF",button.textHeight)
+    --	local font,_ = button.text:GetFont()
+    --	print("FONT "..font)	
+    -- button.text:SetFont("Fonts\\FRIZQT__.TTF", 4, "OUTLINE")
+    -- button.text:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF", button.textHeight)
 
     if button.isTitle then
         button.text:SetFont(options.fonts.title.ttf, fontsize)
@@ -2338,8 +3983,19 @@ function Dewdrop:AddLine(...)
     end
 
     button.text:SetTextColor(unpack(fontcolor))
+    --	button.text:SetTextColor(fontcolor)
+
+    -- if info.textR and info.textG and info.textB then
+    -- 	button.textR = info.textR
+    -- 	button.textG = info.textG
+    -- 	button.textB = info.textB
+    -- 	button.text:SetTextColor(button.textR, button.textG, button.textB)
+    -- else
+    -- 	button.text:SetTextColor(fontcolor)
+    -- end
 
     button:SetHeight(button.textHeight + 6)
+    -- button:SetHeight( 6)
 
     button.text:SetPoint("RIGHT", button.arrow, (button.hasColorSwatch or
                              button.hasArrow) and "LEFT" or "RIGHT")
@@ -2428,13 +4084,23 @@ local function activate()
     hooksecurefunc("HideDropDownMenu", function()
         if levels[1] and levels[1]:IsVisible() then Dewdrop:Close() end
     end)
+    --[[
+		hooksecurefunc("CloseDropDownMenus", function()
+			if levels[1] and levels[1]:IsVisible() then
+				local stack = debugstack()
+				if not stack:find("`TargetFrame_OnHide'") then
+					Dewdrop:Close()
+				end
+			end
+		end)
+--]]
 
     self.frame = CreateFrame("Frame")
     self.frame:UnregisterAllEvents()
     self.frame:RegisterEvent("PLAYER_REGEN_ENABLED")
     self.frame:RegisterEvent("PLAYER_REGEN_DISABLED")
     self.frame:SetScript("OnEvent", function(self, event)
-        if event == "PLAYER_REGEN_ENABLED" then
+        if event == "PLAYER_REGEN_ENABLED" then -- track combat state for secure frame operations
             self.combat = false
         elseif event == "PLAYER_REGEN_DISABLED" then
             self.combat = true
@@ -2467,10 +4133,10 @@ local function activate()
             title = {
                 ttf = STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF",
                 size = 11,
-                color = {0.2, 1, 1, 1}
+                color = {0.2, 1, 1, 1} -- GameFontNormal:GetTextColor()},
             },
             notClickable = {
-                ttf = "Fonts\\ARIALN.ttf",
+                ttf = "Fonts\\ARIALN.ttf", -- MORPHEUS.TTF",
                 size = 6,
                 color = {GameFontNormalMed3:GetTextColor()}
             },
@@ -2538,7 +4204,7 @@ function Dewdrop:error(message, ...)
         local second = stack:match("\n(.-)\n")
         message = "error raised! " .. second
     else
-        local arg = {...}
+        local arg = {...} -- not worried about table creation, as errors don't happen often
 
         for i = 1, #arg do arg[i] = tostring(arg[i]) end
         for i = 1, 10 do table.insert(arg, "nil") end
