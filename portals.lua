@@ -425,6 +425,11 @@ end
 frame:SetScript('OnEvent', function(self, event, ...) if self[event] then return self[event](self, event, ...) end end)
 frame:RegisterEvent('PLAYER_LOGIN')
 
+-- Helper function to extract item ID from item link
+local function GetItemIDFromLink(itemlink)
+    return tonumber(tostring(itemlink):match("item:(%d+)"))
+end
+
 local function BPToggleMinimap()
     local hide = not PortalsDB.minimap.hide
     PortalsDB.minimap.hide = hide
@@ -606,10 +611,6 @@ end
 local function tconcat(t1, t2)
     for i = 1, #t2 do t1[#t1 + 1] = t2[i] end
     return t1
-end
-
-local function GetItemIDFromLink(itemlink)
-    return tonumber(tostring(itemlink):match("item:(%d+)"))
 end
 
 -- returns true, if player has item with given ID in inventory or bags and it's not on cooldown
@@ -968,9 +969,7 @@ local function ShowMenuEntries(category, sortTable)
                     'textB',        menuEntry.itemRGB.b,
                     'secure',       menuEntry.secure,
                     'icon',         tostring(menuEntry.itemIcon),
-                    'func',         function()
-                        UpdateIcon(menuEntry.itemIcon)
-                    end,
+                    'func',         function() UpdateIcon(menuEntry.itemIcon) end,
                     'closeWhenClicked', true)
             end
         end
@@ -1213,7 +1212,13 @@ end
 
 function obj.OnClick(self, button)
     GameTooltip:Hide()
-    if button == 'RightButton' then dewdrop:Open(self, 'children', function(level, value) UpdateMenu(level, value) end) end
+    if button == 'LeftButton' or button == 'RightButton' then
+        if dewdrop:IsOpen(self) then
+            dewdrop:Close()
+        else
+            dewdrop:Open(self, 'children', function(level, value) UpdateMenu(level, value) end)
+        end
+    end
 end
 
 function obj.OnLeave() GameTooltip:Hide() end
