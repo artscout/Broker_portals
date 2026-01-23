@@ -3,9 +3,10 @@ local addonName, addonTable = ...
 --[[
 Name: LibDewdrop-3.0
 Description: A library to provide a clean dropdown menu interface.
+Supports both UIDropDownMenu (pre-12.0.0) and MenuUtil.CreateContextMenu (12.0.0+)
 ]]
 
---[[ ORIGINAL ACE2 BASED LIBRAY
+--[[ ORIGINAL ACE2 BASED LIBRARY
 Name: Dewdrop-2.0
 Author(s): ckknight (ckknight@gmail.com)
 Website: http://ckknight.wowinterface.com/
@@ -15,12 +16,23 @@ Dependencies: AceLibrary
 License: LGPL v2.1
 ]]
 
-local Dewdrop = LibStub:NewLibrary("LibDewdrop-3.0", 1)
+local Dewdrop = LibStub:NewLibrary("LibDewdrop-3.0", 2)
 
 Dewdrop.scrollListSize = 33
 
 if not Dewdrop then
     return -- already loaded and no upgrade necessary
+end
+
+-- Detect which menu system to use
+local USE_NEW_MENU_SYSTEM = (MenuUtil ~= nil and MenuUtil.CreateContextMenu ~= nil)
+
+-- Compatibility wrapper for GetMouseFocus (removed in WoW 12.0.0)
+-- In 12.0.0+, GetMouseFoci() returns a table of frames under the mouse
+-- We provide a wrapper that returns the first frame for backward compatibility
+local GetMouseFocus = GetMouseFocus or function()
+    local mouseFoci = GetMouseFoci and GetMouseFoci()
+    return mouseFoci and mouseFoci[1] or nil
 end
 
 local function new(...)
@@ -181,6 +193,810 @@ local levels
 local buttons
 local options
 
+-- ============================================================================
+-- NEW MENU SYSTEM (MenuUtil) IMPLEMENTATION - WoW 12.0.0+
+-- ============================================================================
+
+if USE_NEW_MENU_SYSTEM then
+
+-- State for building menus
+local menuState = {
+    lines = {},           -- Accumulated lines for current level
+    levelLines = {},      -- Lines organized by level
+    currentLevel = nil,
+    baseFunc = nil,
+    openMenu = nil,       -- Reference to the currently open menu
+    anchor = nil,
+    savedOnEnter = nil,   -- Saved OnEnter script from anchor frame
+}
+
+-- Custom font object for menu items
+-- We create a font object that inherits from GameFontHighlight but with a custom size
+-- This is used by SetFontObject() since SetFont() is disallowed on compositor font strings
+local customMenuFont = CreateFont("LibDewdrop30MenuFont")
+customMenuFont:CopyFontObject(GameFontHighlight)
+
+-- Helper function to update the custom font object with the current font size
+local function UpdateCustomMenuFont()
+    local fontFile, _, fontFlags = GameFontHighlight:GetFont()
+    local fontSize = Dewdrop.fontsize or 14
+    customMenuFont:SetFont(fontFile, fontSize, fontFlags)
+end
+
+-- Initialize the font with default size
+UpdateCustomMenuFont()
+
+-- Secure button frame for spell/item casting
+-- This frame overlays menu buttons on hover so the user's click goes to the secure button
+local secureFrame = CreateFrame("Button", "LibDewdrop30SecureButton", UIParent, "SecureActionButtonTemplate")
+secureFrame:Hide()
+secureFrame:SetSize(1, 1)
+secureFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+secureFrame.owner = nil
+secureFrame.secure = nil
+secureFrame.lineData = nil
+
+-- Show the secure frame overlaid on the owner button
+local function secureFrame_Show(self)
+    local owner = self.owner
+    if not owner then return end
+
+    -- Clear any leftover attributes from previous owner
+    if self.secure then
+        for k, v in pairs(self.secure) do
+            self:SetAttribute(k, nil)
+        end
+    end
+
+    -- Grab new secure data
+    self.secure = owner.secureData
+    if not self.secure then return end
+
+    -- Position secureFrame to cover the owner button exactly
+    -- We use SetPoint with the owner as the anchor - this handles scaling automatically
+    self:ClearAllPoints()
+    -- Keep UIParent as parent but anchor to the owner button's corners
+    self:SetParent(UIParent)
+    self:SetPoint("TOPLEFT", owner, "TOPLEFT", 0, 0)
+    self:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
+
+    -- Set up secure attributes
+    for k, v in pairs(self.secure) do
+        self:SetAttribute(k, v)
+    end
+
+    -- Register for ALL click types to ensure we capture the click
+    -- Include both Up and Down variants for maximum compatibility
+    self:RegisterForClicks("AnyUp", "AnyDown")
+
+    -- Match the owner's frame strata but higher level to be on top
+    local strata = owner:GetFrameStrata()
+    local level = owner:GetFrameLevel()
+    self:SetFrameStrata(strata)
+    self:SetFrameLevel(level + 10)
+
+    self:EnableMouse(true)
+    self:Show()
+
+    -- Show the owner button's highlight since secureFrame now covers it
+    -- MenuUtil buttons have a highlight texture created by MenuVariants.CreateHighlight()
+    if owner.highlight then
+        owner.highlight:Show()
+        -- Get description for alpha (enabled buttons get full alpha, disabled get reduced)
+        local description = owner.GetElementDescription and owner:GetElementDescription()
+        if description then
+            local alpha = description:IsEnabled() and 1 or (MenuVariants and MenuVariants.DisabledHighlightOpacity or 0.4)
+            owner.highlight:SetAlpha(alpha)
+        end
+    end
+end
+
+-- Hide the secure frame and clear attributes
+local function secureFrame_Hide(self)
+    self:Hide()
+    if self.secure then
+        for k, v in pairs(self.secure) do
+            self:SetAttribute(k, nil)
+        end
+    end
+    self.secure = nil
+    self:ClearAllPoints()
+
+    -- Hide the owner button's highlight when secureFrame is hidden
+    -- (unless we're switching to a new owner, which will show its own highlight)
+    if self.owner and self.owner.highlight then
+        self.owner.highlight:Hide()
+    end
+end
+
+-- Activate the secure frame for a menu button
+function secureFrame:Activate(owner)
+    if InCombatLockdown() then return end
+
+    -- Deactivate any previous owner
+    if self.owner and self.owner ~= owner then
+        secureFrame_Hide(self)
+    end
+
+    self.owner = owner
+    self.lineData = owner.lineData
+    secureFrame_Show(self)
+end
+
+-- Deactivate the secure frame
+function secureFrame:Deactivate()
+    if InCombatLockdown() then return end
+    secureFrame_Hide(self)
+    self.owner = nil
+    self.lineData = nil
+end
+
+-- Check if this frame is owned by a specific button
+function secureFrame:IsOwnedBy(frame)
+    return self.owner == frame
+end
+
+-- OnEnter handler: show tooltip from lineData
+-- This is needed because the secureFrame covers the button, so the button's tooltip doesn't show
+secureFrame:SetScript("OnEnter", function(self)
+    local lineData = self.lineData
+    if not lineData then return end
+
+    -- Show tooltip if we have tooltip data
+    if lineData.tooltipTitle or lineData.tooltipText then
+        -- Use the owner button as the anchor for the tooltip
+        local anchor = self.owner or self
+        GameTooltip:SetOwner(anchor, "ANCHOR_NONE")
+        GameTooltip:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 5, 0)
+
+        if lineData.tooltipTitle then
+            GameTooltip:SetText(lineData.tooltipTitle, 1, 1, 1, 1)
+            if lineData.tooltipText then
+                GameTooltip:AddLine(lineData.tooltipText, NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b, 1)
+            end
+        else
+            GameTooltip:SetText(lineData.tooltipText, 1, 1, 1, 1)
+        end
+        GameTooltip:Show()
+    end
+end)
+
+-- OnLeave handler: deactivate and delegate to owner's OnLeave
+secureFrame:SetScript("OnLeave", function(self)
+    local owner = self.owner
+
+    -- Check if mouse moved back to the owner button - if so, don't deactivate
+    -- This prevents flickering when mouse moves between secureFrame and owner
+    local mouseFocus = GetMouseFocus()
+    if mouseFocus == owner then return end
+
+    -- Hide the tooltip when leaving the secure frame
+    GameTooltip:Hide()
+
+    -- Hide the owner button's highlight before deactivating
+    -- This ensures the highlight disappears when mouse leaves the secure item
+    if owner and owner.highlight then
+        owner.highlight:Hide()
+    end
+
+    self:Deactivate()
+
+    -- Call the owner's original OnLeave if it exists
+    if owner then
+        local onLeave = owner:GetScript("OnLeave")
+        if onLeave then
+            onLeave(owner)
+        end
+    end
+end)
+
+-- OnClick handler: close menu and call any callback
+secureFrame:HookScript("OnClick", function(self, button, down)
+    -- Capture lineData immediately - it may be cleared by Deactivate later
+    local lineData = self.lineData
+    -- Also try to get it from the owner as a fallback
+    if not lineData and self.owner then
+        lineData = self.owner.lineData
+    end
+
+    -- Close the menu after the secure action executes
+    if menuState.openMenu then
+        -- Use C_Timer to close menu after the secure action completes
+        C_Timer.After(0, function()
+            Dewdrop:Close()
+        end)
+    end
+
+    -- Call the line's callback function if it exists
+    if lineData and lineData.func then
+        if type(lineData.func) == "function" then
+            lineData.func(lineData.arg1, lineData.arg2, lineData.arg3, lineData.arg4)
+        end
+    end
+end)
+
+-- Helper function to apply custom font size to a menu element
+-- This uses SetFontObject() which is allowed (SetFont() is disallowed on compositor font strings)
+-- Also adjusts button height to prevent text overlap at larger font sizes
+local function ApplyCustomFontSize(element)
+    -- Always add the initializer - the custom font object already has the correct size
+    -- This ensures font size changes take effect immediately when the setting changes
+    element:AddInitializer(function(button, description, menu)
+        local fontString = button.fontString or button.Text
+        if fontString and fontString.SetFontObject then
+            fontString:SetFontObject(customMenuFont)
+        end
+
+        -- Adjust button height based on font size to prevent text overlap
+        -- Default font size is 14, default row height is ~20 (font + 6px padding)
+        local fontSize = Dewdrop.fontsize or 14
+        local buttonHeight = fontSize + 6
+        if button.SetHeight then
+            button:SetHeight(buttonHeight)
+        end
+    end)
+end
+
+-- Helper function to add an icon to a menu element using AddInitializer
+local function AddIconToElement(element, icon)
+    if not icon then return end
+    element:AddInitializer(function(button, description, menu)
+        local texture = button:AttachTexture()
+        texture:SetSize(16, 16)
+        -- Position icon inside the button with small left padding
+        texture:SetPoint("LEFT", button, "LEFT", 4, 0)
+        if type(icon) == "number" then
+            texture:SetTexture(icon)
+        else
+            texture:SetTexture(icon)
+        end
+        -- Crop icons that come from the Icons folder
+        if type(icon) == "string" and icon:find("^Interface\\Icons\\") then
+            texture:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+        end
+        -- Find and indent the text fontstring to make room for the icon
+        -- MenuUtil buttons have a fontString member or we can find it
+        local fontString = button.fontString or button.Text or button:GetFontString()
+        if fontString then
+            -- Add left padding to text so it starts after the icon (icon is 16px + 4px padding + 4px gap = 24px)
+            fontString:SetPoint("LEFT", button, "LEFT", 24, 0)
+        end
+    end)
+end
+
+-- Helper to add the secure overlay initializer to a menu button
+-- IMPORTANT: This function MUST be called AFTER SetTooltip() if tooltips are used!
+--
+-- The Menu system's HookOnEnter() works as follows:
+--   1. If self.onEnter exists, it uses hooksecurefunc() to hook into the existing function
+--   2. If self.onEnter is nil, it just calls SetOnEnter() to set the callback
+--
+-- SetTooltip() internally calls SetOnEnter(), which REPLACES self.onEnter entirely.
+-- If we call HookOnEnter before SetTooltip:
+--   - HookOnEnter sees self.onEnter is nil, so it calls SetOnEnter(ourCallback)
+--   - Then SetTooltip calls SetOnEnter(tooltipCallback), REPLACING ourCallback
+--   - Our callback is lost!
+--
+-- If we call HookOnEnter AFTER SetTooltip:
+--   - SetTooltip calls SetOnEnter(tooltipCallback), setting self.onEnter
+--   - HookOnEnter sees self.onEnter exists, so it uses hooksecurefunc()
+--   - Both callbacks run: tooltipCallback first, then ourCallback
+--
+local function AddSecureOverlayToElement(element, line)
+    -- Use AddInitializer to store secure data on the button frame
+    element:AddInitializer(function(button, description, menu)
+        -- Store secure data and line data on the button for the overlay to access
+        button.secureData = line.secure
+        button.lineData = line
+    end)
+
+    -- Use HookOnEnter to add our callback.
+    -- If SetTooltip was called first, this will properly hook into the existing onEnter.
+    -- If no tooltip exists, this will just set onEnter directly.
+    element:HookOnEnter(function(button, description)
+        -- Activate secure overlay if not in combat
+        if button.secureData and not InCombatLockdown() then
+            secureFrame:Activate(button)
+        end
+    end)
+
+    -- Also hook OnLeave to handle the secure frame when mouse leaves the button
+    -- This hook runs AFTER the button's original OnLeave, which hides the highlight
+    element:HookOnLeave(function(button, description)
+        if secureFrame:IsOwnedBy(button) then
+            local mouseFocus = GetMouseFocus()
+            if mouseFocus == secureFrame then
+                -- Mouse moved to secureFrame - re-show the highlight that OnButtonLeave just hid
+                -- This is needed because our hook runs AFTER the original OnLeave
+                if button.highlight then
+                    button.highlight:Show()
+                    local alpha = description:IsEnabled() and 1 or (MenuVariants and MenuVariants.DisabledHighlightOpacity or 0.4)
+                    button.highlight:SetAlpha(alpha)
+                end
+                return
+            end
+            -- Mouse left to somewhere else - deactivate the secure frame
+            secureFrame:Deactivate()
+        end
+    end)
+end
+
+-- Helper to add menu items recursively
+local function AddMenuItemsFromLines(parentDesc, lines, levelValue)
+    for _, line in ipairs(lines) do
+        if line.isTitle then
+            -- Title (non-interactive header)
+            if line.text and line.text ~= "" then
+                local title = parentDesc:CreateTitle(line.text)
+                ApplyCustomFontSize(title)
+            else
+                parentDesc:CreateDivider()
+            end
+        elseif not line.text or line.text == "" then
+            -- Divider/separator
+            parentDesc:CreateDivider()
+        elseif line.hasArrow and line.value then
+            -- Submenu
+            local submenuButton = parentDesc:CreateButton(line.text)
+            ApplyCustomFontSize(submenuButton)
+            if line.icon then
+                AddIconToElement(submenuButton, line.icon)
+            end
+            submenuButton:SetOnEnter(function(_, desc)
+                desc:ForceOpenSubmenu()
+            end)
+            -- Populate the submenu by re-running the children function for this submenu level
+            -- In MenuUtil, submenu items are added directly to the button element
+            if menuState.baseFunc then
+                local savedLevel = menuState.currentLevel
+                local savedLines = menuState.levelLines
+                menuState.levelLines = {}
+                menuState.currentLevel = (menuState.currentMenuLevel or 1) + 1
+                menuState.levelLines[menuState.currentLevel] = {}
+                menuState.baseFunc(menuState.currentLevel, line.value)
+                local subLines = menuState.levelLines[menuState.currentLevel] or {}
+                AddMenuItemsFromLines(submenuButton, subLines, line.value)
+                -- Restore state
+                menuState.currentLevel = savedLevel
+                menuState.levelLines = savedLines
+            end
+        elseif line.checked ~= nil and not line.notCheckable then
+            -- Checkbox item
+            local checkbox = parentDesc:CreateCheckbox(
+                line.text,
+                function() return line.checked end,
+                function(data)
+                    if line.func then
+                        if type(line.func) == "function" then
+                            line.func(line.arg1, line.arg2, line.arg3, line.arg4)
+                        end
+                    end
+                    if line.closeWhenClicked then
+                        return MenuResponse.Close
+                    end
+                end
+            )
+            ApplyCustomFontSize(checkbox)
+            if line.icon then
+                AddIconToElement(checkbox, line.icon)
+            end
+            if line.disabled then
+                checkbox:SetEnabled(false)
+            end
+            if line.tooltipTitle or line.tooltipText then
+                checkbox:SetTooltip(function(tooltip, desc)
+                    if line.tooltipTitle then
+                        GameTooltip_SetTitle(tooltip, line.tooltipTitle)
+                    end
+                    if line.tooltipText then
+                        GameTooltip_AddNormalLine(tooltip, line.tooltipText)
+                    end
+                end)
+            end
+        elseif line.secure then
+            -- Secure action button (spell/item/toy)
+            -- We create a regular button but overlay the secureFrame on hover
+            -- so the user's click goes to the secure button directly
+            local btn = parentDesc:CreateButton(line.text)
+            ApplyCustomFontSize(btn)
+
+            if line.icon then
+                AddIconToElement(btn, line.icon)
+            end
+
+            -- Disable during combat lockdown (can't set secure attributes)
+            if line.disabled or InCombatLockdown() then
+                btn:SetEnabled(false)
+            end
+
+            -- IMPORTANT: SetTooltip MUST be called BEFORE AddSecureOverlayToElement!
+            -- SetTooltip() internally calls SetOnEnter() which REPLACES self.onEnter.
+            -- If we call HookOnEnter first (when self.onEnter is nil), it just calls SetOnEnter.
+            -- Then when SetTooltip calls SetOnEnter, it OVERWRITES our callback completely.
+            -- By calling SetTooltip first, self.onEnter exists when HookOnEnter runs,
+            -- so hooksecurefunc properly hooks into the existing function.
+            if line.tooltipTitle or line.tooltipText then
+                btn:SetTooltip(function(tooltip, desc)
+                    if line.tooltipTitle then
+                        GameTooltip_SetTitle(tooltip, line.tooltipTitle)
+                    end
+                    if line.tooltipText then
+                        GameTooltip_AddNormalLine(tooltip, line.tooltipText)
+                    end
+                end)
+            end
+
+            -- Add the secure overlay initializer - this hooks OnEnter to show the overlay
+            -- MUST be called AFTER SetTooltip so HookOnEnter can properly hook the existing onEnter
+            AddSecureOverlayToElement(btn, line)
+        else
+            -- Regular button
+            local regularCallback = function(data)
+                if line.func then
+                    if type(line.func) == "function" then
+                        line.func(line.arg1, line.arg2, line.arg3, line.arg4)
+                    end
+                end
+                if line.closeWhenClicked then
+                    return MenuResponse.Close
+                end
+            end
+            local btn = parentDesc:CreateButton(line.text, regularCallback)
+            ApplyCustomFontSize(btn)
+            if line.icon then
+                AddIconToElement(btn, line.icon)
+            end
+            if line.disabled or line.notClickable then
+                btn:SetEnabled(false)
+            end
+            if line.tooltipTitle or line.tooltipText then
+                btn:SetTooltip(function(tooltip, desc)
+                    if line.tooltipTitle then
+                        GameTooltip_SetTitle(tooltip, line.tooltipTitle)
+                    end
+                    if line.tooltipText then
+                        GameTooltip_AddNormalLine(tooltip, line.tooltipText)
+                    end
+                end)
+            end
+        end
+    end
+end
+
+Dewdrop.fontsize = 14
+
+function Dewdrop:SetFontSize(fontSize)
+    Dewdrop.fontsize = tonumber(fontSize)
+    -- Update the custom font object with the new size
+    UpdateCustomMenuFont()
+end
+
+function Dewdrop:SetScrollListSize(scrollListSize)
+    Dewdrop.scrollListSize = scrollListSize
+end
+
+function Dewdrop:IsOpen(parent)
+    return menuState.openMenu ~= nil
+end
+
+function Dewdrop:GetOpenedParent()
+    return menuState.anchor
+end
+
+-- Helper function to restore the anchor's OnEnter script
+local function RestoreAnchorOnEnter()
+    if menuState.anchor and menuState.savedOnEnter ~= nil then
+        -- Restore the original OnEnter script
+        -- savedOnEnter is false if no script was set, or a function if one was set
+        if type(menuState.anchor) == "table" and menuState.anchor.SetScript then
+            local scriptToRestore = menuState.savedOnEnter
+            if scriptToRestore == false then
+                scriptToRestore = nil  -- Convert sentinel back to nil
+            end
+            menuState.anchor:SetScript("OnEnter", scriptToRestore)
+        end
+    end
+    menuState.savedOnEnter = nil
+end
+
+function Dewdrop:Close(level)
+    -- Deactivate the secure overlay if it's showing
+    if secureFrame.owner then
+        secureFrame:Deactivate()
+    end
+
+    -- Restore the anchor's OnEnter script before clearing state
+    RestoreAnchorOnEnter()
+
+    -- Close the actual menu if open
+    if menuState.openMenu and menuState.openMenu:IsShown() then
+        Menu.GetManager():CloseMenu(menuState.openMenu)
+    end
+
+    -- Clear our state
+    menuState.lines = {}
+    menuState.levelLines = {}
+    menuState.currentLevel = nil
+    menuState.baseFunc = nil
+    menuState.openMenu = nil
+    menuState.anchor = nil
+end
+
+function Dewdrop:AddSeparator(level)
+    level = level or menuState.currentLevel or 1
+    if not menuState.levelLines[level] then
+        menuState.levelLines[level] = {}
+    end
+    table.insert(menuState.levelLines[level], { text = "", disabled = true })
+end
+
+function Dewdrop:AddLine(...)
+    local info = tmp(...)
+    local level = info.level or menuState.currentLevel or 1
+    info.level = nil
+
+    if not menuState.levelLines[level] then
+        menuState.levelLines[level] = {}
+    end
+
+    -- Store the line info for later menu building
+    local lineInfo = {
+        text = info.text,
+        isTitle = info.isTitle,
+        disabled = info.isTitle or info.notClickable or info.disabled,
+        notClickable = info.notClickable,
+        notCheckable = info.notCheckable,
+        checked = info.checked,
+        isRadio = info.isRadio,
+        hasArrow = info.hasArrow,
+        value = info.value,
+        func = info.func,
+        arg1 = info.arg1,
+        arg2 = info.arg2,
+        arg3 = info.arg3,
+        arg4 = info.arg4,
+        secure = info.secure,
+        icon = info.icon,
+        closeWhenClicked = info.closeWhenClicked,
+        tooltipTitle = info.tooltipTitle,
+        tooltipText = info.tooltipText,
+        hasColorSwatch = info.hasColorSwatch,
+        hasSlider = info.hasSlider,
+        hasEditBox = info.hasEditBox,
+    }
+
+    table.insert(menuState.levelLines[level], lineInfo)
+end
+
+function Dewdrop:Open(parent, ...)
+    self:argCheck(parent, 2, "table", "string")
+
+    -- Hide any existing tooltip before opening the menu
+    GameTooltip:Hide()
+
+    local info
+    local k1 = ...
+    if type(k1) == "table" and k1[0] and k1.IsObjectType and self.registry and self.registry[k1] then
+        info = tmp(select(2, ...))
+        for k, v in pairs(self.registry[k1]) do
+            if info[k] == nil then info[k] = v end
+        end
+    else
+        info = tmp(...)
+        if self.registry and self.registry[parent] then
+            for k, v in pairs(self.registry[parent]) do
+                if info[k] == nil then info[k] = v end
+            end
+        end
+    end
+
+    -- Clear previous state (this also restores any previous anchor's OnEnter)
+    RestoreAnchorOnEnter()
+    menuState.lines = {}
+    menuState.levelLines = {}
+    menuState.levelLines[1] = {}
+    menuState.currentLevel = 1
+    menuState.currentMenuLevel = 1
+    menuState.baseFunc = info.children
+    menuState.anchor = parent
+
+    -- Save and replace the parent's OnEnter script to prevent tooltip from showing while menu is open
+    -- Use false as a sentinel to indicate "no script was set" vs nil meaning "not saved yet"
+    if type(parent) == "table" and parent.GetScript and parent.SetScript then
+        local originalOnEnter = parent:GetScript("OnEnter")
+        menuState.savedOnEnter = originalOnEnter or false
+        -- Replace with a function that hides tooltip (in case something else shows it)
+        parent:SetScript("OnEnter", function(self)
+            GameTooltip:Hide()
+        end)
+    end
+
+    -- Create the menu description using the lower-level API for explicit anchor support
+    local menuMixin = MenuVariants.GetDefaultContextMenuMixin()
+    local elementDescription = MenuUtil.CreateRootMenuDescription(menuMixin)
+
+    -- Populate the menu by calling the children function
+    if menuState.baseFunc then
+        menuState.baseFunc(1, nil)
+    end
+
+    -- Add all accumulated lines to the menu description
+    local lines = menuState.levelLines[1] or {}
+    AddMenuItemsFromLines(elementDescription, lines, nil)
+
+    -- Create anchor: menu's TOPRIGHT at parent's BOTTOMRIGHT (menu expands left and down)
+    local anchor = CreateAnchor("TOPRIGHT", parent, "BOTTOMRIGHT", 0, 0)
+
+    -- Open the menu with explicit anchor positioning
+    local menu = Menu.GetManager():OpenMenu(parent, elementDescription, anchor)
+
+    if menu then
+        -- Hook OnHide for cleanup (deactivate secure overlay and restore OnEnter when menu closes)
+        menu:HookScript("OnHide", function()
+            -- Deactivate the secure overlay if it's showing
+            if secureFrame.owner then
+                secureFrame:Deactivate()
+            end
+            RestoreAnchorOnEnter()
+        end)
+        menuState.openMenu = menu
+    end
+end
+
+function Dewdrop:Refresh(level)
+    -- MenuUtil rebuilds menus automatically, nothing to do
+end
+
+function Dewdrop:IsRegistered(parent)
+    self:argCheck(parent, 2, "table", "string")
+    return self.registry and self.registry[parent] ~= nil
+end
+
+function Dewdrop:SmartAnchorTo(frame)
+    -- MenuUtil handles anchoring automatically
+end
+
+-- Stub functions for compatibility
+function Dewdrop:FeedAceOptionsTable(options, difference)
+    -- Not implemented for new menu system
+    return false
+end
+
+function Dewdrop:FeedTable(s, difference)
+    -- Not implemented for new menu system
+    return false
+end
+
+function Dewdrop:EncodeKeybinding(text)
+    if text == nil or text == "NONE" then return nil end
+    text = tostring(text):upper()
+    local shift, ctrl, alt
+    local modifier
+    while true do
+        if text == "-" then break end
+        modifier, text = strsplit('-', text, 2)
+        if text then
+            if modifier ~= "SHIFT" and modifier ~= "CTRL" and modifier ~= "ALT" then
+                return false
+            end
+            if modifier == "SHIFT" then
+                if shift then return false end
+                shift = true
+            end
+            if modifier == "CTRL" then
+                if ctrl then return false end
+                ctrl = true
+            end
+            if modifier == "ALT" then
+                if alt then return false end
+                alt = true
+            end
+        else
+            text = modifier
+            break
+        end
+    end
+    if not text:find("^F%d+$") and text ~= "CAPSLOCK" and text:len() ~= 1 and
+        (text:len() == 0 or text:byte() < 128 or text:len() > 4) and
+        not _G["KEY_" .. text] and text ~= "BUTTON1" and text ~= "BUTTON2" then
+        return false
+    end
+    local s = GetBindingText(text, "KEY_")
+    if s == "BUTTON1" then
+        s = KEY_BUTTON1
+    elseif s == "BUTTON2" then
+        s = KEY_BUTTON2
+    end
+    if shift then s = "Shift-" .. s end
+    if ctrl then s = "Ctrl-" .. s end
+    if alt then s = "Alt-" .. s end
+    return s
+end
+
+function Dewdrop:OnTooltipHide()
+    -- Nothing needed for new menu system
+end
+
+-- Initialize
+local function activate()
+    local self = Dewdrop
+    self.registry = self.registry or {}
+    self.onceRegistered = self.onceRegistered or {}
+end
+
+activate()
+
+function Dewdrop:argCheck(arg, num, kind, kind2, kind3, kind4, kind5)
+    if type(num) ~= "number" then
+        return error(self,
+                     "Bad argument #3 to `argCheck' (number expected, got %s)",
+                     type(num))
+    elseif type(kind) ~= "string" then
+        return error(self,
+                     "Bad argument #4 to `argCheck' (string expected, got %s)",
+                     type(kind))
+    end
+    arg = type(arg)
+    if arg ~= kind and arg ~= kind2 and arg ~= kind3 and arg ~= kind4 and arg ~=
+        kind5 then
+        local stack = debugstack()
+        local func = stack:match("`argCheck'.-([`<].-['>])")
+        if not func then func = stack:match("([`<].-['>])") end
+        if kind5 then
+            return error(self,
+                         "Bad argument #%s to %s (%s, %s, %s, %s, or %s expected, got %s)",
+                         tonumber(num) or 0 / 0, func, kind, kind2, kind3,
+                         kind4, kind5, arg)
+        elseif kind4 then
+            return error(self,
+                         "Bad argument #%s to %s (%s, %s, %s, or %s expected, got %s)",
+                         tonumber(num) or 0 / 0, func, kind, kind2, kind3,
+                         kind4, arg)
+        elseif kind3 then
+            return error(self,
+                         "Bad argument #%s to %s (%s, %s, or %s expected, got %s)",
+                         tonumber(num) or 0 / 0, func, kind, kind2, kind3, arg)
+        elseif kind2 then
+            return error(self,
+                         "Bad argument #%s to %s (%s or %s expected, got %s)",
+                         tonumber(num) or 0 / 0, func, kind, kind2, arg)
+        else
+            return error(self, "Bad argument #%s to %s (%s expected, got %s)",
+                         tonumber(num) or 0 / 0, func, kind, arg)
+        end
+    end
+end
+
+function Dewdrop:error(message, ...)
+    if type(self) ~= "table" then
+        return _G.error(
+                   ("Bad argument #1 to `error' (table expected, got %s)"):format(
+                       type(self)), 2)
+    end
+
+    local stack = debugstack()
+    if not message then
+        local second = stack:match("\n(.-)\n")
+        message = "error raised! " .. second
+    else
+        local arg = {...}
+        for i = 1, #arg do arg[i] = tostring(arg[i]) end
+        for i = 1, 10 do table.insert(arg, "nil") end
+        message = message:format(unpack(arg))
+    end
+
+    if getmetatable(self) and getmetatable(self).__tostring then
+        message = ("%s: %s"):format(tostring(self), message)
+    end
+
+    return _G.error(message, 2)
+end
+
+else
+-- ============================================================================
+-- OLD MENU SYSTEM (UIDropDownMenu) IMPLEMENTATION - Pre-12.0.0
+-- ============================================================================
+
 -- Secure frame handling:
 -- Rather than using secure buttons in the menu (has problems), we have one
 -- master secureframe that we pop onto menu items on mouseover. This requires
@@ -205,7 +1021,7 @@ local function secureFrame_Show(self)
                   owner:GetBottom() * scale)
     self:EnableMouse(true)
     for k, v in pairs(self.secure) do self:SetAttribute(k, v) end
-    state = C_CVar.GetCVarBool("ActionButtonUseKeyDown")
+    local state = C_CVar.GetCVarBool("ActionButtonUseKeyDown")
     if state then
         self:RegisterForClicks("LeftButtonDown")
     else
@@ -227,9 +1043,21 @@ end
 
 secureFrame:SetScript("OnLeave", function(self)
     local owner = self.owner
+
+    -- Check if mouse moved back to the owner button - if so, don't deactivate
+    -- This prevents flickering when mouse moves between secureFrame and owner
+    local mouseFocus = GetMouseFocus()
+    if mouseFocus == owner then
+        return
+    end
+
     self:Deactivate()
-    callBack = owner:GetScript("OnLeave")
-    return callBack(owner)
+    if owner then
+        local callBack = owner:GetScript("OnLeave")
+        if callBack then
+            return callBack(owner)
+        end
+    end
 end)
 
 secureFrame:HookScript("OnClick", function(self, ...)
@@ -253,6 +1081,25 @@ function secureFrame:Deactivate()
 end
 
 -- END secure frame utilities
+
+-- State for tracking anchor's OnEnter script (to prevent tooltip while menu open)
+local savedAnchorOnEnter = nil
+local savedAnchorFrame = nil
+
+-- Helper function to restore the anchor's OnEnter script
+local function RestoreAnchorOnEnter()
+    if savedAnchorFrame and savedAnchorOnEnter ~= nil then
+        if type(savedAnchorFrame) == "table" and savedAnchorFrame.SetScript then
+            local scriptToRestore = savedAnchorOnEnter
+            if scriptToRestore == false then
+                scriptToRestore = nil  -- Convert sentinel back to nil
+            end
+            savedAnchorFrame:SetScript("OnEnter", scriptToRestore)
+        end
+    end
+    savedAnchorOnEnter = nil
+    savedAnchorFrame = nil
+end
 
 -- Underline on mouseover - use a single global underline that we move around, no point in creating lots of copies
 local underlineFrame = CreateFrame("Frame")
@@ -819,6 +1666,10 @@ local function AcquireLevel(level)
             frame:SetFrameLevel(i * 3)
             frame:SetScript("OnHide", function()
                 Dewdrop:Close(level + 1)
+                -- Also restore anchor's OnEnter when level 1 hides (in case it wasn't restored via Close)
+                if i == 1 then
+                    RestoreAnchorOnEnter()
+                end
             end)
             if frame.SetTopLevel then frame:SetTopLevel(true) end
             frame:EnableMouse(true)
@@ -1817,7 +2668,7 @@ end
 function OpenSlider(parent)
     if not sliderFrame then
 
-        sliderFrame = CreateFrame("Frame")
+        sliderFrame = CreateFrame("Frame", nil, nil, BackdropTemplateMixin and "BackdropTemplate")
         sliderFrame:SetWidth(100)
         sliderFrame:SetHeight(170)
         sliderFrame:SetScale(UIParent:GetScale())
@@ -2800,6 +3651,13 @@ end
 
 function Dewdrop:Open(parent, ...)
     self:argCheck(parent, 2, "table", "string")
+
+    -- Restore any previous anchor's OnEnter before opening new menu
+    RestoreAnchorOnEnter()
+
+    -- Hide any existing tooltip before opening the menu
+    GameTooltip:Hide()
+
     local info
     local k1 = ...
     if type(k1) == "table" and k1[0] and k1.IsObjectType and self.registry[k1] then
@@ -2815,6 +3673,18 @@ function Dewdrop:Open(parent, ...)
             end
         end
     end
+
+    -- Save and replace the parent's OnEnter script to prevent tooltip while menu is open
+    if type(parent) == "table" and parent.GetScript and parent.SetScript then
+        local originalOnEnter = parent:GetScript("OnEnter")
+        savedAnchorOnEnter = originalOnEnter or false  -- false is sentinel for "no script"
+        savedAnchorFrame = parent
+        -- Replace with a function that hides tooltip (in case something else shows it)
+        parent:SetScript("OnEnter", function(self)
+            GameTooltip:Hide()
+        end)
+    end
+
     local point = info.point
     local relativePoint = info.relativePoint
     local cursorX = info.cursorX
@@ -2842,11 +3712,17 @@ function Clear(level)
 end
 
 function Dewdrop:Close(level)
-    if DropDownList1:IsShown() then DropDownList1:Hide() end
+    if DropDownList1 and DropDownList1:IsShown() then DropDownList1:Hide() end
     self:argCheck(level, 2, "number", "nil")
     if not level then level = 1 end
+
+    -- Restore anchor's OnEnter when closing level 1 (main menu)
+    if level == 1 then
+        RestoreAnchorOnEnter()
+    end
+
     if level == 1 and levels[level] then levels[level].parented = false end
-    if level > 1 and levels[level - 1].scrollFrame.child.buttons then
+    if level > 1 and levels[level - 1] and levels[level - 1].scrollFrame.child.buttons then
         local buttons = levels[level - 1].scrollFrame.child.buttons
         for _, button in ipairs(buttons) do
             --			button.arrow:SetWidth(16)
@@ -3338,11 +4214,11 @@ function Dewdrop:error(message, ...)
     if getmetatable(self) and getmetatable(self).__tostring then
         message = ("%s: %s"):format(tostring(self), message)
     elseif type(rawget(self, 'GetLibraryVersion')) == "function" and
-        AceLibrary:HasInstance(self:GetLibraryVersion()) then
+        AceLibrary and AceLibrary:HasInstance(self:GetLibraryVersion()) then
         message = ("%s: %s"):format(self:GetLibraryVersion(), message)
     elseif type(rawget(self, 'class')) == "table" and
         type(rawget(self.class, 'GetLibraryVersion')) == "function" and
-        AceLibrary:HasInstance(self.class:GetLibraryVersion()) then
+        AceLibrary and AceLibrary:HasInstance(self.class:GetLibraryVersion()) then
         message = ("%s: %s"):format(self.class:GetLibraryVersion(), message)
     end
 
@@ -3369,3 +4245,5 @@ function Dewdrop:error(message, ...)
     end
     return _G.error(message, 2)
 end
+
+end -- end of USE_NEW_MENU_SYSTEM else block
