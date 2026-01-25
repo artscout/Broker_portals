@@ -623,7 +623,11 @@ local function hasItem(itemID)
         if item then
             local id = GetItemIDFromLink(item)
             if id and tonumber(id) == itemID then
-                if GetInventoryItemCooldown('player', slotId) ~= 0 then
+                local inventoryCooldown = GetInventoryItemCooldown('player', slotId)
+                -- Handle secret values in combat (WoW 12.0.0+)
+                if issecretvalue and issecretvalue(inventoryCooldown) then
+                    return true, "item" -- Assume ready when secret
+                elseif inventoryCooldown ~= 0 then
                     return false
                 else
                     return true, "item"
@@ -637,6 +641,10 @@ local function hasItem(itemID)
         if PlayerHasToy(itemID) and C_ToyBox.IsToyUsable(itemID) then
             local startTime, duration, cooldown
             startTime, duration = GetItemCooldown(itemID)
+            -- Handle secret values in combat (WoW 12.0.0+)
+            if issecretvalue and (issecretvalue(startTime) or issecretvalue(duration)) then
+                return true, "toy" -- Assume ready when secret
+            end
             cooldown = duration - (GetTime() - startTime)
             if cooldown > 0 then
                 return false
@@ -653,7 +661,11 @@ local function hasItem(itemID)
             if item then
                 local id = GetItemIDFromLink(item)
                 if id and tonumber(id) == itemID then
-                    if GetContainerItemCooldown(bag, slot) ~= 0 then
+                    local containerCooldown = GetContainerItemCooldown(bag, slot)
+                    -- Handle secret values in combat (WoW 12.0.0+)
+                    if issecretvalue and issecretvalue(containerCooldown) then
+                        return true, "item" -- Assume ready when secret
+                    elseif containerCooldown ~= 0 then
                         return false
                     else
                         return true, "item"
@@ -942,7 +954,14 @@ local function ShowMenuEntries(category, sortTable)
                 else
                     spellCooldown = GetSpellCooldown(menuEntry.itemName).startTime
                 end
-                if menuEntry.secure and spellCooldown == 0 then
+                -- Handle secret values in combat (WoW 12.0.0+)
+                local spellReady = false
+                if issecretvalue and issecretvalue(spellCooldown) then
+                    spellReady = true -- Assume ready when secret
+                elseif spellCooldown == 0 then
+                    spellReady = true
+                end
+                if menuEntry.secure and spellReady then
                     dewdrop:AddLine(
                         'textHeight',   PortalsDB.fontSize,
                         'text',         menuEntry.itemName,
@@ -983,29 +1002,39 @@ local function GetItemCooldowns()
 
     for i = 1, #items do
         if GetItemCount(items[i]) > 0 or (PlayerHasToy(items[i]) and C_ToyBox.IsToyUsable(items[i])) then
-            startTime, duration = GetItemCooldown(items[i])
-            cooldown = duration - (GetTime() - startTime)
-            local name = GetItemInfo(items[i]) or select(2, C_ToyBox.GetToyInfo(items[i]))
-            if name then
-                if cooldown <= 0 then
-                    cooldown = L['READY']
-                else
-                    cooldown = SecondsToTime(cooldown)
+            local startTime, duration = GetItemCooldown(items[i])
+            -- Handle secret values in combat (WoW 12.0.0+)
+            if issecretvalue and (issecretvalue(startTime) or issecretvalue(duration)) then
+                cooldown = L['READY'] -- Assume ready when secret
+            else
+                cooldown = duration - (GetTime() - startTime)
+                local name = GetItemInfo(items[i]) or select(2, C_ToyBox.GetToyInfo(items[i]))
+                if name then
+                    if cooldown <= 0 then
+                        cooldown = L['READY']
+                    else
+                        cooldown = SecondsToTime(cooldown)
+                    end
+                    cooldowns[name] = cooldown
                 end
-                cooldowns[name] = cooldown
             end
         end
     end
 
     for i = 1, #engineeringItems do
         if GetItemCount(engineeringItems[i]) > 0 or (PlayerHasToy(engineeringItems[i]) and C_ToyBox.IsToyUsable(engineeringItems[i])) then
-            startTime, duration = GetItemCooldown(engineeringItems[i])
-            cooldown = duration - (GetTime() - startTime)
-            if cooldown > 0 then
-                local name = GetItemInfo(engineeringItems[i]) or select(2, C_ToyBox.GetToyInfo(engineeringItems[i]))
-                if name then
-                    cooldown = SecondsToTime(cooldown)
-                    cooldowns[name] = cooldown
+            local startTime, duration = GetItemCooldown(engineeringItems[i])
+            -- Handle secret values in combat (WoW 12.0.0+)
+            if issecretvalue and (issecretvalue(startTime) or issecretvalue(duration)) then
+                -- Skip showing cooldown when secret (assume ready)
+            else
+                cooldown = duration - (GetTime() - startTime)
+                if cooldown > 0 then
+                    local name = GetItemInfo(engineeringItems[i]) or select(2, C_ToyBox.GetToyInfo(engineeringItems[i]))
+                    if name then
+                        cooldown = SecondsToTime(cooldown)
+                        cooldowns[name] = cooldown
+                    end
                 end
             end
         end
@@ -1020,6 +1049,10 @@ local function GetScrollCooldown()
     for i = 1, #scrolls do
         if GetItemCount(scrolls[i]) > 0 or (PlayerHasToy(scrolls[i]) and C_ToyBox.IsToyUsable(scrolls[i])) then
             startTime, duration = GetItemCooldown(scrolls[i])
+            -- Handle secret values in combat (WoW 12.0.0+)
+            if issecretvalue and (issecretvalue(startTime) or issecretvalue(duration)) then
+                return L['READY'] -- Assume ready when secret
+            end
             cooldown = duration - (GetTime() - startTime)
             if cooldown <= 0 then
                 return L['READY']
@@ -1036,6 +1069,10 @@ local function GetWhistleCooldown()
     local cooldown, startTime, duration
     if GetItemCount(whistle[1]) > 0 then
         startTime, duration = GetItemCooldown(whistle[1])
+        -- Handle secret values in combat (WoW 12.0.0+)
+        if issecretvalue and (issecretvalue(startTime) or issecretvalue(duration)) then
+            return L['READY'] -- Assume ready when secret
+        end
         cooldown = duration - (GetTime() - startTime)
         if cooldown <= 0 then
             return L['READY']
