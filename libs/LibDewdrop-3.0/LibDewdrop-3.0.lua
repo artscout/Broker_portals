@@ -193,6 +193,69 @@ local levels
 local buttons
 local options
 
+-- Helper function to determine smart tooltip anchor position
+-- For submenu items, positions tooltip on the same side as menu expansion direction
+-- This prevents overlap with parent menus (which are on the opposite side)
+-- This is shared between both menu systems (old and new)
+local function GetSmartTooltipAnchor(button)
+    -- Default: tooltip to the right of the item
+    local point, relPoint, xOffset = "TOPLEFT", "TOPRIGHT", 10
+
+    -- Check if we have level information (old menu system)
+    local level = button and button.level
+    if level and level.lastDirection then
+        -- For old menu system: use the menu expansion direction to determine tooltip side
+        -- Tooltip goes in SAME direction as menu expanded (away from parent menu)
+        if level.lastDirection == "LEFT" then
+            -- Menu expanded left, put tooltip on left (away from parent on right)
+            point, relPoint, xOffset = "TOPRIGHT", "TOPLEFT", -10
+        else
+            -- Menu expanded right (or unknown), put tooltip on right
+            point, relPoint, xOffset = "TOPLEFT", "TOPRIGHT", 10
+        end
+
+        -- Additional check: if menu is near screen edge, flip tooltip to avoid clipping
+        if button.GetRight then
+            local buttonRight = button:GetRight()
+            local screenWidth = GetScreenWidth()
+            if buttonRight and screenWidth then
+                if level.lastDirection ~= "LEFT" and (buttonRight + 250) > screenWidth then
+                    -- Tooltip would go off right edge, flip to left
+                    point, relPoint, xOffset = "TOPRIGHT", "TOPLEFT", -10
+                elseif level.lastDirection == "LEFT" then
+                    local buttonLeft = button:GetLeft()
+                    if buttonLeft and buttonLeft < 250 then
+                        -- Tooltip would go off left edge, flip to right
+                        point, relPoint, xOffset = "TOPLEFT", "TOPRIGHT", 10
+                    end
+                end
+            end
+        end
+    elseif button and button.GetRight and button.GetLeft then
+        -- For new MenuUtil system: determine position based on button's screen location
+        -- Check which side has more room for the tooltip (estimated 250px wide)
+        local buttonRight = button:GetRight()
+        local buttonLeft = button:GetLeft()
+        local screenWidth = GetScreenWidth()
+
+        if buttonRight and buttonLeft and screenWidth then
+            local roomOnRight = screenWidth - buttonRight
+            local roomOnLeft = buttonLeft
+
+            -- Put tooltip on the side with more room
+            if roomOnLeft > roomOnRight then
+                -- More room on left, tooltip goes left
+                point, relPoint, xOffset = "TOPRIGHT", "TOPLEFT", -10
+            else
+                -- More room on right (or equal), tooltip goes right
+                point, relPoint, xOffset = "TOPLEFT", "TOPRIGHT", 10
+            end
+        end
+    end
+
+    return point, relPoint, xOffset
+end
+
 -- ============================================================================
 -- NEW MENU SYSTEM (MenuUtil) IMPLEMENTATION - WoW 12.0.0+
 -- ============================================================================
@@ -347,7 +410,10 @@ secureFrame:SetScript("OnEnter", function(self)
         -- Use the owner button as the anchor for the tooltip
         local anchor = self.owner or self
         GameTooltip:SetOwner(anchor, "ANCHOR_NONE")
-        GameTooltip:SetPoint("TOPLEFT", anchor, "TOPRIGHT", 5, 0)
+
+        -- Use smart positioning to avoid overlapping submenus
+        local point, relPoint, xOffset = GetSmartTooltipAnchor(anchor)
+        GameTooltip:SetPoint(point, anchor, relPoint, xOffset, 0)
 
         if lineData.tooltipTitle then
             GameTooltip:SetText(lineData.tooltipTitle, 1, 1, 1, 1)
@@ -992,7 +1058,7 @@ function Dewdrop:error(message, ...)
     return _G.error(message, 2)
 end
 
-else
+else -- OLD MENU SYSTEM (pre-12.0.0, UIDropDownMenu)
 -- ============================================================================
 -- OLD MENU SYSTEM (UIDropDownMenu) IMPLEMENTATION - Pre-12.0.0
 -- ============================================================================
@@ -1314,7 +1380,11 @@ end
 
 local function showGameTooltip(self)
     if self.tooltipTitle or self.tooltipText then
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
+        -- Use smart positioning to avoid overlapping submenus
+        GameTooltip:SetOwner(self, "ANCHOR_NONE")
+        local point, relPoint, xOffset = GetSmartTooltipAnchor(self)
+        GameTooltip:SetPoint(point, self, relPoint, xOffset, 0)
+
         local disabled = not self.isTitle and self.disabled
         if self.tooltipTitle then
             if disabled then
@@ -1345,7 +1415,9 @@ local function showGameTooltip(self)
     end
     if self.tooltipFunc then
         GameTooltip:SetOwner(self, "ANCHOR_NONE")
-        GameTooltip:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, 0)
+        -- Use smart positioning to avoid overlapping submenus
+        local point, relPoint, xOffset = GetSmartTooltipAnchor(self)
+        GameTooltip:SetPoint(point, self, relPoint, xOffset, 0)
         self.tooltipFunc(getArgs(self, 'tooltipArg', 1))
         GameTooltip:Show()
     end
