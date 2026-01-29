@@ -328,9 +328,14 @@ local function secureFrame_Show(self)
         self:SetAttribute(k, v)
     end
 
-    -- Register for ALL click types to ensure we capture the click
-    -- Include both Up and Down variants for maximum compatibility
-    self:RegisterForClicks("AnyUp", "AnyDown")
+    -- Register for clicks based on the ActionButtonUseKeyDown cvar setting
+    -- This matches how WoW's action buttons work
+    local state = C_CVar.GetCVarBool("ActionButtonUseKeyDown")
+    if state then
+        self:RegisterForClicks("LeftButtonDown")
+    else
+        self:RegisterForClicks("LeftButtonUp")
+    end
 
     -- Match the owner's frame strata but higher level to be on top
     local strata = owner:GetFrameStrata()
