@@ -846,7 +846,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
                 _, itemRealType = hasItem(itemList[i])
                 local itemName, _, itemQuality, _, _, _, _, _, _, itemIcon = GetItemInfo(itemList[i])
                 if itemName and itemQuality and itemIcon then
-                    itemSecure = {type = 'item', item = itemList[i]}
+                    itemSecure = {type = 'item', item = itemName}
                     local itemSpellDescription = nil
                     _, itemSpellId = GetItemSpell(itemList[i])
                     if itemSpellId then
@@ -1091,7 +1091,7 @@ local function ShowHearthstone()
         if hasItem(scrolls[i]) then
             name, _, _, _, _, _, _, _, _, icon = GetItemInfo(scrolls[i])
             text = L['INN'] .. ' ' .. bindLoc
-            secure = {type = 'item', item = scrolls[i]}
+            secure = {type = 'item', item = name}
             break
         end
     end
@@ -1105,7 +1105,7 @@ local function ShowWhistle()
     local secure, icon, name
     if hasItem(whistle[1]) then
         name, _, _, _, _, _, _, _, _, icon = GetItemInfo(whistle[1])
-        secure = {type = 'item', item = whistle[1]}
+        secure = {type = 'item', item = name}
     end
     if secure ~= nil then
         dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', name, 'secure', secure, 'icon', tostring(icon), 'func', function() UpdateIcon(icon) end, 'closeWhenClicked', true)

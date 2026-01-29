@@ -316,12 +316,25 @@ local function secureFrame_Show(self)
     if not self.secure then return end
 
     -- Position secureFrame to cover the owner button exactly
-    -- We use SetPoint with the owner as the anchor - this handles scaling automatically
+    -- We cannot anchor protected frames to arbitrary regions, so we use absolute positioning
     self:ClearAllPoints()
-    -- Keep UIParent as parent but anchor to the owner button's corners
     self:SetParent(UIParent)
-    self:SetPoint("TOPLEFT", owner, "TOPLEFT", 0, 0)
-    self:SetPoint("BOTTOMRIGHT", owner, "BOTTOMRIGHT", 0, 0)
+
+    -- Get the owner's absolute screen position and size
+    local left, bottom, width, height = owner:GetRect()
+    if left and bottom and width and height then
+        -- Get the effective scale to convert to UIParent coordinates
+        local ownerScale = owner:GetEffectiveScale()
+        local uiScale = UIParent:GetEffectiveScale()
+        local scaleFactor = ownerScale / uiScale
+
+        -- Convert to UIParent-relative coordinates
+        self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", left * scaleFactor, bottom * scaleFactor)
+        self:SetSize(width * scaleFactor, height * scaleFactor)
+    else
+        -- Fallback: hide if we can't get position
+        return
+    end
 
     -- Set up secure attributes
     for k, v in pairs(self.secure) do
