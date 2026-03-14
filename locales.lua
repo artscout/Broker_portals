@@ -58,6 +58,7 @@ L["CHALLENGE_TP_BFA"] = "BFA Challenges teleports"
 L["CHALLENGE_TP_SL"] = "ShadowLands Challenges teleports"
 L["CHALLENGE_TP_DF"] = "DragonFlight Challenges teleports"
 L["CHALLENGE_TP_TWW"] = "The War Within Challenges teleports"
+L["CHALLENGE_TP_ MIDNIGHT"] = "Midnight Challenges teleports"
 
 
 if GetLocale() == "ptBR" then
@@ -319,6 +320,7 @@ L["CHALLENGE_TP_BFA"] = "Телепорты испытаний BFA"
 L["CHALLENGE_TP_SL"] = "Телепорты испытаний ShadowLands"
 L["CHALLENGE_TP_DF"] = "Телепорты испытаний DragonFlight"
 L["CHALLENGE_TP_TWW"] = "Телепорты испытаний The War Within"
+L["CHALLENGE_TP_ MIDNIGHT"] = "Телепорты испытаний Midnight"
 
 
 end

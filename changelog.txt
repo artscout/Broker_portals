@@ -1,3 +1,8 @@
+1.16.0
+   - Add Midnight Portals/Teleports to the Silvermoon City
+   - Add Midnight Challenge portals
+   - Add Midnight items
+
 1.15.9
    - Again fix for toys, avoid using toybox commpletely for TBC Classic / Classic Era
 

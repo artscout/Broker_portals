@@ -147,6 +147,7 @@ local items = {
     166559, -- Commander's Signet of Battle
     202046, -- Lucky Tortollan Charm
     230850, -- Delve-O-Bot 7001
+    248131, -- Key to the Arcantina
 }
 
 local heartstones = {
@@ -212,7 +213,8 @@ local engineeringItems = {
     198156, -- Wormhole Generator: Dragon Isles
     221966, -- Wormhole GeneratorL Khaz Algar
     132523, -- Reaves Battery, unfortunately we can't check for Wormhole Generator module
-    144341 -- Rechargeable Reaves Battery, same as with Reaves Battery
+    144341, -- Rechargeable Reaves Battery, same as with Reaves Battery
+    248485, -- Wormhole Generator: Quel'Thalas
 }
 
 local scrolls = {
@@ -230,8 +232,8 @@ local challengeVanillaSpells = {
 }
 
 local challengeCataSpells = {
-    {445424, 'TRUE'}, -- Path of the Twilight Fortress
     {424142, 'TRUE'}, -- Path of the Tidehunter
+    {445424, 'TRUE'}, -- Path of the Twilight Fortress
     {410080, 'TRUE'}, -- Path of the Wind's Domain
 }
 
@@ -304,20 +306,32 @@ local challengeDFSpells = {
 }
 
 local challengeTWWSpells = {
-    {445414, 'TRUE'}, -- Path of Arathi Flagship
-    {445416, 'TRUE'}, -- Path of Nerubean Ascension
-    {445417, 'TRUE'}, -- Path of the Ruined City
-    {445424, 'TRUE'}, -- Path of Twilight Fortress
-    {445440, 'TRUE'}, -- Path of the Flaming Brewery
-    {445416, 'TRUE'}, -- Path of the City of Threads
-    {445441, 'TRUE'}, -- Path of the Warding Candles
-    {445414, 'TRUE'}, -- Path of the Dawnbreaker
-    {445444, 'TRUE'}, -- Path of the Light's Reverence
-    {445443, 'TRUE'}, -- Path of the Fallen Stormriders
-    {445269, 'TRUE'}, -- Path of the Corrupted Foundry
-    {467546, 'TRUE'}, -- Path of the Waterworks
+    {445414, 'TRUE'},  -- Path of Arathi Flagship
+    {445416, 'TRUE'},  -- Path of Nerubean Ascension
+    {1239155, 'TRUE'}, -- Path of the All-Devouring
     {1216786, 'TRUE'}, -- Path of the Circuit Breaker
+    {445416, 'TRUE'},  -- Path of the City of Threads
+    {445269, 'TRUE'},  -- Path of the Corrupted Foundry
+    {445414, 'TRUE'},  -- Path of the Dawnbreaker
+    {1237215, 'TRUE'}, -- Path of the Eco-Dome
+    {445443, 'TRUE'},  -- Path of the Fallen Stormriders
+    {445440, 'TRUE'},  -- Path of the Flaming Brewery
     {1226482, 'TRUE'}, -- Path of the Full House
+    {445444, 'TRUE'},  -- Path of the Light's Reverence
+    {445417, 'TRUE'},  -- Path of the Ruined City
+    {445441, 'TRUE'},  -- Path of the Warding Candles
+    {467546, 'TRUE'},  -- Path of the Waterworks
+    {445424, 'TRUE'},  -- Path of Twilight Fortress
+}
+
+local challengeMidnightSpells = {
+    {1254559, 'TRUE'}, -- Path of Cavernous Depths
+    {1254551, 'TRUE'}, -- Path of Dark Dereliction
+    {1254572, 'TRUE'}, -- Path of Devoted Magistry
+    {1254555, 'TRUE'}, -- Path of Unyielding Blight
+    {1254557, 'TRUE'}, -- Path of the Crowning Pinnacle
+    {1254563, 'TRUE'}, -- Path of the Fractured Core
+    {1254400, 'TRUE'}, -- Path of the Windrunners
 }
 
 -- Gold Challenge portals
@@ -391,20 +405,30 @@ local challengeSpells = {
     {424197, 'TRUE'}, -- Path of the Twisted Time
     {393262, 'TRUE'}, -- Path of the Windswept Plains
     -- DH TWW
-    {445414, 'TRUE'}, -- Path of Arathi Flagship
-    {445416, 'TRUE'}, -- Path of Nerubean Ascension
-    {445417, 'TRUE'}, -- Path of the Ruined City
-    {445424, 'TRUE'}, -- Path of Twilight Fortress
-    {445440, 'TRUE'}, -- Path of the Flaming Brewery
-    {445416, 'TRUE'}, -- Path of the City of Threads
-    {445441, 'TRUE'}, -- Path of the Warding Candles
-    {445414, 'TRUE'}, -- Path of the Dawnbreaker
-    {445444, 'TRUE'}, -- Path of the Light's Reverence
-    {445443, 'TRUE'}, -- Path of the Fallen Stormriders
-    {445269, 'TRUE'}, -- Path of the Corrupted Foundry
-    {467546, 'TRUE'}, -- Path of the Waterworks
+    {445414, 'TRUE'},  -- Path of Arathi Flagship
+    {445416, 'TRUE'},  -- Path of Nerubean Ascension
+    {445417, 'TRUE'},  -- Path of the Ruined City
+    {1239155, 'TRUE'}, -- Path of the All-Devouring
     {1216786, 'TRUE'}, -- Path of the Circuit Breaker
+    {445416, 'TRUE'},  -- Path of the City of Threads
+    {445269, 'TRUE'},  -- Path of the Corrupted Foundry
+    {445414, 'TRUE'},  -- Path of the Dawnbreaker
+    {1237215, 'TRUE'}, -- Path of the Eco-Dome
+    {445443, 'TRUE'},  -- Path of the Fallen Stormriders
+    {445440, 'TRUE'},  -- Path of the Flaming Brewery
     {1226482, 'TRUE'}, -- Path of the Full House
+    {445444, 'TRUE'},  -- Path of the Light's Reverence
+    {445441, 'TRUE'},  -- Path of the Warding Candles
+    {467546, 'TRUE'},  -- Path of the Waterworks
+    {445424, 'TRUE'},  -- Path of Twilight Fortress
+    -- DH Midnight
+    {1254559, 'TRUE'}, -- Path of Cavernous Depths
+    {1254551, 'TRUE'}, -- Path of Dark Dereliction
+    {1254572, 'TRUE'}, -- Path of Devoted Magistry
+    {1254555, 'TRUE'}, -- Path of Unyielding Blight
+    {1254557, 'TRUE'}, -- Path of the Crowning Pinnacle
+    {1254563, 'TRUE'}, -- Path of the Fractured Core
+    {1254400, 'TRUE'}, -- Path of the Windrunners
 }
 
 local whistle = {
@@ -713,6 +737,7 @@ local function SetupSpells()
             {344587, 'TP_RUNE'}, -- TP:Oribos
             {395277, 'TP_RUNE'}, -- TP:Valdrakken
             {446540, 'TP_RUNE'}, -- TP:Dornogal
+            {1259190, 'TP_RUNE'}, -- P:Silvermoon City
             {10059, 'P_RUNE'}, -- P:Stormwind
             {11416, 'P_RUNE'}, -- P:Ironforge
             {11419, 'P_RUNE'}, -- P:Darnassus
@@ -728,7 +753,8 @@ local function SetupSpells()
             {281400, 'P_RUNE'}, -- P:Boralus
             {344597, 'P_RUNE'}, -- P:Oribos
             {395289, 'P_RUNE'}, -- P:Valdrakken
-            {446534, 'P_RUNE'} -- P:Dornogal
+            {446534, 'P_RUNE'}, -- P:Dornogal
+            {1259194, 'P_RUNE'}, -- P:Silvermoon City
         },
         Horde = {
             {3563, 'TP_RUNE'}, -- TP:Undercity
@@ -748,6 +774,7 @@ local function SetupSpells()
             {344587, 'TP_RUNE'}, -- TP:Oribos
             {395277, 'TP_RUNE'}, -- TP:Valdrakken
             {446540, 'TP_RUNE'}, -- TP:Dornogal
+            {1259190, 'TP_RUNE'}, -- P:Silvermoon
             {11418, 'P_RUNE'}, -- P:Undercity
             {11420, 'P_RUNE'}, -- P:Thunder Bluff
             {11417, 'P_RUNE'}, -- P:Orgrimmar
@@ -763,7 +790,8 @@ local function SetupSpells()
             {281402, 'P_RUNE'}, -- P:Dazar'alor
             {344597, 'P_RUNE'}, -- P:Oribos
             {395289, 'P_RUNE'}, -- P:Valdrakken
-            {446534, 'P_RUNE'} -- P:Dornogal
+            {446534, 'P_RUNE'}, -- P:Dornogal
+            {1259194, 'P_RUNE'}, -- P:Silvermoon City
         }
     }
 
@@ -875,7 +903,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
 end
 
 local function PrepareMenuData()
-
+7
     wipe(methods)
     wipe(challengeCategories)
 
@@ -927,6 +955,11 @@ local function PrepareMenuData()
         challengeTWWCount     = GenerateMenuEntries("spell", challengeTWWSpells, "challengesTWW")
         if challengeTWWCount > 0 then
             challengeCategories[#challengeCategories + 1] = {category = "challengesTWW", name = L["CHALLENGE_TP_TWW"]}
+        end
+
+        challengeMidnightCount = GenerateMenuEntries("spell", challengeMidnightSpells, "challengesMidnight")
+        if challengeMidnightCount > 0 then
+            challengeCategories[#challengeCategories + 1] = {category = "challengesMidnight", name = L["CHALLENGE_TP_MIDNIGHT"]}
         end
 
         challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges")
