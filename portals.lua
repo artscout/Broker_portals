@@ -903,7 +903,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
 end
 
 local function PrepareMenuData()
-7
+
     wipe(methods)
     wipe(challengeCategories)
 
