@@ -1,3 +1,6 @@
+1.16.3
+   - Disable Housing for Classic
+
 1.16.2
    - Add Housing teleports
    - Add custom spells

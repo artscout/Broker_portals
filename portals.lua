@@ -38,6 +38,7 @@ local isTBCClassic       = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSI
 local isWotlkClassic     = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
 local isMoPClassic       = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
+local isRetail           = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
 local challengeAvailable = select(4, GetBuildInfo()) > 49999
 local engineeringName    = C_TradeSkillUI.GetTradeSkillDisplayName(202)
 local engineeringIcon    = C_TradeSkillUI.GetTradeSkillTexture(202)
@@ -1377,7 +1378,7 @@ local function UpdateMenu(level, value)
     if level == 1 then
         dewdrop:AddLine('text', 'Broker_Portals', 'isTitle', true)
         PrepareMenuData()
-        RequestHousingInfo() -- refresh owned-house GUIDs for the next open (async)
+        if isRetail then RequestHousingInfo() end -- refresh owned-house GUIDs for the next open (async)
         local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
 
@@ -1428,7 +1429,7 @@ local function UpdateMenu(level, value)
 
         ShowHearthstone()
         ShowWhistle()
-        ShowHousing()
+        if isRetail then ShowHousing() end
 
         dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['OPTIONS'], 'hasArrow', false, 'func', function() Settings.OpenToCategory(category:GetID()); end, 'closeWhenClicked', true)
 
@@ -1504,7 +1505,7 @@ function frame:PLAYER_LOGIN()
     PrepareMenuData()
     PrepareMenuData()
     frame:RegisterEvent('GET_ITEM_INFO_RECEIVED')
-    if C_Housing and C_Housing.GetPlayerOwnedHouses then
+    if isRetail and C_Housing and C_Housing.GetPlayerOwnedHouses then
         BuildStaleHouseErrorSet()
         frame:RegisterEvent('PLAYER_HOUSE_LIST_UPDATED')
         frame:RegisterEvent('UI_ERROR_MESSAGE')
@@ -1653,7 +1654,7 @@ function obj.OnEnter(self)
         end
     end
 
-    if #housingHouses > 0 then
+    if isRetail and #housingHouses > 0 then
         local housingCooldown = GetHousingCooldown()
         if housingCooldown ~= L['N/A'] then
             if housingCooldown == L['READY'] then
