@@ -1,3 +1,8 @@
+1.16.2
+   - Add Housing teleports
+   - Add custom spells
+   - Players can now switch of Challenge teleports from selected expansions
+
 1.16.0
    - Add Midnight Portals/Teleports to the Silvermoon City
    - Add Midnight Challenge portals

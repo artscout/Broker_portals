@@ -58,10 +58,26 @@ L["CHALLENGE_TP_BFA"] = "BFA Challenges teleports"
 L["CHALLENGE_TP_SL"] = "ShadowLands Challenges teleports"
 L["CHALLENGE_TP_DF"] = "DragonFlight Challenges teleports"
 L["CHALLENGE_TP_TWW"] = "The War Within Challenges teleports"
-L["CHALLENGE_TP_ MIDNIGHT"] = "Midnight Challenges teleports"
+L["CHALLENGE_TP_MIDNIGHT"] = "Midnight Challenges teleports"
+
+L["HOUSE_TELEPORT"] = "House teleport"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Challenge teleports by expansion"
+L["CUSTOM_HEADER"] = "Custom items / spells"
+L["CUSTOM_HINT"] = "Enter an item or spell ID, pick the type and press Add. Click an ID to edit it."
+L["CUSTOM_TYPE_ITEM"] = "Item"
+L["CUSTOM_TYPE_SPELL"] = "Spell"
+L["CUSTOM_ADD"] = "Add"
 
 
 if GetLocale() == "ptBR" then
+
+L["HOUSE_TELEPORT"] = "Teleporte para casa"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Teleportes de desafio por expansão"
+L["CUSTOM_HEADER"] = "Itens / magias personalizados"
+L["CUSTOM_HINT"] = "Digite o ID de um item ou magia, escolha o tipo e clique em Adicionar. Clique no ID para editá-lo."
+L["CUSTOM_TYPE_ITEM"] = "Item"
+L["CUSTOM_TYPE_SPELL"] = "Magia"
+L["CUSTOM_ADD"] = "Adicionar"
 
 --[[Translation missing --]]
 --[[ L["ANNOUNCE"] = ""--]] 
@@ -107,6 +123,14 @@ end
 
 if GetLocale() == "frFR" then
 
+L["HOUSE_TELEPORT"] = "Téléportation vers la maison"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Téléportations de défi par extension"
+L["CUSTOM_HEADER"] = "Objets / sorts personnalisés"
+L["CUSTOM_HINT"] = "Saisissez l'ID d'un objet ou d'un sort, choisissez le type et cliquez sur Ajouter. Cliquez sur l'ID pour le modifier."
+L["CUSTOM_TYPE_ITEM"] = "Objet"
+L["CUSTOM_TYPE_SPELL"] = "Sort"
+L["CUSTOM_ADD"] = "Ajouter"
+
 L["ANNOUNCE"] = "Annoncer le lancement d'un portail"
 L["ANNOUNCEMENT"] = "Canalisation de "
 L["ATT_MINIMAP"] = "Attacher à la minicarte"
@@ -137,6 +161,14 @@ end
 
 if GetLocale() == "deDE" then
 
+L["HOUSE_TELEPORT"] = "Teleport zum Haus"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Herausforderungsteleports nach Erweiterung"
+L["CUSTOM_HEADER"] = "Eigene Gegenstände / Zauber"
+L["CUSTOM_HINT"] = "Gegenstands- oder Zauber-ID eingeben, Typ wählen und auf Hinzufügen klicken. Zum Bearbeiten auf die ID klicken."
+L["CUSTOM_TYPE_ITEM"] = "Gegenstand"
+L["CUSTOM_TYPE_SPELL"] = "Zauber"
+L["CUSTOM_ADD"] = "Hinzufügen"
+
 L["ANNOUNCE"] = "Das Öffnen von Portalen im Chat ansagen"
 L["ANNOUNCEMENT"] = "Öffne"
 L["ATT_MINIMAP"] = "An Minikarte anhängen"
@@ -166,6 +198,14 @@ L["TP_RUNE"] = "Rune der Teleportation"
 end
 
 if GetLocale() == "itIT" then
+
+L["HOUSE_TELEPORT"] = "Teletrasporto a casa"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Teletrasporti sfida per espansione"
+L["CUSTOM_HEADER"] = "Oggetti / incantesimi personalizzati"
+L["CUSTOM_HINT"] = "Inserisci l'ID di un oggetto o incantesimo, scegli il tipo e premi Aggiungi. Clicca sull'ID per modificarlo."
+L["CUSTOM_TYPE_ITEM"] = "Oggetto"
+L["CUSTOM_TYPE_SPELL"] = "Incantesimo"
+L["CUSTOM_ADD"] = "Aggiungi"
 
 --[[Translation missing --]]
 --[[ L["ANNOUNCE"] = ""--]] 
@@ -211,6 +251,14 @@ end
 
 if GetLocale() == "koKR" then
 
+L["HOUSE_TELEPORT"] = "집으로 순간이동"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "확장팩별 도전 과제 순간이동"
+L["CUSTOM_HEADER"] = "사용자 지정 아이템 / 주문"
+L["CUSTOM_HINT"] = "아이템 또는 주문 ID를 입력하고 유형을 선택한 후 추가를 누르세요. ID를 클릭하면 편집할 수 있습니다."
+L["CUSTOM_TYPE_ITEM"] = "아이템"
+L["CUSTOM_TYPE_SPELL"] = "주문"
+L["CUSTOM_ADD"] = "추가"
+
 L["ANNOUNCE"] = "차원문 시전 알림"
 L["ANNOUNCEMENT"] = "시전"
 L["ATT_MINIMAP"] = "미니맵 표시"
@@ -236,6 +284,14 @@ L["TP_RUNE"] = "순간이동의 룬"
 end
 
 if GetLocale() == "esMX" then
+
+L["HOUSE_TELEPORT"] = "Teletransporte a casa"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Teletransportes de desafío por expansión"
+L["CUSTOM_HEADER"] = "Objetos / hechizos personalizados"
+L["CUSTOM_HINT"] = "Escribe el ID de un objeto o hechizo, elige el tipo y pulsa Añadir. Haz clic en el ID para editarlo."
+L["CUSTOM_TYPE_ITEM"] = "Objeto"
+L["CUSTOM_TYPE_SPELL"] = "Hechizo"
+L["CUSTOM_ADD"] = "Añadir"
 
 L["ANNOUNCE"] = "Anunciar el lanzamiento de portales."
 L["ANNOUNCEMENT"] = [=[Lanzando
@@ -320,12 +376,28 @@ L["CHALLENGE_TP_BFA"] = "Телепорты испытаний BFA"
 L["CHALLENGE_TP_SL"] = "Телепорты испытаний ShadowLands"
 L["CHALLENGE_TP_DF"] = "Телепорты испытаний DragonFlight"
 L["CHALLENGE_TP_TWW"] = "Телепорты испытаний The War Within"
-L["CHALLENGE_TP_ MIDNIGHT"] = "Телепорты испытаний Midnight"
+L["CHALLENGE_TP_MIDNIGHT"] = "Телепорты испытаний Midnight"
+
+L["HOUSE_TELEPORT"] = "Телепорт в дом"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Телепорты испытаний по дополнениям"
+L["CUSTOM_HEADER"] = "Свои предметы / заклинания"
+L["CUSTOM_HINT"] = "Введите ID предмета или заклинания, выберите тип и нажмите «Добавить». Нажмите на ID, чтобы изменить."
+L["CUSTOM_TYPE_ITEM"] = "Предмет"
+L["CUSTOM_TYPE_SPELL"] = "Заклинание"
+L["CUSTOM_ADD"] = "Добавить"
 
 
 end
 
 if GetLocale() == "zhCN" then
+
+L["HOUSE_TELEPORT"] = "传送回家"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "按资料片显示挑战传送"
+L["CUSTOM_HEADER"] = "自定义物品 / 法术"
+L["CUSTOM_HINT"] = "输入物品或法术ID，选择类型后点击添加。点击ID可进行编辑。"
+L["CUSTOM_TYPE_ITEM"] = "物品"
+L["CUSTOM_TYPE_SPELL"] = "法术"
+L["CUSTOM_ADD"] = "添加"
 
 L["ANNOUNCE"] = "施放传送门时发布讯息"
 L["ANNOUNCEMENT"] = "正在施放"
@@ -353,6 +425,14 @@ end
 
 if GetLocale() == "esES" then
 
+L["HOUSE_TELEPORT"] = "Teletransporte a casa"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "Teletransportes de desafío por expansión"
+L["CUSTOM_HEADER"] = "Objetos / hechizos personalizados"
+L["CUSTOM_HINT"] = "Escribe el ID de un objeto o hechizo, elige el tipo y pulsa Añadir. Haz clic en el ID para editarlo."
+L["CUSTOM_TYPE_ITEM"] = "Objeto"
+L["CUSTOM_TYPE_SPELL"] = "Hechizo"
+L["CUSTOM_ADD"] = "Añadir"
+
 L["ANNOUNCE"] = "Anunciar casteo de portales"
 L["ANNOUNCEMENT"] = "Casteando"
 L["ATT_MINIMAP"] = "Adjuntar al minimapa"
@@ -378,6 +458,14 @@ L["TP_RUNE"] = "Runa de teletransporte"
 end
 
 if GetLocale() == "zhTW" then
+
+L["HOUSE_TELEPORT"] = "傳送回家"
+L["CHALLENGE_EXPANSIONS_HEADER"] = "依資料片顯示挑戰傳送"
+L["CUSTOM_HEADER"] = "自訂物品 / 法術"
+L["CUSTOM_HINT"] = "輸入物品或法術ID，選擇類型後點擊新增。點擊ID可進行編輯。"
+L["CUSTOM_TYPE_ITEM"] = "物品"
+L["CUSTOM_TYPE_SPELL"] = "法術"
+L["CUSTOM_ADD"] = "新增"
 
 L["ANNOUNCE"] = "施放傳送門時發布訊息"
 L["ANNOUNCEMENT"] = "正在施放"

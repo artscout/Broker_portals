@@ -66,6 +66,9 @@ local category = nil
 
 local methods = {}
 
+-- forward declaration: assigned inside CreateSettingsPanel, used by GET_ITEM_INFO_RECEIVED
+local RefreshCustomList
+
 local addonName, addonTable = ...
 local L = addonTable.L
 
@@ -431,10 +434,69 @@ local challengeSpells = {
     {1254400, 'TRUE'}, -- Path of the Windrunners
 }
 
+-- Per-expansion challenge teleport definitions.
+-- Used both for menu generation and for the per-expansion enable/disable options.
+local challengeExpansions = {
+    {key = "Vanilla",  spells = challengeVanillaSpells,  category = "challengesVanilla",  name = "CHALLENGE_TP_VANILLA"},
+    {key = "Cata",     spells = challengeCataSpells,     category = "challengesCata",     name = "CHALLENGE_TP_CATA"},
+    {key = "MOP",      spells = challengeMOPSpells,      category = "challengesMOP",      name = "CHALLENGE_TP_MOP"},
+    {key = "WOD",      spells = challengeWODSpells,      category = "challengesWOD",      name = "CHALLENGE_TP_WOD"},
+    {key = "Legion",   spells = challengeLegionSpells,   category = "challengesLegion",   name = "CHALLENGE_TP_LEGION"},
+    {key = "BFA",      spells = challengeBFASpells,      category = "challengesBFA",      name = "CHALLENGE_TP_BFA"},
+    {key = "SL",       spells = challengeSLSpells,       category = "challengesSL",       name = "CHALLENGE_TP_SL"},
+    {key = "DF",       spells = challengeDFSpells,       category = "challengesDF",       name = "CHALLENGE_TP_DF"},
+    {key = "TWW",      spells = challengeTWWSpells,      category = "challengesTWW",      name = "CHALLENGE_TP_TWW"},
+    {key = "Midnight", spells = challengeMidnightSpells, category = "challengesMidnight", name = "CHALLENGE_TP_MIDNIGHT"},
+}
+
 local whistle = {
     141605, -- Flight Master's Whistle
     168862 -- G.E.A.R. Tracking Beacon
 }
+
+-- Housing teleport is NOT a castable spell: C_Housing.TeleportHome is protected
+-- (AllowedWhenUntainted) and driven by a secure button with type="teleporthome".
+-- The list of owned houses is delivered asynchronously via PLAYER_HOUSE_LIST_UPDATED
+-- after calling C_Housing.GetPlayerOwnedHouses() (which itself returns nothing).
+-- Each HouseInfo has: plotID, houseName, ownerName, neighborhoodName, neighborhoodGUID, houseGUID.
+local housingHouses = {} -- array of {neighborhoodGUID, houseGUID, plotID, name}
+local housingIcon = (C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(1233637)) or 237509
+
+local function RequestHousingInfo()
+    if C_Housing and C_Housing.GetPlayerOwnedHouses then
+        C_Housing.GetPlayerOwnedHouses()
+    end
+end
+
+-- Stale houseGUID auto-retry: a house's GUID can change server-side, so a teleport
+-- may fail with a housing error. We cycle the trailing digit of the GUID so the next
+-- click (after reopening the menu) uses a corrected one, and lock it briefly so an
+-- async server refresh does not immediately clobber the correction.
+local lastHouseAttempt = nil     -- {key = "<nGUID>:<plotID>", time = GetTime()}
+local HOUSE_RETRY_WINDOW = 1.5   -- seconds to associate a UI error with the last click
+local HOUSE_GUID_LOCK = 10       -- seconds a cycled GUID survives server refreshes
+local staleHouseErrors = {}      -- set of localized error strings, filled at login
+
+local function BuildStaleHouseErrorSet()
+    local keys = {
+        "ERR_HOUSING_RESULT_PERMISSION_DENIED",
+        "ERR_HOUSING_RESULT_HOUSE_NOT_FOUND",
+        "ERR_HOUSING_RESULT_INVALID_HOUSE",
+    }
+    for _, key in ipairs(keys) do
+        if _G[key] then staleHouseErrors[_G[key]] = true end
+    end
+end
+
+-- houseGUID ends in a digit; cycle it 1->2->...->9->1
+local function IncrementHouseGUID(guid)
+    if not guid then return nil end
+    local prefix, num = tostring(guid):match("^(.+-)(%d+)$")
+    if prefix and num then
+        return prefix .. ((tonumber(num) % 9) + 1)
+    end
+    return nil
+end
 
 local obj = LibStub:GetLibrary('LibDataBroker-1.1'):NewDataObject(addonName, {type = 'data source', text = L['P'], icon = 'Interface\\Icons\\INV_Misc_Rune_06'})
 local portals
@@ -469,83 +531,69 @@ local function CreateSettingsPanel()
         OptionsFrame = CreateFrame("Frame", "OptionsFrame", UIParent)
         OptionsFrame.name = "Broker Portals"
 
-        local showItemsCheckBox = CreateFrame("CheckButton", "ShowItemsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        showItemsCheckBox:SetPoint("TOPLEFT", 16, -16)
-        showItemsCheckBox.Text:SetText(L["SHOW_ITEMS"])
-        showItemsCheckBox.tooltipText = L["SHOW_ITEMS_TOOLTIP"]
-        showItemsCheckBox:SetChecked(PortalsDB.showItems)
+        -- The panel has grown beyond a single screen, so everything lives inside a
+        -- scroll frame. All controls are parented to `content`.
+        local scrollFrame = CreateFrame("ScrollFrame", "BPOptionsScrollFrame", OptionsFrame, "UIPanelScrollFrameTemplate")
+        scrollFrame:SetPoint("TOPLEFT", 3, -3)
+        scrollFrame:SetPoint("BOTTOMRIGHT", -27, 3)
 
-        showItemsCheckBox:SetScript("OnClick", function(self)
+        local content = CreateFrame("Frame", "BPOptionsScrollChild", scrollFrame)
+        content:SetSize(600, 700)
+        scrollFrame:SetScrollChild(content)
+
+        local function AddCheckbox(name, x, y, label, tooltip, checked, onClick)
+            local cb = CreateFrame("CheckButton", name, content, "InterfaceOptionsCheckButtonTemplate")
+            cb:SetPoint("TOPLEFT", x, y)
+            cb.Text:SetText(label)
+            cb.tooltipText = tooltip
+            cb:SetChecked(checked)
+            cb:SetScript("OnClick", onClick)
+            return cb
+        end
+
+        local function AddHeader(x, y, text)
+            local fs = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+            fs:SetPoint("TOPLEFT", x, y)
+            fs:SetText(text)
+            return fs
+        end
+
+        local showItemsSubCatCheckBox, showEngineeringSubCatCheckBox, showHSItemsSubCatCheckBox
+
+        local showItemsCheckBox = AddCheckbox("ShowItemsCheckBox", 16, -16, L["SHOW_ITEMS"], L["SHOW_ITEMS_TOOLTIP"], PortalsDB.showItems, function(self)
             PortalsDB.showItems = not PortalsDB.showItems
-            parentFrame = self:GetParent()
-            children = {parentFrame:GetChildren()}
-            for _, child in ipairs(children) do
-                if child:GetDebugName() == "showItemsSubCatCheckBox" or child:GetDebugName() == "showEngineeringSubCatCheckBox" then child:SetEnabled(PortalsDB.showItems) end
-            end
+            showItemsSubCatCheckBox:SetEnabled(PortalsDB.showItems)
+            showEngineeringSubCatCheckBox:SetEnabled(PortalsDB.showItems)
         end)
 
-        local showItemsSubCatCheckBox = CreateFrame("CheckButton", "showItemsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        showItemsSubCatCheckBox:SetPoint("TOPLEFT", 320, -16)
-        showItemsSubCatCheckBox.Text:SetText(L["SHOW_ITEMS_SUBCAT"])
-        showItemsSubCatCheckBox.tooltipText = L["SHOW_ITEMS_SUBCAT_TOOLTIP"]
-        showItemsSubCatCheckBox:SetChecked(PortalsDB.showItemsSubCat)
+        showItemsSubCatCheckBox = AddCheckbox("showItemsSubCatCheckBox", 320, -16, L["SHOW_ITEMS_SUBCAT"], L["SHOW_ITEMS_SUBCAT_TOOLTIP"], PortalsDB.showItemsSubCat, function(self)
+            PortalsDB.showItemsSubCat = not PortalsDB.showItemsSubCat
+        end)
 
-        showItemsSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showItemsSubCat = not PortalsDB.showItemsSubCat end)
-
-        local showHSItemsCheckBox = CreateFrame("CheckButton", "showHSItemsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        showHSItemsCheckBox:SetPoint("TOPLEFT", 16, -64)
-        showHSItemsCheckBox.Text:SetText(L["SHOW_HS_ITEMS"])
-        showHSItemsCheckBox.tooltipText = L["SHOW_HS_ITEMS_TOOLTIP"]
-        showHSItemsCheckBox:SetChecked(PortalsDB.showHSItems)
-
-        showHSItemsCheckBox:SetScript("OnClick", function(self)
+        local showHSItemsCheckBox = AddCheckbox("showHSItemsCheckBox", 16, -64, L["SHOW_HS_ITEMS"], L["SHOW_HS_ITEMS_TOOLTIP"], PortalsDB.showHSItems, function(self)
             PortalsDB.showHSItems = not PortalsDB.showHSItems
-            parentFrame = self:GetParent()
-            children = {parentFrame:GetChildren()}
-            for _, child in ipairs(children) do if child:GetDebugName() == "showHSItemsSubCatCheckBox" then child:SetEnabled(PortalsDB.showHSItems) end end
+            showHSItemsSubCatCheckBox:SetEnabled(PortalsDB.showHSItems)
         end)
 
-        local showHSItemsSubCatCheckBox = CreateFrame("CheckButton", "showHSItemsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        showHSItemsSubCatCheckBox:SetPoint("TOPLEFT", 320, -64)
-        showHSItemsSubCatCheckBox.Text:SetText(L["SHOW_HS_ITEMS_SUBCAT"])
-        showHSItemsSubCatCheckBox.tooltipText = L["SHOW_HS_ITEMS_SUBCAT_TOOLTIP"]
-        showHSItemsSubCatCheckBox:SetChecked(PortalsDB.showHSItemsSubCat)
+        showHSItemsSubCatCheckBox = AddCheckbox("showHSItemsSubCatCheckBox", 320, -64, L["SHOW_HS_ITEMS_SUBCAT"], L["SHOW_HS_ITEMS_SUBCAT_TOOLTIP"], PortalsDB.showHSItemsSubCat, function(self)
+            PortalsDB.showHSItemsSubCat = not PortalsDB.showHSItemsSubCat
+        end)
 
-        showHSItemsSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showHSItemsSubCat = not PortalsDB.showHSItemsSubCat end)
+        showEngineeringSubCatCheckBox = AddCheckbox("showEngineeringSubCatCheckBox", 16, -110, L["SHOW_ENGINEERING_SUBCAT"], L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"], PortalsDB.showEngineeringSubCat, function(self)
+            PortalsDB.showEngineeringSubCat = not PortalsDB.showEngineeringSubCat
+        end)
 
-        local showEngineeringSubCatCheckBox = CreateFrame("CheckButton", "showEngineeringSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        showEngineeringSubCatCheckBox:SetPoint("TOPLEFT", 16, -110)
-        showEngineeringSubCatCheckBox.Text:SetText(L["SHOW_ENGINEERING_SUBCAT"])
-        showEngineeringSubCatCheckBox.tooltipText = L["SHOW_ENGINEERING_SUBCAT_TOOLTIP"]
-        showEngineeringSubCatCheckBox:SetChecked(PortalsDB.showEngineeringSubCat)
+        AddCheckbox("showTeleportsSubCatCheckBox", 320, -110, L["SHOW_TELEPORTS_SUBCAT"], L["SHOW_TELEPORTS_SUBCAT_TOOLTIP"], PortalsDB.showTeleportsSubCat, function(self)
+            PortalsDB.showTeleportsSubCat = not PortalsDB.showTeleportsSubCat
+        end)
 
-        showEngineeringSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showEngineeringSubCat = not PortalsDB.showEngineeringSubCat end)
+        AddCheckbox("showMinimapButtonCheckBox", 16, -158, L['ATT_MINIMAP'], L['ATT_MINIMAP'], not PortalsDB.minimap.hide, function(self) BPToggleMinimap() end)
 
-        local showTeleportsSubCatCheckBox = CreateFrame("CheckButton", "showTeleportsSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        showTeleportsSubCatCheckBox:SetPoint("TOPLEFT", 320, -110)
-        showTeleportsSubCatCheckBox.Text:SetText(L["SHOW_TELEPORTS_SUBCAT"])
-        showTeleportsSubCatCheckBox.tooltipText = L["SHOW_TELEPORTS_SUBCAT_TOOLTIP"]
-        showTeleportsSubCatCheckBox:SetChecked(PortalsDB.showTeleportsSubCat)
+        AddCheckbox("announceCheckBox", 320, -158, L["ANNOUNCE"], L["ANNOUNCE_TOOLTIP"], PortalsDB.announce, function(self)
+            PortalsDB.announce = not PortalsDB.announce
+        end)
 
-        showTeleportsSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showTeleportsSubCat = not PortalsDB.showTeleportsSubCat end)
-
-        local minimapButtonBox = CreateFrame("CheckButton", "showMinimapButtonCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        minimapButtonBox:SetPoint("TOPLEFT", 16, -158)
-        minimapButtonBox.Text:SetText(L['ATT_MINIMAP'])
-        minimapButtonBox.tooltipText = L['ATT_MINIMAP']
-        minimapButtonBox:SetChecked(not PortalsDB.minimap.hide)
-
-        minimapButtonBox:SetScript("OnClick", function(self) BPToggleMinimap() end)
-
-        local announceCheckBox = CreateFrame("CheckButton", "announceCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        announceCheckBox:SetPoint("TOPLEFT", 320, -158)
-        announceCheckBox.Text:SetText(L["ANNOUNCE"])
-        announceCheckBox.tooltipText = L["ANNOUNCE_TOOLTIP"]
-        announceCheckBox:SetChecked(PortalsDB.announce)
-
-        announceCheckBox:SetScript("OnClick", function(self) PortalsDB.announce = not PortalsDB.announce end)
-
-        local fontSizeSlider = CreateFrame("Slider", "fontSizeSlider", OptionsFrame, "OptionsSliderTemplate")
+        local fontSizeSlider = CreateFrame("Slider", "fontSizeSlider", content, "OptionsSliderTemplate")
         fontSizeSlider:SetPoint("TOPLEFT", 16, -206)
         fontSizeSlider.Text:SetText(L['DROPDOWN_FONT_SIZE'] .. PortalsDB.fontSize)
         fontSizeSlider.tooltipText = L['DROPDOWN_FONT_SIZE']
@@ -559,7 +607,7 @@ local function CreateSettingsPanel()
             self.Text:SetText(L['DROPDOWN_FONT_SIZE'] .. PortalsDB.fontSize)
         end)
 
-        local scrollSizeSlider = CreateFrame("Slider", "scrollSizeSlider", OptionsFrame, "OptionsSliderTemplate")
+        local scrollSizeSlider = CreateFrame("Slider", "scrollSizeSlider", content, "OptionsSliderTemplate")
         scrollSizeSlider:SetPoint("TOPLEFT", 320, -206)
         scrollSizeSlider.Text:SetText(L['SCROLL_LIST_SIZE'] .. PortalsDB.scrollListSize)
         scrollSizeSlider.tooltipText = L['SCROLL_LIST_SIZE']
@@ -573,42 +621,176 @@ local function CreateSettingsPanel()
             self.Text:SetText(L['SCROLL_LIST_SIZE'] .. PortalsDB.scrollListSize)
         end)
 
-        local showItemsCooldownCheckBox = CreateFrame("CheckButton", "showItemsCooldownCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        showItemsCooldownCheckBox:SetPoint("TOPLEFT", 16, -254)
-        showItemsCooldownCheckBox.Text:SetText(L["SHOW_ITEM_COOLDOWNS"])
-        showItemsCooldownCheckBox.tooltipText = L["SHOW_ITEM_COOLDOWNS_TOOLTIP"]
-        showItemsCooldownCheckBox:SetChecked(PortalsDB.showItemCooldowns)
+        AddCheckbox("showItemsCooldownCheckBox", 16, -254, L["SHOW_ITEM_COOLDOWNS"], L["SHOW_ITEM_COOLDOWNS_TOOLTIP"], PortalsDB.showItemCooldowns, function(self)
+            PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns
+        end)
 
-        showItemsCooldownCheckBox:SetScript("OnClick", function(self) PortalsDB.showItemCooldowns = not PortalsDB.showItemCooldowns end)
-
-        local sortItemsAlphabeticalyCheckBox = CreateFrame("CheckButton", "sortItemsAlphabeticalyCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-        sortItemsAlphabeticalyCheckBox:SetPoint("TOPLEFT", 320, -254)
-        sortItemsAlphabeticalyCheckBox.Text:SetText(L["SORT_ITEMS"])
-        sortItemsAlphabeticalyCheckBox.tooltipText = L["SORT_ITEMS_TOOLTIP"]
-        sortItemsAlphabeticalyCheckBox:SetChecked(PortalsDB.sortItems)
-
-        sortItemsAlphabeticalyCheckBox:SetScript("OnClick", function(self) PortalsDB.sortItems = not PortalsDB.sortItems end)
+        AddCheckbox("sortItemsAlphabeticalyCheckBox", 320, -254, L["SORT_ITEMS"], L["SORT_ITEMS_TOOLTIP"], PortalsDB.sortItems, function(self)
+            PortalsDB.sortItems = not PortalsDB.sortItems
+        end)
 
         if challengeAvailable then
-            local showChallengeTeleportsCheckBox = CreateFrame("CheckButton", "showChallengeTeleportsCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-            showChallengeTeleportsCheckBox:SetPoint("TOPLEFT", 16, -302)
-            showChallengeTeleportsCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS"])
-            showChallengeTeleportsCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"]
-            showChallengeTeleportsCheckBox:SetChecked(PortalsDB.showChallengeTeleports)
+            local showChallengeSubCatCheckBox
+            local expansionChecks = {}
 
-            showChallengeTeleportsCheckBox:SetScript("OnClick", function(self)
+            local function updateChallengeChildren()
+                local enabled = PortalsDB.showChallengeTeleports
+                showChallengeSubCatCheckBox:SetEnabled(enabled)
+                for _, cb in ipairs(expansionChecks) do cb:SetEnabled(enabled) end
+            end
+
+            local showChallengeTeleportsCheckBox = AddCheckbox("showChallengeTeleportsCheckBox", 16, -302, L["SHOW_CHALLENGE_TELEPORTS"], L["SHOW_CHALLENGE_TELEPORTS_TOOLTIP"], PortalsDB.showChallengeTeleports, function(self)
                 PortalsDB.showChallengeTeleports = not PortalsDB.showChallengeTeleports
-                for _, child in ipairs(children) do if child:GetDebugName() == "showChallengeSubCatCheckBox" then child:SetEnabled(PortalsDB.showChallengeTeleports) end end
+                updateChallengeChildren()
             end)
 
-            local showChallengeSubCatCheckBox = CreateFrame("CheckButton", "showChallengeSubCatCheckBox", OptionsFrame, "InterfaceOptionsCheckButtonTemplate")
-            showChallengeSubCatCheckBox:SetPoint("TOPLEFT", 320, -302)
-            showChallengeSubCatCheckBox.Text:SetText(L["SHOW_CHALLENGE_TELEPORTS_SUBCAT"])
-            showChallengeSubCatCheckBox.tooltipText = L["SHOW_CHALLENGE_TELEPORTS_SUBCAT_TOOLTIP"]
-            showChallengeSubCatCheckBox:SetChecked(PortalsDB.showChallengeSubCat)
+            showChallengeSubCatCheckBox = AddCheckbox("showChallengeSubCatCheckBox", 320, -302, L["SHOW_CHALLENGE_TELEPORTS_SUBCAT"], L["SHOW_CHALLENGE_TELEPORTS_SUBCAT_TOOLTIP"], PortalsDB.showChallengeSubCat, function(self)
+                PortalsDB.showChallengeSubCat = not PortalsDB.showChallengeSubCat
+            end)
 
-            showChallengeSubCatCheckBox:SetScript("OnClick", function(self) PortalsDB.showChallengeSubCat = not PortalsDB.showChallengeSubCat end)
+            -- Per-expansion enable/disable checkboxes
+            AddHeader(16, -348, L["CHALLENGE_EXPANSIONS_HEADER"])
+            for i, exp in ipairs(challengeExpansions) do
+                local column = (i % 2 == 1) and 16 or 320
+                local rowY = -376 - (math.floor((i - 1) / 2) * 30)
+                local cb = AddCheckbox("BPChallengeExp" .. exp.key, column, rowY, L[exp.name], nil, PortalsDB.challengeExpansions[exp.key] ~= false, function(self)
+                    PortalsDB.challengeExpansions[exp.key] = self:GetChecked() and true or false
+                end)
+                expansionChecks[#expansionChecks + 1] = cb
+            end
+
+            updateChallengeChildren()
         end
+
+        -- ==================== Custom items / spells ====================
+        AddHeader(16, -540, L["CUSTOM_HEADER"])
+
+        local hint = content:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+        hint:SetPoint("TOPLEFT", 16, -562)
+        hint:SetText(L["CUSTOM_HINT"])
+
+        local newType = "item"
+        local typeButton = CreateFrame("Button", "BPCustomTypeButton", content, "UIPanelButtonTemplate")
+        typeButton:SetSize(80, 22)
+        typeButton:SetText(L["CUSTOM_TYPE_ITEM"])
+        typeButton:SetPoint("TOPLEFT", 16, -584)
+        typeButton:SetScript("OnClick", function(self)
+            if newType == "item" then
+                newType = "spell"
+                self:SetText(L["CUSTOM_TYPE_SPELL"])
+            else
+                newType = "item"
+                self:SetText(L["CUSTOM_TYPE_ITEM"])
+            end
+        end)
+
+        local idBox = CreateFrame("EditBox", "BPCustomIdBox", content, "InputBoxTemplate")
+        idBox:SetSize(90, 22)
+        idBox:SetAutoFocus(false)
+        idBox:SetNumeric(true)
+        idBox:SetPoint("TOPLEFT", 110, -584)
+
+        local addButton = CreateFrame("Button", "BPCustomAddButton", content, "UIPanelButtonTemplate")
+        addButton:SetSize(80, 22)
+        addButton:SetText(L["CUSTOM_ADD"])
+        addButton:SetPoint("TOPLEFT", 210, -584)
+
+        local function DoAdd()
+            local id = tonumber(idBox:GetText())
+            if not id or id <= 0 then return end
+            local arr = (newType == "item") and PortalsDB.customItems or PortalsDB.customSpells
+            for i = 1, #arr do
+                if arr[i] == id then idBox:SetText(""); return end -- already present
+            end
+            arr[#arr + 1] = id
+            if newType == "item" and C_Item and C_Item.RequestLoadItemDataByID then
+                C_Item.RequestLoadItemDataByID(id)
+            end
+            idBox:SetText("")
+            RefreshCustomList()
+        end
+        addButton:SetScript("OnClick", DoAdd)
+        idBox:SetScript("OnEnterPressed", function(self) DoAdd() self:ClearFocus() end)
+
+        -- Rebuildable list of existing custom entries (assigned to the file-scope upvalue)
+        local rowPool = {}
+        local listStartY = -618
+        RefreshCustomList = function()
+            for _, r in ipairs(rowPool) do r:Hide() end
+
+            local idx = 0
+            local function buildRows(arr, entryType)
+                for arrIndex = 1, #arr do
+                    idx = idx + 1
+                    local row = rowPool[idx]
+                    if not row then
+                        row = CreateFrame("Frame", nil, content)
+                        row:SetSize(520, 24)
+                        row.label = row:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+                        row.label:SetPoint("LEFT", 0, 0)
+                        row.label:SetWidth(46)
+                        row.label:SetJustifyH("LEFT")
+
+                        row.idBox = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
+                        row.idBox:SetSize(80, 20)
+                        row.idBox:SetAutoFocus(false)
+                        row.idBox:SetNumeric(true)
+                        row.idBox:SetPoint("LEFT", 50, 0)
+
+                        row.name = row:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+                        row.name:SetPoint("LEFT", 145, 0)
+                        row.name:SetWidth(320)
+                        row.name:SetJustifyH("LEFT")
+
+                        row.remove = CreateFrame("Button", nil, row, "UIPanelCloseButton")
+                        row.remove:SetSize(24, 24)
+                        row.remove:SetPoint("RIGHT", 0, 0)
+
+                        row.idBox:SetScript("OnEnterPressed", function(self)
+                            local newId = tonumber(self:GetText())
+                            if newId and newId > 0 then
+                                row.arr[row.arrIndex] = newId
+                                if row.entryType == "item" and C_Item and C_Item.RequestLoadItemDataByID then
+                                    C_Item.RequestLoadItemDataByID(newId)
+                                end
+                            end
+                            self:ClearFocus()
+                            RefreshCustomList()
+                        end)
+                        row.remove:SetScript("OnClick", function()
+                            table.remove(row.arr, row.arrIndex)
+                            RefreshCustomList()
+                        end)
+                        rowPool[idx] = row
+                    end
+
+                    row.arr = arr
+                    row.arrIndex = arrIndex
+                    row.entryType = entryType
+                    row.label:SetText(entryType == "item" and L["CUSTOM_TYPE_ITEM"] or L["CUSTOM_TYPE_SPELL"])
+                    row.idBox:SetText(tostring(arr[arrIndex]))
+
+                    local resolvedName
+                    if entryType == "item" then
+                        resolvedName = GetItemInfo(arr[arrIndex])
+                    else
+                        resolvedName = GetSpellInfo(arr[arrIndex])
+                        if type(resolvedName) == "table" then resolvedName = resolvedName.name end
+                    end
+                    row.name:SetText(resolvedName or "...")
+
+                    row:ClearAllPoints()
+                    row:SetPoint("TOPLEFT", 16, listStartY - (idx - 1) * 26)
+                    row:Show()
+                end
+            end
+
+            buildRows(PortalsDB.customItems, "item")
+            buildRows(PortalsDB.customSpells, "spell")
+
+            content:SetHeight(math.max(700, -listStartY + idx * 26 + 40))
+        end
+        RefreshCustomList()
 
         category = Settings.RegisterCanvasLayoutCategory(OptionsFrame, OptionsFrame.name)
         Settings.RegisterAddOnCategory(category)
@@ -635,6 +817,25 @@ end
 local function tconcat(t1, t2)
     for i = 1, #t2 do t1[#t1 + 1] = t2[i] end
     return t1
+end
+
+-- Ask the client to cache item/toy data ahead of time so that the very first
+-- menu build already has names/icons available (otherwise toys and items only
+-- appear on the second open, once GetItemInfo has resolved asynchronously).
+local function PreloadItemData()
+    if not (C_Item and C_Item.RequestLoadItemDataByID) then return end
+    local function req(list)
+        for i = 1, #list do
+            local id = type(list[i]) == "table" and list[i][1] or list[i]
+            if id then C_Item.RequestLoadItemDataByID(id) end
+        end
+    end
+    req(items)
+    req(engineeringItems)
+    req(heartstones)
+    req(scrolls)
+    req(whistle)
+    if PortalsDB and PortalsDB.customItems then req(PortalsDB.customItems) end
 end
 
 -- returns true, if player has item with given ID in inventory or bags and it's not on cooldown
@@ -911,61 +1112,41 @@ local function PrepareMenuData()
 
     if portals then GenerateMenuEntries("spell", portals, "mainspells") end
 
+    -- User-defined custom spells are shown together with the main teleport/portal spells
+    if PortalsDB.customSpells and #PortalsDB.customSpells > 0 then
+        local customSpellList = {}
+        for i = 1, #PortalsDB.customSpells do
+            customSpellList[i] = {PortalsDB.customSpells[i], 'TRUE'}
+        end
+        GenerateMenuEntries("spell", customSpellList, "mainspells")
+    end
+
     if challengeAvailable then
-        challengeVanillaCount = GenerateMenuEntries("spell", challengeVanillaSpells, "challengesVanilla")
-        if challengeVanillaCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesVanilla", name = L["CHALLENGE_TP_VANILLA"]}
+        challengeSpellCount = 0
+        methods["challenges"] = {}
+        -- Generate each expansion separately, skipping the ones disabled in options,
+        -- and merge the enabled ones into the flat "challenges" category too.
+        for _, exp in ipairs(challengeExpansions) do
+            local enabled = (not PortalsDB.challengeExpansions) or (PortalsDB.challengeExpansions[exp.key] ~= false)
+            if enabled then
+                local count = GenerateMenuEntries("spell", exp.spells, exp.category)
+                if count > 0 then
+                    challengeCategories[#challengeCategories + 1] = {category = exp.category, name = L[exp.name]}
+                    for entryName, entry in pairs(methods[exp.category]) do
+                        methods["challenges"][entryName] = entry
+                    end
+                end
+            end
         end
-
-        challengeCataCount    = GenerateMenuEntries("spell", challengeCataSpells, "challengesCata")
-        if challengeCataCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesCata", name = L["CHALLENGE_TP_CATA"]}
-        end
-
-        challengeMOPCount     = GenerateMenuEntries("spell", challengeMOPSpells, "challengesMOP")
-        if challengeMOPCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesMOP", name = L["CHALLENGE_TP_MOP"]}
-        end
-
-        challengeWODCount     = GenerateMenuEntries("spell", challengeWODSpells, "challengesWOD")
-        if challengeWODCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesWOD", name = L["CHALLENGE_TP_WOD"]}
-        end
-
-        challengeLegionCount  = GenerateMenuEntries("spell", challengeLegionSpells, "challengesLegion")
-        if challengeLegionCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesLegion", name = L["CHALLENGE_TP_LEGION"]}
-        end
-
-        challengeBFACount     = GenerateMenuEntries("spell", challengeBFASpells, "challengesBFA")
-        if challengeBFACount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesBFA", name = L["CHALLENGE_TP_BFA"]}
-        end
-
-        challengeSLCount      = GenerateMenuEntries("spell", challengeSLSpells, "challengesSL")
-        if challengeSLCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesSL", name = L["CHALLENGE_TP_SL"]}
-        end
-
-        challengeDFCount      = GenerateMenuEntries("spell", challengeDFSpells, "challengesDF")
-        if challengeDFCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesDF", name = L["CHALLENGE_TP_DF"]}
-        end
-
-        challengeTWWCount     = GenerateMenuEntries("spell", challengeTWWSpells, "challengesTWW")
-        if challengeTWWCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesTWW", name = L["CHALLENGE_TP_TWW"]}
-        end
-
-        challengeMidnightCount = GenerateMenuEntries("spell", challengeMidnightSpells, "challengesMidnight")
-        if challengeMidnightCount > 0 then
-            challengeCategories[#challengeCategories + 1] = {category = "challengesMidnight", name = L["CHALLENGE_TP_MIDNIGHT"]}
-        end
-
-        challengeSpellCount = GenerateMenuEntries("spell", challengeSpells, "challenges")
+        for _ in pairs(methods["challenges"]) do challengeSpellCount = challengeSpellCount + 1 end
     end
 
     GenerateMenuEntries("items", items, "mainitems")
+
+    -- User-defined custom items are shown together with the various items
+    if PortalsDB.customItems and #PortalsDB.customItems > 0 then
+        GenerateMenuEntries("items", PortalsDB.customItems, "mainitems")
+    end
 
     engineringItemsCount = GenerateMenuEntries("items", engineeringItems, "engineering")
 
@@ -1146,6 +1327,49 @@ local function ShowWhistle()
     end
 end
 
+-- Shared teleport-home cooldown (applies to all houses)
+local function GetHousingCooldown()
+    if not (C_Housing and C_Housing.GetVisitCooldownInfo) then return L['N/A'] end
+    local info = C_Housing.GetVisitCooldownInfo()
+    if not info then return L['N/A'] end
+    -- Handle secret values in combat (WoW 12.0.0+)
+    if issecretvalue and (issecretvalue(info.startTime) or issecretvalue(info.duration)) then
+        return L['READY']
+    end
+    if not info.isEnabled then return L['READY'] end
+    local remaining = (info.startTime + info.duration) - GetTime()
+    if remaining and remaining > 1 then
+        return SecondsToTime(remaining)
+    end
+    return L['READY']
+end
+
+-- One menu entry per owned house; clicking fires the secure teleporthome action
+local function ShowHousing()
+    if #housingHouses == 0 then return end
+    for _, house in ipairs(housingHouses) do
+        -- Keep a reference to the secure table so the auto-retry can rewrite the GUID in place
+        house.secure = {
+            type = 'teleporthome',
+            ['house-neighborhood-guid'] = house.neighborhoodGUID,
+            ['house-guid']              = house.houseGUID,
+            ['house-plot-id']           = house.plotID,
+        }
+        dewdrop:AddLine(
+            'textHeight',   PortalsDB.fontSize,
+            'text',         house.name,
+            'tooltipTitle', house.name,
+            'secure',       house.secure,
+            'icon',         tostring(housingIcon),
+            'func',         function()
+                UpdateIcon(housingIcon)
+                lastHouseAttempt = {key = house.key, time = GetTime()}
+            end,
+            'closeWhenClicked', true)
+    end
+    dewdrop:AddLine()
+end
+
 local function UpdateMenu(level, value)
     dewdrop:SetFontSize(PortalsDB.fontSize)
     dewdrop:SetScrollListSize(PortalsDB.scrollListSize)
@@ -1153,6 +1377,7 @@ local function UpdateMenu(level, value)
     if level == 1 then
         dewdrop:AddLine('text', 'Broker_Portals', 'isTitle', true)
         PrepareMenuData()
+        RequestHousingInfo() -- refresh owned-house GUIDs for the next open (async)
         local chatType = (UnitInRaid("player") and "RAID") or (GetNumGroupMembers() > 0 and "PARTY") or nil
         local announce = PortalsDB.announce
 
@@ -1203,6 +1428,7 @@ local function UpdateMenu(level, value)
 
         ShowHearthstone()
         ShowWhistle()
+        ShowHousing()
 
         dewdrop:AddLine('textHeight', PortalsDB.fontSize, 'text', L['OPTIONS'], 'hasArrow', false, 'func', function() Settings.OpenToCategory(category:GetID()); end, 'closeWhenClicked', true)
 
@@ -1244,7 +1470,7 @@ function frame:PLAYER_LOGIN()
         PortalsDB.sortItems              = false
         PortalsDB.announce               = false
         PortalsDB.fontSize               = UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-        PortalsDB.version                = 9
+        PortalsDB.version                = 10
     else -- check if all parameters exist and if not then re-add parameter with default value
         PortalsDB.minimap                = (PortalsDB.minimap ~= nil and PortalsDB.minimap) or {}
         PortalsDB.minimap.hide           = (PortalsDB.minimap.hide ~= nil and PortalsDB.minimap.hide) or false
@@ -1261,14 +1487,104 @@ function frame:PLAYER_LOGIN()
         PortalsDB.sortItems              = (PortalsDB.sortItems ~= nil and PortalsDB.sortItems) or false
         PortalsDB.announce               = (PortalsDB.announce~= nil and PortalsDB.announce) or false
         PortalsDB.fontSize               = (PortalsDB.fontSize ~= nil and PortalsDB.fontSize) or UIDROPDOWNMENU_DEFAULT_TEXT_HEIGHT
-        PortalsDB.version                = 9
+        PortalsDB.version                = 10
+    end
+
+    -- Fields added in newer versions (shared by fresh install and upgrade paths)
+    PortalsDB.customItems  = PortalsDB.customItems or {}
+    PortalsDB.customSpells = PortalsDB.customSpells or {}
+    if type(PortalsDB.challengeExpansions) ~= "table" then PortalsDB.challengeExpansions = {} end
+    for _, exp in ipairs(challengeExpansions) do
+        if PortalsDB.challengeExpansions[exp.key] == nil then PortalsDB.challengeExpansions[exp.key] = true end
     end
 
     if icon then icon:Register('Broker_Portals', obj, PortalsDB.minimap) end
     CreateSettingsPanel()
+    PreloadItemData()
     PrepareMenuData()
     PrepareMenuData()
+    frame:RegisterEvent('GET_ITEM_INFO_RECEIVED')
+    if C_Housing and C_Housing.GetPlayerOwnedHouses then
+        BuildStaleHouseErrorSet()
+        frame:RegisterEvent('PLAYER_HOUSE_LIST_UPDATED')
+        frame:RegisterEvent('UI_ERROR_MESSAGE')
+        RequestHousingInfo()
+    end
     self:UnregisterEvent('PLAYER_LOGIN')
+end
+
+-- The owned-house list arrives asynchronously in response to GetPlayerOwnedHouses().
+-- Each entry is a HouseInfo (plotID, houseName, ownerName, neighborhoodName, GUIDs).
+-- We merge by a stable key (neighborhoodGUID:plotID) so a recently cycled GUID is not
+-- immediately overwritten by a possibly-stale server value.
+function frame:PLAYER_HOUSE_LIST_UPDATED(event, houseInfos)
+    local existing = {}
+    for _, h in ipairs(housingHouses) do existing[h.key] = h end
+
+    local rebuilt = {}
+    if houseInfos then
+        for _, info in ipairs(houseInfos) do
+            if info.neighborhoodGUID and info.houseGUID and info.plotID then
+                local key = tostring(info.neighborhoodGUID) .. ":" .. tostring(info.plotID)
+                local name = info.houseName
+                if not name or name == "" then name = info.neighborhoodName end
+                if not name or name == "" then name = L['HOUSE_TELEPORT'] .. ' ' .. tostring(info.plotID) end
+
+                local prev = existing[key]
+                local houseGUID = info.houseGUID
+                local lockUntil = prev and prev.lockUntil
+                -- Preserve a locally-cycled GUID while its lock is active
+                if prev and lockUntil and lockUntil > GetTime() then
+                    houseGUID = prev.houseGUID
+                end
+
+                rebuilt[#rebuilt + 1] = {
+                    neighborhoodGUID = info.neighborhoodGUID,
+                    houseGUID        = houseGUID,
+                    plotID           = info.plotID,
+                    name             = name,
+                    key              = key,
+                    lockUntil        = lockUntil,
+                }
+            end
+        end
+    end
+    housingHouses = rebuilt
+end
+
+-- A teleport that fails on a stale GUID raises a housing UI error shortly after the
+-- click. Cycle the trailing digit of the offending house's GUID and lock it so the
+-- next attempt (after reopening the menu) uses the corrected value.
+function frame:UI_ERROR_MESSAGE(event, errorType, message)
+    if not lastHouseAttempt then return end
+    if (GetTime() - lastHouseAttempt.time) > HOUSE_RETRY_WINDOW then
+        lastHouseAttempt = nil
+        return
+    end
+    if message and staleHouseErrors[message] then
+        for _, h in ipairs(housingHouses) do
+            if h.key == lastHouseAttempt.key then
+                local newGUID = IncrementHouseGUID(h.houseGUID)
+                if newGUID then
+                    h.houseGUID = newGUID
+                    h.lockUntil = GetTime() + HOUSE_GUID_LOCK
+                    if h.secure then h.secure['house-guid'] = newGUID end
+                end
+                break
+            end
+        end
+        lastHouseAttempt = nil
+    end
+end
+
+-- Item data resolves asynchronously; refresh the custom list when it arrives so
+-- freshly added entries show their real name, and mark the menu cache stale so the
+-- next open rebuilds with the now-available data.
+function frame:GET_ITEM_INFO_RECEIVED()
+    databaseLoaded = false
+    if RefreshCustomList and OptionsFrame and OptionsFrame:IsShown() then
+        RefreshCustomList()
+    end
 end
 
 -- All credit for this func goes to Tekkub and his picoGuild!
@@ -1334,6 +1650,17 @@ function obj.OnEnter(self)
             GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
         else
             GameTooltip:AddDoubleLine(GetItemInfo(whistle[1]), whistleCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+        end
+    end
+
+    if #housingHouses > 0 then
+        local housingCooldown = GetHousingCooldown()
+        if housingCooldown ~= L['N/A'] then
+            if housingCooldown == L['READY'] then
+                GameTooltip:AddDoubleLine(L['HOUSE_TELEPORT'], housingCooldown, 0.9, 0.6, 0.2, 0.2, 1, 0.2)
+            else
+                GameTooltip:AddDoubleLine(L['HOUSE_TELEPORT'], housingCooldown, 0.9, 0.6, 0.2, 1, 1, 0.2)
+            end
         end
     end
     GameTooltip:Show()
