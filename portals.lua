@@ -38,7 +38,24 @@ local isTBCClassic       = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSI
 local isWotlkClassic     = (WOW_PROJECT_ID == WOW_PROJECT_WRATH_CLASSIC)
 local isCataclysmClassic = (WOW_PROJECT_ID == WOW_PROJECT_CATACLYSM_CLASSIC)
 local isMoPClassic       = (WOW_PROJECT_ID == WOW_PROJECT_MISTS_CLASSIC)
-local isRetail           = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
+-- WoW Forever ("camelot") runs on the mainline code base and therefore reports
+-- WOW_PROJECT_ID == WOW_PROJECT_MAINLINE, but its world is vanilla Azeroth: no
+-- housing, no retail-only services. Asking a Forever server for housing data
+-- (C_Housing.GetPlayerOwnedHouses) drops the connection, so mainline must be
+-- detected with camelot excluded. It is identified by TOC version - 1.60.x
+-- reports 16001, which sits between Classic Era (11508) and TBC (20506).
+local gameVersion, _, _, tocVersion = GetBuildInfo()
+tocVersion = tocVersion or 0
+
+-- Identify Forever positively, so the detection holds whatever WOW_PROJECT_ID
+-- reports now or later: today it reports MAINLINE (which is what let the
+-- housing query through again), tomorrow it may get its own constant. Two
+-- independent markers, either is enough:
+--   * interface version in the 1.6x band (1.60.1 -> 16001)
+--   * version string "1.60.x" from GetBuildInfo
+local isCamelot          = (tocVersion >= 16000 and tocVersion < 20000)
+    or (type(gameVersion) == "string" and gameVersion:match("^1%.6%d") ~= nil)
+local isRetail           = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE) and not isCamelot
 local challengeAvailable = select(4, GetBuildInfo()) > 49999
 local engineeringName    = C_TradeSkillUI.GetTradeSkillDisplayName(202)
 local engineeringIcon    = C_TradeSkillUI.GetTradeSkillTexture(202)
@@ -464,6 +481,12 @@ local housingHouses = {} -- array of {neighborhoodGUID, houseGUID, plotID, name}
 local housingIcon = (C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(1233637)) or 237509
 
 local function RequestHousingInfo()
+    -- Second line of defence: housing only exists on mainline. C_Housing is
+    -- present in the shared 12.0 UI on every flavor, so its existence proves
+    -- nothing - the query still has to reach a server that implements housing.
+    if not isRetail then
+        return
+    end
     if C_Housing and C_Housing.GetPlayerOwnedHouses then
         C_Housing.GetPlayerOwnedHouses()
     end
@@ -527,9 +550,14 @@ local function BPToggleMinimap()
     end
 end
 
+-- File-scope so CreateSettingsPanel, the category registration and the
+-- custom-list refresh all see the same frame; it used to live in _G under the
+-- very collidable name "OptionsFrame".
+local OptionsFrame
+
 local function CreateSettingsPanel()
     if Settings then
-        OptionsFrame = CreateFrame("Frame", "OptionsFrame", UIParent)
+        OptionsFrame = CreateFrame("Frame", "BrokerPortalsOptionsFrame", UIParent)
         OptionsFrame.name = "Broker Portals"
 
         -- The panel has grown beyond a single screen, so everything lives inside a
@@ -1053,7 +1081,7 @@ local function GenerateMenuEntries(itemType, itemList, menuCategory)
 
                 if spellId then
                     if not methods[menuCategory] then methods[menuCategory] = {} end
-                    spellDescription = GetSpellDescription(spellId)
+                    local spellDescription = GetSpellDescription(spellId)
                     methods[menuCategory][spellName] = {
                         itemID   = spellId,
                         itemName = spellName,
